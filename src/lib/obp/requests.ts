@@ -1,7 +1,7 @@
 import { createLogger } from '$lib/utils/logger';
 const logger = createLogger('OBPRequests');
 import { env } from '$env/dynamic/public';
-import { OBPErrorBase, OBPRequestError } from '$lib/obp/errors';
+import { OBPErrorBase, OBPRequestError, type OBPRequestDetails, type OBPResponseDetails } from '$lib/obp/errors';
 
 class OBPRequests {
 	base_url: string;
@@ -26,6 +26,13 @@ class OBPRequests {
 		if (accessToken) {
 			headers['Authorization'] = `Bearer ${accessToken}`;
 		}
+
+		const requestDetails: OBPRequestDetails = {
+			method: 'GET',
+			url,
+			headers
+		};
+
 		const response = await fetch(url, {
 			headers
 		});
@@ -41,10 +48,21 @@ class OBPRequests {
 		if (!response.ok) {
 			logger.error('Failed to fetch OBP data:', { statusText: response.statusText, data });
 
+			const responseDetails: OBPResponseDetails = {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			};
+
 			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message);
+				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
 			} else {
-				throw new OBPErrorBase(`Error fetching OBP data from ${url}: ${response.statusText}`);
+				throw new OBPRequestError(
+					response.status,
+					`Error fetching OBP data from ${url}: ${response.statusText}`,
+					requestDetails,
+					responseDetails
+				);
 			}
 		}
 
@@ -62,6 +80,14 @@ class OBPRequests {
 		if (accessToken) {
 			headers['Authorization'] = `Bearer ${accessToken}`;
 		}
+
+		const requestDetails: OBPRequestDetails = {
+			method: 'POST',
+			url,
+			headers,
+			body
+		};
+
 		const response = await fetch(url, {
 			method: 'POST',
 			headers,
@@ -79,10 +105,21 @@ class OBPRequests {
 		if (!response.ok) {
 			logger.error('Failed to post OBP data:', { statusText: response.statusText, data });
 
+			const responseDetails: OBPResponseDetails = {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			};
+
 			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message);
+				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
 			} else {
-				throw new OBPErrorBase(`Error posting OBP data to ${url}: ${response.statusText}`);
+				throw new OBPRequestError(
+					response.status,
+					`Error posting OBP data to ${url}: ${response.statusText}`,
+					requestDetails,
+					responseDetails
+				);
 			}
 		}
 
@@ -100,6 +137,13 @@ class OBPRequests {
 		if (accessToken) {
 			headers['Authorization'] = `Bearer ${accessToken}`;
 		}
+
+		const requestDetails: OBPRequestDetails = {
+			method: 'DELETE',
+			url,
+			headers
+		};
+
 		const response = await fetch(url, {
 			method: 'DELETE',
 			headers
@@ -115,10 +159,22 @@ class OBPRequests {
 
 		if (!response.ok) {
 			logger.error('Failed to delete OBP data:', response.statusText, data);
+
+			const responseDetails: OBPResponseDetails = {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			};
+
 			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message);
+				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
 			} else {
-				throw new OBPErrorBase(`Error deleting OBP data from ${url}: ${response.statusText}`);
+				throw new OBPRequestError(
+					response.status,
+					`Error deleting OBP data from ${url}: ${response.statusText}`,
+					requestDetails,
+					responseDetails
+				);
 			}
 		}
 
@@ -136,6 +192,14 @@ class OBPRequests {
 		if (accessToken) {
 			headers['Authorization'] = `Bearer ${accessToken}`;
 		}
+
+		const requestDetails: OBPRequestDetails = {
+			method: 'PUT',
+			url,
+			headers,
+			body
+		};
+
 		const response = await fetch(url, {
 			method: 'PUT',
 			headers,
@@ -152,10 +216,22 @@ class OBPRequests {
 
 		if (!response.ok) {
 			logger.error('Failed to put OBP data:', { statusText: response.statusText, data });
+
+			const responseDetails: OBPResponseDetails = {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			};
+
 			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message);
+				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
 			} else {
-				throw new OBPErrorBase(`Error putting OBP data to ${url}: ${response.statusText}`);
+				throw new OBPRequestError(
+					response.status,
+					`Error putting OBP data to ${url}: ${response.statusText}`,
+					requestDetails,
+					responseDetails
+				);
 			}
 		}
 

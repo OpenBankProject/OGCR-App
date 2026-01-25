@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_PROJECT } from '$lib/constants/entities';
+import { ENTITY_PROJECT, ENTITY_PREFIX } from '$lib/constants/entities';
+import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = locals.session;
@@ -10,7 +11,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			isAuthenticated: false,
 			projects: null,
-			error: null
+			error: null,
+			projectIdField: `${ENTITY_PREFIX}projectId`
 		};
 	}
 
@@ -24,14 +26,25 @@ export const load: PageServerLoad = async ({ locals }) => {
 			isAuthenticated: true,
 			projects: response[`${ENTITY_PROJECT}_list`] || [],
 			rawResponse: response,
-			error: null
+			error: null,
+			projectIdField: `${ENTITY_PREFIX}projectId`
 		};
 	} catch (error) {
+		if (error instanceof OBPRequestError) {
+			return {
+				isAuthenticated: true,
+				projects: null,
+				error: error.message,
+				errorDetails: error.toJSON(),
+				projectIdField: `${ENTITY_PREFIX}projectId`
+			};
+		}
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		return {
 			isAuthenticated: true,
 			projects: null,
-			error: errorMessage
+			error: errorMessage,
+			projectIdField: `${ENTITY_PREFIX}projectId`
 		};
 	}
 };

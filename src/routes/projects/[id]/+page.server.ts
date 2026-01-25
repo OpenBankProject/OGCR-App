@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
 import { ENTITY_PROJECT } from '$lib/constants/entities';
+import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const session = locals.session;
@@ -27,6 +28,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			error: null
 		};
 	} catch (error) {
+		if (error instanceof OBPRequestError) {
+			return {
+				isAuthenticated: true,
+				project: null,
+				error: error.message,
+				errorDetails: error.toJSON()
+			};
+		}
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		return {
 			isAuthenticated: true,
