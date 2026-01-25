@@ -16,13 +16,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	try {
 		const response = await obp_requests.get(
-			`/obp/v5.1.0/management/system-dynamic-entities/${ENTITY_PROJECT}`,
+			`/obp/dynamic-entity/${ENTITY_PROJECT}`,
 			accessToken
 		);
 
 		return {
 			isAuthenticated: true,
 			projects: response[`${ENTITY_PROJECT}_list`] || [],
+			rawResponse: response,
 			error: null
 		};
 	} catch (error) {
