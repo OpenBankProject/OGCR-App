@@ -1,13 +1,11 @@
 import { createLogger } from '$lib/utils/logger';
-const logger = createLogger('ProviderLoginCallback');
+const logger = createLogger('LoginCallback');
 import { oauth2ProviderFactory } from '$lib/oauth/providerFactory';
 import type { OAuth2Tokens } from 'arctic';
 import type { RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 
 export async function GET(event: RequestEvent): Promise<Response> {
-	const { provider: urlProvider } = event.params;
-
 	// Check for OAuth error responses first
 	const oauthError = event.url.searchParams.get('error');
 	const errorDescription = event.url.searchParams.get('error_description');
@@ -47,16 +45,6 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const storedState = event.cookies.get('ogcr_oauth_state');
 	const code = event.url.searchParams.get('code');
 	const recievedState = event.url.searchParams.get('state');
-
-	if (!urlProvider) {
-		logger.error('Provider not specified in URL');
-		return new Response(null, {
-			status: 302,
-			headers: {
-				Location: `/login?error=${encodeURIComponent('Invalid request. Please try again.')}`
-			}
-		});
-	}
 
 	if (storedState === null) {
 		logger.error('No stored state cookie found');
@@ -100,8 +88,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	const [actualState, provider] = storedState.split(':');
 	logger.debug('Received state:', recievedState);
-	if (!provider || provider !== urlProvider) {
-		logger.error('Provider mismatch or not found in state:', { stored: provider, url: urlProvider });
+	if (!provider) {
+		logger.error('Provider not found in state');
 		return new Response(null, {
 			status: 302,
 			headers: {

@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 
 	// Lucide Icons
-	import { Menu, X, Database, Home, User, Settings, LogOut, LogIn } from '@lucide/svelte';
+	import { Menu, X, Database, Home, User, Settings, LogOut, LogIn, FolderKanban } from '@lucide/svelte';
 
 	let { data, children } = $props();
 
@@ -26,6 +26,11 @@
 			label: 'Home',
 			href: '/',
 			iconComponent: Home
+		},
+		{
+			label: 'Projects',
+			href: '/projects',
+			iconComponent: FolderKanban
 		},
 		{
 			label: 'Dynamic Entities',
