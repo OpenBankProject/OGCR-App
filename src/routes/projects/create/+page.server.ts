@@ -1,7 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
 import { ENTITY_PROJECT, ENTITY_PREFIX } from '$lib/constants/entities';
-import { redirect } from '@sveltejs/kit';
 import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -35,12 +34,10 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const project_owner = formData.get('project_owner') as string;
 
-		const projectIdField = `${ENTITY_PREFIX}projectId`;
+		// OBP dynamic entity POST expects flat object with just the properties
+		// The entity wrapper and ID are returned in the response, not sent in the request
 		const body = {
-			[ENTITY_PROJECT]: {
-				[projectIdField]: crypto.randomUUID(),
-				project_owner
-			}
+			project_owner
 		};
 
 		try {

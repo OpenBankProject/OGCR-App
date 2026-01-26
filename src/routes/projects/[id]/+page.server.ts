@@ -17,14 +17,19 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	}
 
 	try {
+		// Use the dynamic entity endpoint to get a single project by ID
 		const response = await obp_requests.get(
-			`/obp/v5.1.0/management/system-dynamic-entities/${ENTITY_PROJECT}/${projectId}`,
+			`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
 			accessToken
 		);
 
+		// Response is wrapped in entity name, e.g. { ogcr5_project: { ... } }
+		// Unwrap to get the actual project object
+		const project = response[ENTITY_PROJECT] || response;
+
 		return {
 			isAuthenticated: true,
-			project: response,
+			project,
 			error: null
 		};
 	} catch (error) {
