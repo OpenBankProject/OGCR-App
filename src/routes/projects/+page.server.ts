@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		);
 
 		// Extract project list and normalize the ID field for easier template access
-		const projectIdField = `${ENTITY_PREFIX}projectId`;
+		const projectIdField = `${ENTITY_PREFIX}project_id`;
 		const rawProjects = response[`${ENTITY_PROJECT}_list`] || [];
 		const projects = rawProjects.map((p: Record<string, unknown>) => ({
 			...p,
