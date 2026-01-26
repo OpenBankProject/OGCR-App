@@ -43,3 +43,7 @@ For creating dynamic entities:
 
 - **List response:** `{ "{entity_name}_list": [...] }`
 - **Single response:** `{ "{entity_name}": {...} }`
+
+### Important: Field Naming
+
+The resource docs examples may show camelCase (e.g., `ogcr5_projectId`) but the actual API returns snake_case (e.g., `ogcr5_project_id`). Always verify field names from actual API responses, not just the documentation examples.

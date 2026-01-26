@@ -89,6 +89,11 @@
 			<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-sm">{JSON.stringify(data.rawResponse, null, 2)}</pre>
 		</div>
 	{:else if data.projects}
+		<!-- Debug: show raw response -->
+		<details class="mb-4">
+			<summary class="cursor-pointer text-sm text-surface-600-400">Debug: Raw API Response</summary>
+			<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(data.rawResponse, null, 2)}</pre>
+		</details>
 		<div class="grid gap-4">
 			{#each data.projects as project}
 				<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
