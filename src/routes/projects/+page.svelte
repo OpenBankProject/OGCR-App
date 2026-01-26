@@ -97,12 +97,12 @@
 							<h3 class="h4 text-primary-500">
 								{project.project_owner || 'Unnamed Project'}
 							</h3>
-							{#if project[data.projectIdField]}
-								<p class="text-sm text-surface-600-400 mt-1">ID: {project[data.projectIdField]}</p>
+							{#if project.project_id}
+								<p class="text-sm text-surface-600-400 mt-1">ID: {project.project_id}</p>
 							{/if}
 						</div>
 						<a
-							href="/projects/{project[data.projectIdField]}"
+							href="/projects/{project.project_id}"
 							class="btn preset-outlined-primary-500"
 						>
 							<span>View Details</span>

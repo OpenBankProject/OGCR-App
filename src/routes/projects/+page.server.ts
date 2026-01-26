@@ -11,8 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			isAuthenticated: false,
 			projects: null,
-			error: null,
-			projectIdField: `${ENTITY_PREFIX}projectId`
+			error: null
 		};
 	}
 
@@ -22,12 +21,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 			accessToken
 		);
 
+		// Extract project list and normalize the ID field for easier template access
+		const projectIdField = `${ENTITY_PREFIX}projectId`;
+		const rawProjects = response[`${ENTITY_PROJECT}_list`] || [];
+		const projects = rawProjects.map((p: Record<string, unknown>) => ({
+			...p,
+			project_id: p[projectIdField]
+		}));
+
 		return {
 			isAuthenticated: true,
-			projects: response[`${ENTITY_PROJECT}_list`] || [],
+			projects,
 			rawResponse: response,
-			error: null,
-			projectIdField: `${ENTITY_PREFIX}projectId`
+			error: null
 		};
 	} catch (error) {
 		if (error instanceof OBPRequestError) {
@@ -35,16 +41,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 				isAuthenticated: true,
 				projects: null,
 				error: error.message,
-				errorDetails: error.toJSON(),
-				projectIdField: `${ENTITY_PREFIX}projectId`
+				errorDetails: error.toJSON()
 			};
 		}
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		return {
 			isAuthenticated: true,
 			projects: null,
-			error: errorMessage,
-			projectIdField: `${ENTITY_PREFIX}projectId`
+			error: errorMessage
 		};
 	}
 };
