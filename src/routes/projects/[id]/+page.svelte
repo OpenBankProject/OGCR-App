@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check } from '@lucide/svelte';
+	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check, MapPin } from '@lucide/svelte';
 	import { page } from '$app/state';
 
 	let { data }: { data: PageData } = $props();
@@ -120,6 +120,45 @@
 					{/each}
 				</div>
 			</div>
+		</div>
+
+		<!-- Parcels Section -->
+		<div class="card p-6 preset-filled-surface-100-900 mt-6">
+			<div class="flex items-center gap-4 mb-6">
+				<MapPin class="size-8 text-secondary-500" />
+				<h2 class="h3">Parcels</h2>
+			</div>
+
+			{#if data.parcels && data.parcels.length > 0}
+				<div class="grid gap-4">
+					{#each data.parcels as parcel}
+						<div class="card p-4 preset-filled-surface-200-800">
+							<div class="grid gap-2">
+								{#if parcel.parcel_id}
+									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+										<span class="font-medium text-surface-600-400 min-w-[150px]">Parcel ID:</span>
+										<span class="text-surface-800-200 break-all">{parcel.parcel_id}</span>
+									</div>
+								{/if}
+								{#if parcel.parcel_owner}
+									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+										<span class="font-medium text-surface-600-400 min-w-[150px]">Owner:</span>
+										<span class="text-surface-800-200">{parcel.parcel_owner}</span>
+									</div>
+								{/if}
+								{#if parcel.geo_data}
+									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+										<span class="font-medium text-surface-600-400 min-w-[150px]">Geo Data:</span>
+										<span class="text-surface-800-200 break-all">{parcel.geo_data}</span>
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<p class="text-surface-600-400">No parcels found for this project.</p>
+			{/if}
 		</div>
 	{:else}
 		<div class="card p-8 preset-filled-surface-100-900 text-center">

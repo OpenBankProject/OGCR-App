@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_PROJECT } from '$lib/constants/entities';
+import { ENTITY_PROJECT, ENTITY_PARCEL, ENTITY_PREFIX } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -12,24 +12,38 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		return {
 			isAuthenticated: false,
 			project: null,
+			parcels: null,
 			error: null
 		};
 	}
 
 	try {
-		// Use the dynamic entity endpoint to get a single project by ID
-		const response = await obp_requests.get(
-			`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
-			accessToken
-		);
+		// Fetch project and parcels in parallel
+		const [projectResponse, parcelsResponse] = await Promise.all([
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PARCEL}?${ENTITY_PREFIX}project_id=${projectId}`,
+				accessToken
+			)
+		]);
 
-		// Response is wrapped in entity name, e.g. { ogcr5_project: { ... } }
-		// Unwrap to get the actual project object
-		const project = response[ENTITY_PROJECT] || response;
+		// Unwrap project response
+		const project = projectResponse[ENTITY_PROJECT] || projectResponse;
+
+		const parcelIdField = `${ENTITY_PREFIX}parcel_id`;
+		const rawParcels = parcelsResponse[`${ENTITY_PARCEL}_list`] || [];
+		const parcels = rawParcels.map((p: Record<string, unknown>) => ({
+			...p,
+			parcel_id: p[parcelIdField]
+		}));
 
 		return {
 			isAuthenticated: true,
 			project,
+			parcels,
 			error: null
 		};
 	} catch (error) {
@@ -37,6 +51,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			return {
 				isAuthenticated: true,
 				project: null,
+				parcels: null,
 				error: error.message,
 				errorDetails: error.toJSON()
 			};
@@ -45,6 +60,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		return {
 			isAuthenticated: true,
 			project: null,
+			parcels: null,
 			error: errorMessage
 		};
 	}
