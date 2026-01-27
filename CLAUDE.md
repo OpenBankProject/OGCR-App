@@ -6,13 +6,13 @@ Dynamic entity structures change over time. Always fetch the current documentati
 
 ### How to Discover Dynamic Endpoints
 
-Fetch the resource docs to get current endpoint structures:
+Fetch the resource docs to list all dynamic endpoints and their structures:
 
 ```
 GET /obp/v6.0.0/resource-docs/v6.0.0/obp?content=dynamic
 ```
 
-This returns all dynamic endpoints with:
+This lists all dynamic endpoints (all verbs, all entities) and returns for each:
 - `request_verb` - HTTP method (GET, POST, PUT, DELETE)
 - `request_url` - URL pattern
 - `specified_url` - Full endpoint path

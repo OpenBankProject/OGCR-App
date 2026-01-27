@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Database, Plus, RefreshCw, ChevronRight } from '@lucide/svelte';
+	import { Database, RefreshCw } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -47,25 +47,8 @@
 	{:else if data.dynamicEntities}
 		<div class="grid gap-4">
 			{#each data.dynamicEntities as entity}
-				<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
-					<div class="flex items-center justify-between">
-						<div>
-							<h3 class="h4 text-primary-500">{entity.entity_name}</h3>
-							<p class="text-sm text-surface-600-400 mt-1">
-								ID: {entity.dynamic_entity_id}
-							</p>
-							{#if entity.bank_id}
-								<p class="text-sm text-surface-600-400">Bank ID: {entity.bank_id}</p>
-							{/if}
-						</div>
-						<a
-							href="/dynamic-entities/{entity.dynamic_entity_id}"
-							class="btn preset-outlined-primary-500"
-						>
-							<span>View Details</span>
-							<ChevronRight class="size-4" />
-						</a>
-					</div>
+				<div class="card p-6 preset-filled-surface-100-900">
+					<h3 class="h4 text-primary-500">{entity.entity_name}</h3>
 				</div>
 			{/each}
 		</div>

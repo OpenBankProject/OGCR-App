@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import type { DynamicEntityDefinition } from '$lib/obp/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = locals.session;
@@ -15,12 +14,30 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	try {
-		// Fetch dynamic entities from OBP API
-		const response = await obp_requests.get('/obp/v5.1.0/management/dynamic-entities', accessToken);
+		// Fetch dynamic endpoint resource docs to discover all dynamic entities
+		const response = await obp_requests.get(
+			'/obp/v6.0.0/resource-docs/v6.0.0/obp?content=dynamic',
+			accessToken
+		);
+
+		// Extract unique entity names from the tags
+		const entityNames = new Set<string>();
+		for (const doc of response.resource_docs || []) {
+			for (const tag of doc.tags || []) {
+				if (tag.startsWith('_') && tag !== 'Dynamic-Entity' && tag !== 'Dynamic') {
+					// Tags like "_Ogcr5_project" - strip leading underscore and lowercase
+					entityNames.add(tag.slice(1).toLowerCase());
+				}
+			}
+		}
+
+		const dynamicEntities = [...entityNames].sort().map((name) => ({
+			entity_name: name
+		}));
 
 		return {
 			isAuthenticated: true,
-			dynamicEntities: response.dynamic_entities as DynamicEntityDefinition[],
+			dynamicEntities,
 			error: null
 		};
 	} catch (error) {
