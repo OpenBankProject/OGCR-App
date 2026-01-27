@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check, MapPin, ShieldCheck, Activity } from '@lucide/svelte';
-	import { page } from '$app/state';
+	import { FolderKanban, Copy, Check, MapPin, ShieldCheck, Activity } from '@lucide/svelte';
 	import GeoJsonMap from '$lib/components/GeoJsonMap.svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -28,20 +27,7 @@
 	}
 </script>
 
-<div class="relative p-8">
-	<!-- Position Back/Refresh in the header bar area -->
-	<div class="absolute top-0 left-0 right-0 -mt-[64px] h-[64px] flex items-center gap-2 px-8">
-		<a href="/projects" class="btn preset-outlined-surface-50-950">
-			<ArrowLeft class="size-4" />
-			<span>Back to Projects</span>
-		</a>
-		{#if data.isAuthenticated && data.project}
-			<a href="/projects/{page.params.id}" class="btn preset-outlined-primary-500">
-				<RefreshCw class="size-4" />
-				<span>Refresh</span>
-			</a>
-		{/if}
-	</div>
+<div class="p-8">
 
 	{#if !data.isAuthenticated}
 		<div class="card p-8 preset-filled-surface-100-900 text-center">

@@ -99,8 +99,10 @@
 				<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
 					<div class="flex items-center justify-between">
 						<div>
-							<h3 class="h4 text-primary-500">
-								{project.project_owner || 'Unnamed Project'}
+							<h3 class="h4">
+								<a href="/projects/{project.project_id}" class="text-primary-500 hover:underline">
+									{project.project_owner || 'Unnamed Project'}
+								</a>
 							</h3>
 							{#if project.project_id}
 								<p class="text-sm text-surface-600-400 mt-1">ID: {project.project_id}</p>
