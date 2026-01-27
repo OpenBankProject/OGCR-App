@@ -47,7 +47,9 @@
 	<!-- Top bar -->
 	<header class="flex items-center justify-between px-6 border-b border-surface-200-800" style="height: 56px; flex-shrink: 0;">
 		<div class="flex items-center gap-2">
-			<a href="/" class="font-bold text-lg hover:text-primary-500">OGCR App</a>
+			<a href="/" class="flex items-center gap-2 hover:opacity-80">
+				<img src="/ogcr_logo.svg" alt="OGCR" class="h-8" />
+			</a>
 
 			{#each getBreadcrumbs() as crumb, i}
 				<ChevronRight class="size-4 text-surface-400" />

@@ -3,9 +3,12 @@
 @plugin '@tailwindcss/typography';
 
 @import '@skeletonlabs/skeleton';
-@import '@skeletonlabs/skeleton/themes/cerberus';
+@import './ogcr-theme.css';
 
 @import '@skeletonlabs/skeleton-svelte';
+
+/* Roboto font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 /* for dark mode toggling */
 @custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));
