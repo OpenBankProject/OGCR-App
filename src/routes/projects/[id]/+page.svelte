@@ -179,21 +179,23 @@
 					{#each data.parcels as parcel}
 						<div class="card p-4 preset-filled-surface-200-800">
 							<!-- Parcel Details -->
-							<div class="grid gap-2 mb-4">
-								{#if parcel.parcel_id}
-									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
-										<span class="font-medium text-surface-600-400 min-w-[150px]">Parcel ID:</span>
-										<span class="text-surface-800-200 break-all">{parcel.parcel_id}</span>
-									</div>
-								{/if}
-								{#if parcel.parcel_owner}
-									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
-										<span class="font-medium text-surface-600-400 min-w-[150px]">Owner:</span>
-										<span class="text-surface-800-200">{parcel.parcel_owner}</span>
-									</div>
-								{/if}
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+								<div class="grid gap-2 content-start">
+									{#if parcel.parcel_id}
+										<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+											<span class="font-medium text-surface-600-400 min-w-[150px]">Parcel ID:</span>
+											<span class="text-surface-800-200 break-all">{parcel.parcel_id}</span>
+										</div>
+									{/if}
+									{#if parcel.parcel_owner}
+										<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+											<span class="font-medium text-surface-600-400 min-w-[150px]">Owner:</span>
+											<span class="text-surface-800-200">{parcel.parcel_owner}</span>
+										</div>
+									{/if}
+								</div>
 								{#if parcel.geo_data}
-									<div class="mt-2">
+									<div>
 										<span class="font-medium text-surface-600-400">Geo Data:</span>
 										<div class="mt-1">
 											<GeoJsonMap geoJson={parcel.geo_data} />
