@@ -2,10 +2,20 @@
 	import type { PageData } from './$types';
 	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check, MapPin, ShieldCheck, Activity } from '@lucide/svelte';
 	import { page } from '$app/state';
+	import GeoJsonMap from '$lib/components/GeoJsonMap.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let copied = $state(false);
+
+	function formatFieldName(key: string): string {
+		// Strip entity prefix (e.g. "ogcr5_") then convert snake_case to Camel Case
+		const stripped = key.replace(/^[a-z]+\d+_/, '');
+		return stripped
+			.split('_')
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(' ');
+	}
 
 	async function copyErrorDetails() {
 		if (!data.errorDetails) return;
@@ -18,22 +28,18 @@
 	}
 </script>
 
-<div class="p-8">
-	<div class="flex items-center justify-between mb-8">
-		<div class="flex items-center gap-4">
-			<a href="/projects" class="btn preset-outlined-surface-50-950">
-				<ArrowLeft class="size-4" />
-				<span>Back to Projects</span>
-			</a>
-		</div>
-
+<div class="relative p-8">
+	<!-- Position Back/Refresh in the header bar area -->
+	<div class="absolute top-0 left-0 right-0 -mt-[64px] h-[64px] flex items-center gap-2 px-8">
+		<a href="/projects" class="btn preset-outlined-surface-50-950">
+			<ArrowLeft class="size-4" />
+			<span>Back to Projects</span>
+		</a>
 		{#if data.isAuthenticated && data.project}
-			<div class="flex gap-2">
-				<a href="/projects/{page.params.id}" class="btn preset-outlined-primary-500">
-					<RefreshCw class="size-4" />
-					<span>Refresh</span>
-				</a>
-			</div>
+			<a href="/projects/{page.params.id}" class="btn preset-outlined-primary-500">
+				<RefreshCw class="size-4" />
+				<span>Refresh</span>
+			</a>
 		{/if}
 	</div>
 
@@ -86,7 +92,7 @@
 				<FolderKanban class="size-10 text-primary-500" />
 				<div>
 					<h1 class="h2 text-primary-500">
-						{data.project.project_name || data.project.name || 'Unnamed Project'}
+						{data.project.project_owner || 'Unnamed Project'}
 					</h1>
 					{#if data.project.project_id}
 						<p class="text-sm text-surface-600-400">ID: {data.project.project_id}</p>
@@ -107,7 +113,7 @@
 					{#each Object.entries(data.project) as [key, value]}
 						{#if value !== null && value !== undefined}
 							<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
-								<span class="font-medium text-surface-600-400 min-w-[200px]">{key}:</span>
+								<span class="font-medium text-surface-600-400 min-w-[200px]">{formatFieldName(key)}:</span>
 								<span class="text-surface-800-200 break-all">
 									{#if typeof value === 'object'}
 										<pre class="text-sm bg-surface-200-800 p-2 rounded overflow-x-auto">{JSON.stringify(value, null, 2)}</pre>
@@ -118,6 +124,59 @@
 							</div>
 						{/if}
 					{/each}
+				</div>
+			</div>
+		</div>
+
+		<!-- Project Verifications Section -->
+		<div class="card p-6 preset-filled-surface-100-900 mt-6">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- Project Verification (left) -->
+				<div>
+					<div class="flex items-center gap-2 mb-3">
+						<ShieldCheck class="size-6 text-primary-500" />
+						<h3 class="h4">Project Verification</h3>
+					</div>
+					{#if data.projectVerifications && data.projectVerifications.length > 0}
+						<div class="grid gap-2">
+							{#each data.projectVerifications as ver}
+								<div class="card p-3 preset-filled-surface-200-800 text-sm">
+									<div class="flex items-center gap-2 mb-1">
+										<span class="badge {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
+									</div>
+									{#if ver.status_message}
+										<p class="text-surface-600-400">{ver.status_message}</p>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<p class="text-sm text-surface-600-400">No project verifications.</p>
+					{/if}
+				</div>
+
+				<!-- Project Monitoring Period Verification (right) -->
+				<div>
+					<div class="flex items-center gap-2 mb-3">
+						<Activity class="size-6 text-tertiary-500" />
+						<h3 class="h4">Project Monitoring Period Verification</h3>
+					</div>
+					{#if data.projectMonitoringVerifications && data.projectMonitoringVerifications.length > 0}
+						<div class="grid gap-2">
+							{#each data.projectMonitoringVerifications as ver}
+								<div class="card p-3 preset-filled-surface-200-800 text-sm">
+									<div class="flex items-center gap-2 mb-1">
+										<span class="badge {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
+									</div>
+									{#if ver.status_message}
+										<p class="text-surface-600-400">{ver.status_message}</p>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<p class="text-sm text-surface-600-400">No project monitoring period verifications.</p>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -148,9 +207,11 @@
 									</div>
 								{/if}
 								{#if parcel.geo_data}
-									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
-										<span class="font-medium text-surface-600-400 min-w-[150px]">Geo Data:</span>
-										<span class="text-surface-800-200 break-all">{parcel.geo_data}</span>
+									<div class="mt-2">
+										<span class="font-medium text-surface-600-400">Geo Data:</span>
+										<div class="mt-1">
+											<GeoJsonMap geoJson={parcel.geo_data} />
+										</div>
 									</div>
 								{/if}
 							</div>

@@ -5,7 +5,9 @@ import {
 	ENTITY_PARCEL,
 	ENTITY_PREFIX,
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
-	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION
+	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION,
+	ENTITY_PROJECT_VERIFICATION,
+	ENTITY_PROJECT_MONITORING_PERIOD_VERIFICATION
 } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 
@@ -27,37 +29,57 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		const parcelIdField = `${ENTITY_PREFIX}parcel_id`;
 		const projectIdFilter = `${ENTITY_PREFIX}project_id=${projectId}`;
 
-		// Fetch project, parcels, and verifications in parallel
-		const [projectResponse, parcelsResponse, ownerVerResponse, monitoringVerResponse] =
-			await Promise.all([
-				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
-					accessToken
-				),
-				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PARCEL}?${projectIdFilter}`,
-					accessToken
-				),
-				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}`,
-					accessToken
-				),
-				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}?${projectIdFilter}`,
-					accessToken
-				)
-			]);
+		// Fetch project, parcels, and all verifications in parallel
+		const [
+			projectResponse,
+			parcelsResponse,
+			parcelOwnerVerResponse,
+			parcelMonitoringVerResponse,
+			projectVerResponse,
+			projectMonitoringVerResponse
+		] = await Promise.all([
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PARCEL}?${projectIdFilter}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}?${projectIdFilter}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PROJECT_VERIFICATION}?${projectIdFilter}`,
+				accessToken
+			),
+			obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_PROJECT_MONITORING_PERIOD_VERIFICATION}?${projectIdFilter}`,
+				accessToken
+			)
+		]);
 
 		// Unwrap project response
 		const project = projectResponse[ENTITY_PROJECT] || projectResponse;
+
+		// Project-level verifications
+		const projectVerifications =
+			projectVerResponse[`${ENTITY_PROJECT_VERIFICATION}_list`] || [];
+		const projectMonitoringVerifications =
+			projectMonitoringVerResponse[`${ENTITY_PROJECT_MONITORING_PERIOD_VERIFICATION}_list`] || [];
 
 		// Build parcels with normalized IDs
 		const rawParcels = parcelsResponse[`${ENTITY_PARCEL}_list`] || [];
 		const parcelIds = new Set(rawParcels.map((p: Record<string, unknown>) => p[parcelIdField]));
 
-		// Group owner verifications by parcel ID (no project_id filter available, so filter by parcel IDs)
+		// Group parcel owner verifications by parcel ID (no project_id filter available, so filter by parcel IDs)
 		const allOwnerVers =
-			ownerVerResponse[`${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}_list`] || [];
+			parcelOwnerVerResponse[`${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}_list`] || [];
 		const ownerVerByParcel = new Map<string, Record<string, unknown>[]>();
 		for (const v of allOwnerVers) {
 			const pid = v[parcelIdField] as string;
@@ -67,9 +89,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			}
 		}
 
-		// Group monitoring period verifications by parcel ID
+		// Group parcel monitoring period verifications by parcel ID
 		const allMonitoringVers =
-			monitoringVerResponse[`${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}_list`] || [];
+			parcelMonitoringVerResponse[`${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}_list`] || [];
 		const monitoringVerByParcel = new Map<string, Record<string, unknown>[]>();
 		for (const v of allMonitoringVers) {
 			const pid = v[parcelIdField] as string;
@@ -91,6 +113,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		return {
 			isAuthenticated: true,
 			project,
+			projectVerifications,
+			projectMonitoringVerifications,
 			parcels,
 			error: null
 		};
