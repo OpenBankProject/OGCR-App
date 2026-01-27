@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check, MapPin } from '@lucide/svelte';
+	import { FolderKanban, ArrowLeft, RefreshCw, Copy, Check, MapPin, ShieldCheck, Activity } from '@lucide/svelte';
 	import { page } from '$app/state';
 
 	let { data }: { data: PageData } = $props();
@@ -133,7 +133,8 @@
 				<div class="grid gap-4">
 					{#each data.parcels as parcel}
 						<div class="card p-4 preset-filled-surface-200-800">
-							<div class="grid gap-2">
+							<!-- Parcel Details -->
+							<div class="grid gap-2 mb-4">
 								{#if parcel.parcel_id}
 									<div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
 										<span class="font-medium text-surface-600-400 min-w-[150px]">Parcel ID:</span>
@@ -152,6 +153,63 @@
 										<span class="text-surface-800-200 break-all">{parcel.geo_data}</span>
 									</div>
 								{/if}
+							</div>
+
+							<!-- Verifications -->
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-surface-300-700 pt-4">
+								<!-- Owner Verifications (left) -->
+								<div>
+									<div class="flex items-center gap-2 mb-3">
+										<ShieldCheck class="size-5 text-primary-500" />
+										<h4 class="font-semibold">Owner Verifications</h4>
+									</div>
+									{#if parcel.owner_verifications && parcel.owner_verifications.length > 0}
+										<div class="grid gap-2">
+											{#each parcel.owner_verifications as ver}
+												<div class="card p-3 preset-filled-surface-100-900 text-sm">
+													<div class="flex items-center gap-2 mb-1">
+														<span class="badge {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
+													</div>
+													{#if ver.authority}
+														<p class="text-surface-600-400">Authority: {ver.authority}</p>
+													{/if}
+													{#if ver.status_message}
+														<p class="text-surface-600-400">{ver.status_message}</p>
+													{/if}
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<p class="text-sm text-surface-600-400">No owner verifications.</p>
+									{/if}
+								</div>
+
+								<!-- Monitoring Period Verifications (right) -->
+								<div>
+									<div class="flex items-center gap-2 mb-3">
+										<Activity class="size-5 text-tertiary-500" />
+										<h4 class="font-semibold">Monitoring Period Verifications</h4>
+									</div>
+									{#if parcel.monitoring_verifications && parcel.monitoring_verifications.length > 0}
+										<div class="grid gap-2">
+											{#each parcel.monitoring_verifications as ver}
+												<div class="card p-3 preset-filled-surface-100-900 text-sm">
+													<div class="flex items-center gap-2 mb-1">
+														<span class="badge {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
+														{#if ver.amount !== undefined}
+															<span class="text-surface-600-400">Amount: {ver.amount}</span>
+														{/if}
+													</div>
+													{#if ver.status_message}
+														<p class="text-surface-600-400">{ver.status_message}</p>
+													{/if}
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<p class="text-sm text-surface-600-400">No monitoring period verifications.</p>
+									{/if}
+								</div>
 							</div>
 						</div>
 					{/each}

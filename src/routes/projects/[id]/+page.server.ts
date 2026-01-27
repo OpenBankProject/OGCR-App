@@ -1,6 +1,12 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_PROJECT, ENTITY_PARCEL, ENTITY_PREFIX } from '$lib/constants/entities';
+import {
+	ENTITY_PROJECT,
+	ENTITY_PARCEL,
+	ENTITY_PREFIX,
+	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
+	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION
+} from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -18,27 +24,69 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	}
 
 	try {
-		// Fetch project and parcels in parallel
-		const [projectResponse, parcelsResponse] = await Promise.all([
-			obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
-				accessToken
-			),
-			obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_PARCEL}?${ENTITY_PREFIX}project_id=${projectId}`,
-				accessToken
-			)
-		]);
+		const parcelIdField = `${ENTITY_PREFIX}parcel_id`;
+		const projectIdFilter = `${ENTITY_PREFIX}project_id=${projectId}`;
+
+		// Fetch project, parcels, and verifications in parallel
+		const [projectResponse, parcelsResponse, ownerVerResponse, monitoringVerResponse] =
+			await Promise.all([
+				obp_requests.get(
+					`/obp/dynamic-entity/${ENTITY_PROJECT}/${projectId}`,
+					accessToken
+				),
+				obp_requests.get(
+					`/obp/dynamic-entity/${ENTITY_PARCEL}?${projectIdFilter}`,
+					accessToken
+				),
+				obp_requests.get(
+					`/obp/dynamic-entity/${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}`,
+					accessToken
+				),
+				obp_requests.get(
+					`/obp/dynamic-entity/${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}?${projectIdFilter}`,
+					accessToken
+				)
+			]);
 
 		// Unwrap project response
 		const project = projectResponse[ENTITY_PROJECT] || projectResponse;
 
-		const parcelIdField = `${ENTITY_PREFIX}parcel_id`;
+		// Build parcels with normalized IDs
 		const rawParcels = parcelsResponse[`${ENTITY_PARCEL}_list`] || [];
-		const parcels = rawParcels.map((p: Record<string, unknown>) => ({
-			...p,
-			parcel_id: p[parcelIdField]
-		}));
+		const parcelIds = new Set(rawParcels.map((p: Record<string, unknown>) => p[parcelIdField]));
+
+		// Group owner verifications by parcel ID (no project_id filter available, so filter by parcel IDs)
+		const allOwnerVers =
+			ownerVerResponse[`${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}_list`] || [];
+		const ownerVerByParcel = new Map<string, Record<string, unknown>[]>();
+		for (const v of allOwnerVers) {
+			const pid = v[parcelIdField] as string;
+			if (parcelIds.has(pid)) {
+				if (!ownerVerByParcel.has(pid)) ownerVerByParcel.set(pid, []);
+				ownerVerByParcel.get(pid)!.push(v);
+			}
+		}
+
+		// Group monitoring period verifications by parcel ID
+		const allMonitoringVers =
+			monitoringVerResponse[`${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}_list`] || [];
+		const monitoringVerByParcel = new Map<string, Record<string, unknown>[]>();
+		for (const v of allMonitoringVers) {
+			const pid = v[parcelIdField] as string;
+			if (!monitoringVerByParcel.has(pid)) monitoringVerByParcel.set(pid, []);
+			monitoringVerByParcel.get(pid)!.push(v);
+		}
+
+		// Assemble parcels with their verifications
+		const parcels = rawParcels.map((p: Record<string, unknown>) => {
+			const pid = p[parcelIdField] as string;
+			return {
+				...p,
+				parcel_id: pid,
+				owner_verifications: ownerVerByParcel.get(pid) || [],
+				monitoring_verifications: monitoringVerByParcel.get(pid) || []
+			};
+		});
 
 		return {
 			isAuthenticated: true,
