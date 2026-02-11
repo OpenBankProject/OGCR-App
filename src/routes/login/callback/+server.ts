@@ -13,9 +13,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	if (oauthError) {
 		logger.warn(`OAuth error received: ${oauthError}`, errorDescription);
 
-		event.cookies.delete('ogcr_oauth_state', {
-			path: '/'
-		});
+		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
 		let userMessage = 'Authentication failed. Please try again.';
 
@@ -131,9 +129,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		const errorMessage = e?.message || 'Unknown error';
 		logger.error('Token exchange error details:', errorMessage);
 
-		event.cookies.delete('ogcr_oauth_state', {
-			path: '/'
-		});
+		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
 		let userMessage = 'Authentication failed. Please try again.';
 		if (
@@ -151,9 +147,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		});
 	}
 
-	event.cookies.delete('ogcr_oauth_state', {
-		path: '/'
-	});
+	event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
 	const obpAccessToken = tokens.accessToken();
 
@@ -172,9 +166,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 			`OBP current user request failed - Status: ${currentUserResponse.status}, Response: ${errorText}`
 		);
 
-		event.cookies.delete('ogcr_oauth_state', {
-			path: '/'
-		});
+		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
 		return new Response(null, {
 			status: 302,
@@ -191,6 +183,10 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	if (user.user_id && user.email) {
 		const { session } = event.locals;
+
+		// Get target location from session before overwriting
+		const targetLocation = session.data.target_location || '/';
+
 		await session.setData({
 			user: user,
 			oauth: {
@@ -201,18 +197,17 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		});
 		await session.save();
 		logger.debug('Session data set:', session.data);
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: `/`
+				Location: targetLocation
 			}
 		});
 	} else {
 		logger.error('Invalid user data received from OBP - missing user_id or email:', user);
 
-		event.cookies.delete('ogcr_oauth_state', {
-			path: '/'
-		});
+		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
 		return new Response(null, {
 			status: 302,

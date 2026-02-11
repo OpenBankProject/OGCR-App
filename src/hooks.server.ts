@@ -87,10 +87,11 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 		}
 
 		if (!session || !session.data.user) {
+			const targetLocation = encodeURIComponent(event.url.pathname + event.url.search);
 			return new Response(null, {
 				status: 302,
 				headers: {
-					Location: '/login'
+					Location: `/login?target_location=${targetLocation}`
 				}
 			});
 		} else {
@@ -139,5 +140,6 @@ declare module 'svelte-kit-sessions' {
 			refresh_token?: string;
 			provider: string;
 		};
+		target_location?: string;
 	}
 }

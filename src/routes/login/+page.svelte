@@ -108,7 +108,7 @@
 				<p class="text-center text-sm text-gray-300">Choose your authentication provider:</p>
 				{#each data.availableProviders as provider}
 					<button type="button" class="btn preset-filled-primary-500 mx-auto w-full">
-						<a href="/login/{provider.provider}" class="w-full flex items-center justify-between">
+						<a href="/login/{provider.provider}{data.targetLocation ? `?target_location=${encodeURIComponent(data.targetLocation)}` : ''}" class="w-full flex items-center justify-between">
 							<span class="flex items-center gap-2">
 								<span class="text-green-400">*</span>
 								{formatProviderName(provider.provider)}

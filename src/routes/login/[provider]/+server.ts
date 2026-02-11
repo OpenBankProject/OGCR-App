@@ -5,8 +5,9 @@ import { oauth2ProviderFactory } from '$lib/oauth/providerFactory';
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 
-export function GET(event: RequestEvent) {
+export async function GET(event: RequestEvent) {
 	const { provider } = event.params;
+	const targetLocation = event.url.searchParams.get('target_location');
 
 	if (!provider) {
 		logger.error('No provider specified in URL');
@@ -56,6 +57,13 @@ export function GET(event: RequestEvent) {
 			path: '/',
 			sameSite: 'lax'
 		});
+
+		// Store target location in session for redirect after auth
+		if (targetLocation) {
+			const { session } = event.locals;
+			await session.setData({ target_location: targetLocation });
+			await session.save();
+		}
 
 		return new Response(null, {
 			status: 302,
