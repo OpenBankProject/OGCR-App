@@ -5,6 +5,8 @@
 	// Lucide Icons
 	import { Home, ChevronRight } from '@lucide/svelte';
 
+	import LightSwitch from '$lib/components/LightSwitch.svelte';
+
 	let { data, children } = $props();
 
 	let isAuthenticated = $state(false);
@@ -24,7 +26,7 @@
 		const crumbs: { label: string; href: string }[] = [];
 
 		const labelMap: Record<string, string> = {
-			projects: 'Projects',
+			activities: 'Activities',
 			'dynamic-entities': 'Dynamic Entities',
 			create: 'Create',
 			user: 'My Account',
@@ -62,6 +64,7 @@
 		</div>
 
 		<div class="flex items-center gap-4">
+			<LightSwitch />
 			{#if isAuthenticated}
 				<a href="/user" class="hover:text-tertiary-400">{data.username}</a>
 				<a href="/logout" class="btn btn-sm preset-outlined-primary-500">Logout</a>

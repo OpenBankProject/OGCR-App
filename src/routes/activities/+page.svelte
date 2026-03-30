@@ -21,16 +21,16 @@
 	<div class="flex items-center justify-between mb-8">
 		<div class="flex items-center gap-4">
 			<FolderKanban class="size-8 text-primary-500" />
-			<h1 class="h1">Projects</h1>
+			<h1 class="h1">Activities</h1>
 		</div>
 
 		{#if data.isAuthenticated}
 			<div class="flex gap-2">
-				<a href="/projects/create" class="btn preset-filled-primary-500">
+				<a href="/activities/create" class="btn preset-filled-primary-500">
 					<Plus class="size-4" />
-					<span>Create Project</span>
+					<span>Create Activity</span>
 				</a>
-				<a href="/projects" class="btn preset-outlined-primary-500">
+				<a href="/activities" class="btn preset-outlined-primary-500">
 					<RefreshCw class="size-4" />
 					<span>Refresh</span>
 				</a>
@@ -42,13 +42,13 @@
 		<div class="card p-8 preset-filled-surface-100-900 text-center">
 			<FolderKanban class="size-16 mx-auto mb-4 text-surface-400" />
 			<h2 class="h3 mb-2">Authentication Required</h2>
-			<p class="text-surface-600-400 mb-4">Please log in to view projects.</p>
+			<p class="text-surface-600-400 mb-4">Please log in to view activities.</p>
 			<a href="/login" class="btn preset-filled-primary-500">Login</a>
 		</div>
 	{:else if data.error}
 		<div class="card p-8 preset-filled-surface-100-900">
 			<div class="flex items-center justify-between mb-4">
-				<h2 class="h3 text-error-500">Error Loading Projects</h2>
+				<h2 class="h3 text-error-500">Error Loading Activities</h2>
 				{#if data.errorDetails}
 					<button
 						onclick={copyErrorDetails}
@@ -82,34 +82,42 @@
 				<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-sm">{data.error}</pre>
 			{/if}
 		</div>
-	{:else if data.projects && data.projects.length === 0}
+	{:else if data.activities && data.activities.length === 0}
 		<div class="card p-8 preset-filled-surface-100-900">
-			<h2 class="h3 mb-2">No Projects Found</h2>
+			<h2 class="h3 mb-2">No Activities Found</h2>
 			<p class="text-surface-600-400 mb-4">API Response:</p>
 			<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-sm">{JSON.stringify(data.rawResponse, null, 2)}</pre>
 		</div>
-	{:else if data.projects}
+	{:else if data.activities}
 		<!-- Debug: show raw response -->
 		<details class="mb-4">
 			<summary class="cursor-pointer text-sm text-surface-600-400">Debug: Raw API Response</summary>
 			<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(data.rawResponse, null, 2)}</pre>
 		</details>
 		<div class="grid gap-4">
-			{#each data.projects as project}
+			{#each data.activities as activity}
 				<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
 					<div class="flex items-center justify-between">
 						<div>
 							<h3 class="h4">
-								<a href="/projects/{project.project_id}" class="text-primary-500 hover:underline">
-									{project.project_owner || 'Unnamed Project'}
+								<a href="/activities/{activity.activity_id}" class="text-primary-500 hover:underline">
+									{activity.name || 'Unnamed Activity'}
 								</a>
 							</h3>
-							{#if project.project_id}
-								<p class="text-sm text-surface-600-400 mt-1">ID: {project.project_id}</p>
+							<div class="flex gap-4 mt-1">
+								{#if activity.type}
+									<p class="text-sm text-surface-600-400">Type: {activity.type}</p>
+								{/if}
+								{#if activity.city}
+									<p class="text-sm text-surface-600-400">City: {activity.city}</p>
+								{/if}
+							</div>
+							{#if activity.activity_id}
+								<p class="text-sm text-surface-600-400 mt-1">ID: {activity.activity_id}</p>
 							{/if}
 						</div>
 						<a
-							href="/projects/{project.project_id}"
+							href="/activities/{activity.activity_id}"
 							class="btn preset-outlined-primary-500"
 						>
 							<span>View Details</span>

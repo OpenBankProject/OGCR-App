@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_PROJECT, ENTITY_PREFIX } from '$lib/constants/entities';
+import { ENTITY_ACTIVITY } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -10,28 +10,22 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (!accessToken) {
 		return {
 			isAuthenticated: false,
-			projects: null,
+			activities: null,
 			error: null
 		};
 	}
 
 	try {
 		const response = await obp_requests.get(
-			`/obp/dynamic-entity/${ENTITY_PROJECT}`,
+			`/obp/dynamic-entity/${ENTITY_ACTIVITY}`,
 			accessToken
 		);
 
-		// Extract project list and normalize the ID field for easier template access
-		const projectIdField = `${ENTITY_PREFIX}project_id`;
-		const rawProjects = response[`${ENTITY_PROJECT}_list`] || [];
-		const projects = rawProjects.map((p: Record<string, unknown>) => ({
-			...p,
-			project_id: p[projectIdField]
-		}));
+		const activities = response[`${ENTITY_ACTIVITY}_list`] || [];
 
 		return {
 			isAuthenticated: true,
-			projects,
+			activities,
 			rawResponse: response,
 			error: null
 		};
@@ -39,7 +33,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		if (error instanceof OBPRequestError) {
 			return {
 				isAuthenticated: true,
-				projects: null,
+				activities: null,
 				error: error.message,
 				errorDetails: error.toJSON()
 			};
@@ -47,7 +41,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		return {
 			isAuthenticated: true,
-			projects: null,
+			activities: null,
 			error: errorMessage
 		};
 	}
