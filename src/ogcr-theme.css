@@ -1,26 +1,30 @@
-/* OGCR Theme - based on ogcr.eu brand colors */
-/* Primary: #143D5C (OGCR Blue) */
-/* Secondary: #6EB088 (OGCR Green) */
-/* Tertiary: #285D3F (Dark Teal) */
+/* ============================================================
+ * OGCR Theme
+ * Anchored to the OGCR design system (Figma file 2P6XrQJhT8I39IR5LGK7RT).
+ * Mirrors the named tokens from ../../OGCR-design/ogcr-design-system/src/index.css
+ * and maps them onto Skeleton's --color-* scale so existing
+ * `preset-filled-primary-500` / `bg-surface-50` style classes still work.
+ * ============================================================ */
 
 [data-theme='ogcr'] {
+	/* ----- Skeleton base tokens ----------------------------------- */
 	--spacing: 0.25rem;
 	--text-scaling: 1.067;
-	--base-font-color: var(--color-surface-900);
+	--base-font-color: #334155; /* text-neutral */
 	--base-font-color-dark: var(--color-surface-50);
-	--base-font-family: 'Roboto', system-ui, sans-serif;
+	--base-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	--base-font-size: inherit;
 	--base-line-height: inherit;
-	--base-font-weight: normal;
+	--base-font-weight: 400;
 	--base-font-style: normal;
 	--base-letter-spacing: 0em;
-	--heading-font-color: var(--color-primary-700);
+	--heading-font-color: #0f3655; /* text-primary */
 	--heading-font-color-dark: var(--color-primary-200);
 	--heading-font-family: inherit;
-	--heading-font-weight: bold;
+	--heading-font-weight: 500;
 	--heading-font-style: normal;
 	--heading-letter-spacing: inherit;
-	--anchor-font-color: var(--color-primary-600);
+	--anchor-font-color: var(--color-primary-700);
 	--anchor-font-color-dark: var(--color-primary-300);
 	--anchor-font-family: inherit;
 	--anchor-font-size: inherit;
@@ -34,24 +38,24 @@
 	--anchor-text-decoration-focus: none;
 	--body-background-color: var(--color-surface-50);
 	--body-background-color-dark: var(--color-surface-950);
-	--radius-base: 0.5rem;
-	--radius-container: 0.75rem;
+	--radius-base: 8px;       /* radius-m */
+	--radius-container: 12px; /* radius-l */
 	--default-border-width: 1px;
 	--default-divide-width: 1px;
 	--default-ring-width: 1px;
 
-	/* Primary - OGCR Blue (#143D5C) */
-	--color-primary-50: oklch(0.95 0.02 230);
-	--color-primary-100: oklch(0.88 0.03 235);
-	--color-primary-200: oklch(0.78 0.05 237);
-	--color-primary-300: oklch(0.67 0.06 238);
-	--color-primary-400: oklch(0.55 0.07 239);
-	--color-primary-500: oklch(0.43 0.07 240);
-	--color-primary-600: oklch(0.37 0.06 240);
-	--color-primary-700: oklch(0.33 0.06 240);
-	--color-primary-800: oklch(0.28 0.05 240);
-	--color-primary-900: oklch(0.23 0.04 240);
-	--color-primary-950: oklch(0.18 0.03 240);
+	/* ----- Primary — OGCR Blue (anchored to brand-blue-300/800) -- */
+	--color-primary-50:  #eef4fa;
+	--color-primary-100: #d4e3f1;
+	--color-primary-200: #a9c7e3;
+	--color-primary-300: #7eabd4;
+	--color-primary-400: #3f88c6; /* brand-blue-300 */
+	--color-primary-500: #2c6b9f;
+	--color-primary-600: #1c4d76;
+	--color-primary-700: #1c3d59; /* brand-blue-800 */
+	--color-primary-800: #142f45;
+	--color-primary-900: #0f3655; /* text-primary */
+	--color-primary-950: #06121b;
 	--color-primary-contrast-dark: var(--color-primary-950);
 	--color-primary-contrast-light: var(--color-primary-50);
 	--color-primary-contrast-50: var(--color-primary-contrast-dark);
@@ -66,18 +70,18 @@
 	--color-primary-contrast-900: var(--color-primary-contrast-light);
 	--color-primary-contrast-950: var(--color-primary-contrast-light);
 
-	/* Secondary - OGCR Green (#6EB088) */
-	--color-secondary-50: oklch(0.96 0.03 155);
-	--color-secondary-100: oklch(0.92 0.05 155);
-	--color-secondary-200: oklch(0.85 0.07 155);
-	--color-secondary-300: oklch(0.77 0.09 155);
-	--color-secondary-400: oklch(0.72 0.09 155);
-	--color-secondary-500: oklch(0.67 0.09 155);
-	--color-secondary-600: oklch(0.58 0.08 155);
-	--color-secondary-700: oklch(0.50 0.07 155);
-	--color-secondary-800: oklch(0.42 0.06 155);
-	--color-secondary-900: oklch(0.34 0.05 155);
-	--color-secondary-950: oklch(0.26 0.04 155);
+	/* ----- Secondary — OGCR Green (anchored to brand-green-500) -- */
+	--color-secondary-50:  #eef7f1;
+	--color-secondary-100: #e2efe6; /* surface-positive */
+	--color-secondary-200: #c5dfce; /* border-positive-light */
+	--color-secondary-300: #9bc7ab;
+	--color-secondary-400: #6db087; /* brand-green-500 */
+	--color-secondary-500: #4f8263; /* interaction-primary-default */
+	--color-secondary-600: #416c51; /* interaction-primary-hover / text-positive */
+	--color-secondary-700: #355743;
+	--color-secondary-800: #284334;
+	--color-secondary-900: #1c2f24;
+	--color-secondary-950: #0e1812;
 	--color-secondary-contrast-dark: var(--color-secondary-950);
 	--color-secondary-contrast-light: var(--color-secondary-50);
 	--color-secondary-contrast-50: var(--color-secondary-contrast-dark);
@@ -92,18 +96,18 @@
 	--color-secondary-contrast-900: var(--color-secondary-contrast-light);
 	--color-secondary-contrast-950: var(--color-secondary-contrast-light);
 
-	/* Tertiary - OGCR Dark Teal (#285D3F) */
-	--color-tertiary-50: oklch(0.95 0.02 160);
-	--color-tertiary-100: oklch(0.90 0.04 160);
-	--color-tertiary-200: oklch(0.80 0.06 160);
-	--color-tertiary-300: oklch(0.68 0.07 160);
-	--color-tertiary-400: oklch(0.55 0.07 160);
-	--color-tertiary-500: oklch(0.45 0.07 160);
-	--color-tertiary-600: oklch(0.40 0.07 160);
-	--color-tertiary-700: oklch(0.35 0.06 160);
-	--color-tertiary-800: oklch(0.30 0.05 160);
-	--color-tertiary-900: oklch(0.25 0.04 160);
-	--color-tertiary-950: oklch(0.20 0.03 160);
+	/* ----- Tertiary — Dark Teal --------------------------------- */
+	--color-tertiary-50:  #eaf2ee;
+	--color-tertiary-100: #cfe1d6;
+	--color-tertiary-200: #9fc2ad;
+	--color-tertiary-300: #6fa385;
+	--color-tertiary-400: #43825e;
+	--color-tertiary-500: #285d3f;
+	--color-tertiary-600: #214d34;
+	--color-tertiary-700: #1a3e2a;
+	--color-tertiary-800: #142f20;
+	--color-tertiary-900: #0d1f15;
+	--color-tertiary-950: #06100a;
 	--color-tertiary-contrast-dark: var(--color-tertiary-950);
 	--color-tertiary-contrast-light: var(--color-tertiary-50);
 	--color-tertiary-contrast-50: var(--color-tertiary-contrast-dark);
@@ -118,18 +122,18 @@
 	--color-tertiary-contrast-900: var(--color-tertiary-contrast-light);
 	--color-tertiary-contrast-950: var(--color-tertiary-contrast-light);
 
-	/* Success - Emerald green */
-	--color-success-50: oklch(0.96 0.04 155);
-	--color-success-100: oklch(0.91 0.07 155);
-	--color-success-200: oklch(0.85 0.10 155);
-	--color-success-300: oklch(0.79 0.12 155);
-	--color-success-400: oklch(0.73 0.13 155);
-	--color-success-500: oklch(0.67 0.13 155);
-	--color-success-600: oklch(0.58 0.11 155);
-	--color-success-700: oklch(0.50 0.10 155);
-	--color-success-800: oklch(0.42 0.08 155);
-	--color-success-900: oklch(0.34 0.06 155);
-	--color-success-950: oklch(0.26 0.05 155);
+	/* ----- Success (mirrors design-system positive) ------------- */
+	--color-success-50:  #eef7f1;
+	--color-success-100: #e2efe6; /* surface-positive */
+	--color-success-200: #c5dfce; /* border-positive-light */
+	--color-success-300: #9bc7ab;
+	--color-success-400: #6db087;
+	--color-success-500: #4f8263;
+	--color-success-600: #416c51;
+	--color-success-700: #355743;
+	--color-success-800: #284334;
+	--color-success-900: #1c2f24;
+	--color-success-950: #0e1812;
 	--color-success-contrast-dark: var(--color-success-950);
 	--color-success-contrast-light: var(--color-success-50);
 	--color-success-contrast-50: var(--color-success-contrast-dark);
@@ -137,25 +141,25 @@
 	--color-success-contrast-200: var(--color-success-contrast-dark);
 	--color-success-contrast-300: var(--color-success-contrast-dark);
 	--color-success-contrast-400: var(--color-success-contrast-dark);
-	--color-success-contrast-500: var(--color-success-contrast-dark);
+	--color-success-contrast-500: var(--color-success-contrast-light);
 	--color-success-contrast-600: var(--color-success-contrast-light);
 	--color-success-contrast-700: var(--color-success-contrast-light);
 	--color-success-contrast-800: var(--color-success-contrast-light);
 	--color-success-contrast-900: var(--color-success-contrast-light);
 	--color-success-contrast-950: var(--color-success-contrast-light);
 
-	/* Warning */
-	--color-warning-50: oklch(0.96 0.05 85);
-	--color-warning-100: oklch(0.93 0.06 82);
-	--color-warning-200: oklch(0.90 0.08 80);
-	--color-warning-300: oklch(0.88 0.10 80);
-	--color-warning-400: oklch(0.85 0.12 78);
-	--color-warning-500: oklch(0.82 0.14 77);
-	--color-warning-600: oklch(0.76 0.13 72);
-	--color-warning-700: oklch(0.70 0.13 68);
-	--color-warning-800: oklch(0.64 0.13 63);
-	--color-warning-900: oklch(0.58 0.13 58);
-	--color-warning-950: oklch(0.52 0.13 51);
+	/* ----- Warning (mirrors design-system warning) -------------- */
+	--color-warning-50:  #fff7ed;
+	--color-warning-100: #ffedd5; /* surface-warning */
+	--color-warning-200: #fed7aa; /* border-warning-light */
+	--color-warning-300: #fdba74;
+	--color-warning-400: #fb923c; /* orange-400 */
+	--color-warning-500: #f97316; /* orange-500 */
+	--color-warning-600: #ea580c;
+	--color-warning-700: #c2410c; /* text-warning */
+	--color-warning-800: #9a3412;
+	--color-warning-900: #7c2d12;
+	--color-warning-950: #431407;
 	--color-warning-contrast-dark: var(--color-warning-950);
 	--color-warning-contrast-light: var(--color-warning-50);
 	--color-warning-contrast-50: var(--color-warning-contrast-dark);
@@ -170,18 +174,18 @@
 	--color-warning-contrast-900: var(--color-warning-contrast-light);
 	--color-warning-contrast-950: var(--color-warning-contrast-light);
 
-	/* Error */
-	--color-error-50: oklch(0.95 0.03 20);
-	--color-error-100: oklch(0.88 0.06 20);
-	--color-error-200: oklch(0.80 0.10 22);
-	--color-error-300: oklch(0.72 0.14 24);
-	--color-error-400: oklch(0.65 0.18 27);
-	--color-error-500: oklch(0.59 0.20 29);
-	--color-error-600: oklch(0.53 0.19 29);
-	--color-error-700: oklch(0.48 0.17 29);
-	--color-error-800: oklch(0.42 0.15 29);
-	--color-error-900: oklch(0.36 0.13 29);
-	--color-error-950: oklch(0.30 0.11 29);
+	/* ----- Error (mirrors design-system negative) --------------- */
+	--color-error-50:  #fef2f2;
+	--color-error-100: #fee2e2; /* surface-negative */
+	--color-error-200: #fecaca; /* border-negative-light / focus-ring-error */
+	--color-error-300: #fca5a5;
+	--color-error-400: #f87171;
+	--color-error-500: #ef4444; /* red-500 */
+	--color-error-600: #dc2626; /* red-600 / border-negative-strong */
+	--color-error-700: #b91c1c; /* text-negative */
+	--color-error-800: #991b1b;
+	--color-error-900: #7f1d1d;
+	--color-error-950: #450a0a;
 	--color-error-contrast-dark: var(--color-error-950);
 	--color-error-contrast-light: var(--color-error-50);
 	--color-error-contrast-50: var(--color-error-contrast-dark);
@@ -196,18 +200,18 @@
 	--color-error-contrast-900: var(--color-error-contrast-light);
 	--color-error-contrast-950: var(--color-error-contrast-light);
 
-	/* Surface - Light warm grays */
-	--color-surface-50: oklch(0.99 0.002 240);
-	--color-surface-100: oklch(0.96 0.004 240);
-	--color-surface-200: oklch(0.92 0.005 240);
-	--color-surface-300: oklch(0.87 0.006 240);
-	--color-surface-400: oklch(0.70 0.006 240);
-	--color-surface-500: oklch(0.55 0.006 240);
-	--color-surface-600: oklch(0.45 0.006 240);
-	--color-surface-700: oklch(0.37 0.006 240);
-	--color-surface-800: oklch(0.27 0.006 240);
-	--color-surface-900: oklch(0.20 0.006 240);
-	--color-surface-950: oklch(0.15 0.006 240);
+	/* ----- Surface — warm scale anchored to surface-page -------- */
+	--color-surface-50:  #f8f3ef; /* surface-page */
+	--color-surface-100: #f5f0eb;
+	--color-surface-200: #e7e5e4; /* border-light */
+	--color-surface-300: #d6d3d1; /* border-medium */
+	--color-surface-400: #a8a29e; /* border-strong */
+	--color-surface-500: #78716c;
+	--color-surface-600: #57534e;
+	--color-surface-700: #44403c;
+	--color-surface-800: #443321; /* surface-inverted */
+	--color-surface-900: #2d2418;
+	--color-surface-950: #1c1610;
 	--color-surface-contrast-dark: var(--color-surface-950);
 	--color-surface-contrast-light: var(--color-surface-50);
 	--color-surface-contrast-50: var(--color-surface-contrast-dark);
@@ -221,4 +225,177 @@
 	--color-surface-contrast-800: var(--color-surface-contrast-light);
 	--color-surface-contrast-900: var(--color-surface-contrast-light);
 	--color-surface-contrast-950: var(--color-surface-contrast-light);
+
+	/* ============================================================
+	 * Design system named tokens
+	 * Mirror OGCR-design/ogcr-design-system/src/index.css so code
+	 * can reference --surface-page, --text-primary, --space-m, etc.
+	 * directly without going through the Skeleton scale.
+	 * ============================================================ */
+
+	/* Brand */
+	--brand-blue-300: #3f88c6;
+	--brand-blue-800: #1c3d59;
+	--brand-green-500: #6db087;
+
+	/* Text */
+	--text-primary: #0f3655;
+	--text-secondary: #6a8196;
+	--text-neutral: #334155;
+	--text-positive: #416c51;
+	--text-negative: #b91c1c;
+	--text-warning: #c2410c;
+
+	/* Icon */
+	--icon-primary: #0f3655;
+	--icon-secondary: #6a8196;
+	--icon-neutral: #334155;
+	--icon-positive: #416c51;
+	--icon-negative: #b91c1c;
+	--icon-warning: #c2410c;
+
+	/* Surface (named, for components that want exact DS tokens) */
+	--surface-page: #f8f3ef;
+	--surface-light: #ffffff;
+	--surface-neutral: #f5f5f4;
+	--surface-strong: #0f3655;
+	--surface-inverted: #443321;
+	--surface-positive: #e2efe6;
+	--surface-warning: #ffedd5;
+	--surface-negative: #fee2e2;
+
+	/* Border */
+	--border-light: #e7e5e4;
+	--border-medium: #d6d3d1;
+	--border-strong: #a8a29e;
+	--border-default: #01012e14;
+	--border-high-contrast: #443321;
+	--border-positive-light: #c5dfce;
+	--border-warning-light: #fed7aa;
+	--border-negative-light: #fecaca;
+	--border-negative-strong: #dc2626;
+
+	/* Interaction */
+	--interaction-primary-default: #4f8263;
+	--interaction-primary-hover: #416c51;
+	--interaction-primary-active: #416c51;
+	--interaction-primary-focus: #e2efe6;
+	--interaction-secondary-focus: #e2d0bf;
+	--focus-ring-error: #fecaca;
+
+	/* Spacing */
+	--space-none: 0;
+	--space-2xs: 4px;
+	--space-xs: 8px;
+	--space-s: 12px;
+	--space-m: 16px;
+	--space-l: 24px;
+	--space-xl: 32px;
+	--space-3xl: 64px;
+
+	/* Radius (the --radius-base / --radius-container above are
+	   Skeleton's; these are the named DS scale and can coexist) */
+	--radius-none: 0;
+	--radius-xs: 2px;
+	--radius-s: 4px;
+	--radius-m: 8px;
+	--radius-l: 12px;
+	--radius-xl: 16px;
+	--radius-full: 999px;
+
+	/* Elevation */
+	--elevation-l:
+		0 0 2px 0 rgba(68, 51, 33, 0.08),
+		0 8px 16px 0 rgba(68, 51, 33, 0.16);
+
+	/* Typography */
+	--font-family-default: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-family-display: 'Helvetica Now Display', system-ui, -apple-system, sans-serif;
+	--font-family-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+	--font-size-xs: 14px;
+	--font-size-s: 16px;
+	--font-size-m: 18px;
+	--font-size-l: 20px;
+	--font-size-xl: 24px;
+	--font-size-2xl: 32px;
+	--font-size-3xl: 40px;
+	--font-size-4xl: 48px;
+	--font-size-5xl: 64px;
+
+	/* Motion */
+	--motion-fast: 150ms ease-out;
+	--motion-base: 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ============================================================
+ * Typography utility classes (mirror Figma named text styles)
+ * Sizes shift at the desktop breakpoint (≥1024px).
+ * ============================================================ */
+
+.text-h1 {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-2xl);
+	line-height: 1.2;
+}
+
+.text-h2 {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-xl);
+	line-height: 1.2;
+}
+
+.text-h3 {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-l);
+	line-height: 1.2;
+}
+
+.text-h4 {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-m);
+	line-height: 1.2;
+}
+
+.text-body {
+	font-family: var(--font-family-default);
+	font-weight: 400;
+	font-size: var(--font-size-m);
+	line-height: 1.5;
+}
+
+.text-body-s {
+	font-family: var(--font-family-default);
+	font-weight: 400;
+	font-size: var(--font-size-xs);
+	line-height: 1.4;
+}
+
+.text-label-button {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-xs);
+	line-height: 1;
+	letter-spacing: 0.28px;
+}
+
+.text-label-input {
+	font-family: var(--font-family-default);
+	font-weight: 500;
+	font-size: var(--font-size-s);
+	line-height: 1.4;
+}
+
+@media (min-width: 1024px) {
+	.text-h1 { font-size: var(--font-size-3xl); }
+	.text-h2 { font-size: var(--font-size-2xl); }
+	.text-h3 { font-size: var(--font-size-xl); }
+	.text-h4 { font-size: var(--font-size-l); }
+	.text-body { font-size: var(--font-size-l); }
+	.text-body-s { font-size: var(--font-size-s); }
+	.text-label-button { font-size: var(--font-size-s); }
 }
