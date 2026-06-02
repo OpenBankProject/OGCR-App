@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import { page } from '$app/state';
-	import { TrendingUp, Tag, BarChart3 } from '@lucide/svelte';
+	import { TrendingUp, Tag, BarChart3, HelpCircle } from '@lucide/svelte';
 
 	let { data, children }: { data: LayoutData; children: any } = $props();
 
@@ -17,6 +17,12 @@
 			label: 'Market',
 			match: '/market',
 			icon: BarChart3
+		},
+		{
+			href: '/trading/help',
+			label: 'Help',
+			match: '/trading/help',
+			icon: HelpCircle
 		}
 	]);
 

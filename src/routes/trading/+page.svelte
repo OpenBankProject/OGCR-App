@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { TrendingUp, ChevronRight, Landmark } from '@lucide/svelte';
+	import { TrendingUp, ChevronRight, Landmark, HelpCircle } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
 	import CurrentBankPicker from '$lib/components/CurrentBankPicker.svelte';
@@ -52,6 +52,9 @@
 	<div class="flex flex-wrap items-center gap-4 mb-8">
 		<TrendingUp class="size-8 text-primary-500" />
 		<h1 class="h1">Trading</h1>
+		<a href="/trading/help" class="anchor inline-flex items-center gap-1 text-sm">
+			<HelpCircle class="size-4" /> How it works
+		</a>
 		{#if data.isAuthenticated}
 			<div class="ms-auto">
 				<CurrentBankPicker
