@@ -11,11 +11,16 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	}
 
 	try {
-		const response = await obp_requests.get('/obp/v3.0.0/my/accounts', accessToken);
-		const all = (response.accounts ?? []) as Array<{ id: string; label?: string; bank_id: string }>;
+		// v7.0.0 returns explicit `account_id` (v3.0.0 returned a generic `id`).
+		const response = await obp_requests.get('/obp/v7.0.0/my/accounts', accessToken);
+		const all = (response.accounts ?? []) as Array<{
+			account_id: string;
+			label?: string;
+			bank_id: string;
+		}>;
 		const settlementAccounts = all
 			.filter((a) => a.bank_id === params.bankId)
-			.map((a) => ({ id: a.id, label: a.label ?? '' }));
+			.map((a) => ({ account_id: a.account_id, label: a.label ?? '' }));
 		return { isAuthenticated: true, settlementAccounts, accountsError: null };
 	} catch (error) {
 		const accountsError =

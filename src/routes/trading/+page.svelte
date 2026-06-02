@@ -9,10 +9,10 @@
 
 	interface TradingAccount {
 		bank_id: string;
-		id: string;
+		account_id: string;
 		label?: string;
 		account_type?: string;
-		views?: { id: string; short_name?: string }[];
+		views?: { view_id: string; short_name?: string }[];
 	}
 
 	let bankId = $state(untrack(() => data.defaults.bank_id));
@@ -107,35 +107,47 @@
 
 				{#if visibleAccounts.length > 0}
 					<ul class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-						{#each visibleAccounts as acc (acc.bank_id + ':' + acc.id)}
+						{#each visibleAccounts as acc (acc.bank_id + ':' + acc.account_id)}
+							{@const offers = data.activity?.[acc.bank_id + ':' + acc.account_id]?.offers}
 							<li class="card p-4 preset-filled-surface-50-950">
 								<div class="flex items-start gap-4">
 									<Landmark class="size-6 text-primary-500 shrink-0 mt-1" />
 									<div class="flex-1 min-w-0">
 										<div class="flex items-baseline gap-2 flex-wrap">
-											<span class="font-semibold truncate">{acc.label || acc.id}</span>
+											<span class="font-semibold truncate">{acc.label || acc.account_id}</span>
 											{#if acc.account_type}
 												<span class="badge preset-filled-surface-200-800 text-xs"
 													>{acc.account_type}</span
 												>
 											{/if}
+											{#if offers && offers > 0}
+												<span
+													class="badge preset-filled-success-500 text-xs"
+													title="This account has trading offers"
+												>
+													<TrendingUp class="size-3" />
+													{offers} offer{offers === 1 ? '' : 's'}
+												</span>
+											{:else if offers === 0}
+												<span class="badge preset-tonal-surface text-xs">No trading activity</span>
+											{/if}
 										</div>
 										<div class="text-sm text-surface-600-400 mt-1">
 											<div><span class="font-mono">bank:</span> {acc.bank_id}</div>
-											<div><span class="font-mono">account:</span> {acc.id}</div>
+											<div><span class="font-mono">account_id:</span> {acc.account_id}</div>
 										</div>
 										{#if acc.views && acc.views.length > 0}
-											{@const ownerView = acc.views.find((v) => v.id === 'owner')}
-											{@const otherViews = acc.views.filter((v) => v.id !== 'owner')}
+											{@const ownerView = acc.views.find((v) => v.view_id === 'owner')}
+											{@const otherViews = acc.views.filter((v) => v.view_id !== 'owner')}
 											<div class="mt-3 space-y-2">
 												{#if ownerView}
 													<button
 														type="button"
 														class="btn btn-sm preset-filled-primary-500"
 														onclick={() =>
-															pickAccount(acc.bank_id, acc.id, ownerView.id)}
+															pickAccount(acc.bank_id, acc.account_id, ownerView.view_id)}
 													>
-														<span>Open as {ownerView.short_name || ownerView.id}</span>
+														<span>Open as {ownerView.short_name || ownerView.view_id}</span>
 														<ChevronRight class="size-4" />
 													</button>
 												{/if}
@@ -147,13 +159,13 @@
 															Other views ({otherViews.length})
 														</summary>
 														<div class="flex flex-wrap gap-2 mt-2">
-															{#each otherViews as v (v.id)}
+															{#each otherViews as v (v.view_id)}
 																<button
 																	type="button"
 																	class="btn btn-sm preset-outlined-primary-500"
-																	onclick={() => pickAccount(acc.bank_id, acc.id, v.id)}
+																	onclick={() => pickAccount(acc.bank_id, acc.account_id, v.view_id)}
 																>
-																	<span>Open as {v.short_name || v.id}</span>
+																	<span>Open as {v.short_name || v.view_id}</span>
 																	<ChevronRight class="size-4" />
 																</button>
 															{/each}

@@ -172,9 +172,9 @@
 					{:else}
 						{@const selected = v('settlement_account_id') || data.ctx.accountId}
 						<select name="settlement_account_id" class="select" required>
-							{#each data.settlementAccounts as acc (acc.id)}
-								<option value={acc.id} selected={acc.id === selected}>
-									{acc.label ? `${acc.label} — ${acc.id}` : acc.id}
+							{#each data.settlementAccounts as acc (acc.account_id)}
+								<option value={acc.account_id} selected={acc.account_id === selected}>
+									{acc.label ? `${acc.label} — ${acc.account_id}` : acc.account_id}
 								</option>
 							{/each}
 						</select>
