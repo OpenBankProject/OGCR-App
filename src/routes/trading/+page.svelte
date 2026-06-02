@@ -49,9 +49,19 @@
 </script>
 
 <div class="p-8">
-	<div class="flex items-center gap-4 mb-8">
+	<div class="flex flex-wrap items-center gap-4 mb-8">
 		<TrendingUp class="size-8 text-primary-500" />
 		<h1 class="h1">Trading</h1>
+		{#if data.isAuthenticated}
+			<div class="ms-auto">
+				<CurrentBankPicker
+					banks={data.banks}
+					selectedBankId={bankId}
+					onSelect={(b) => (bankId = b)}
+					compact
+				/>
+			</div>
+		{/if}
 	</div>
 
 	{#if !data.isAuthenticated}
@@ -63,19 +73,6 @@
 		</div>
 	{:else}
 		<div class="space-y-8">
-			<section class="card p-8 preset-filled-surface-100-900">
-				<h2 class="h3 mb-2">Current Bank</h2>
-				<p class="text-surface-600-400 mb-6">
-					Pick the bank you're trading on. This is saved to your OBP profile and used as the default
-					below.
-				</p>
-				<CurrentBankPicker
-					banks={data.banks}
-					selectedBankId={bankId}
-					onSelect={(b) => (bankId = b)}
-				/>
-			</section>
-
 			<section class="card p-8 preset-filled-surface-100-900">
 				<div class="flex flex-wrap items-center justify-between gap-4 mb-2">
 					<h2 class="h3">Your Accounts</h2>

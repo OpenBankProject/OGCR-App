@@ -11,9 +11,17 @@
 		action?: string;
 		/** Called with the new bank id whenever the selection changes. */
 		onSelect?: (bankId: string) => void;
+		/** Render inline with no help text, for placing in a header row. */
+		compact?: boolean;
 	}
 
-	let { banks, selectedBankId = '', action = '?/setBank', onSelect }: Props = $props();
+	let {
+		banks,
+		selectedBankId = '',
+		action = '?/setBank',
+		onSelect,
+		compact = false
+	}: Props = $props();
 
 	let saving = $state(false);
 	let justSaved = $state(false);
@@ -42,15 +50,15 @@
 		};
 	}}
 >
-	<label class="label">
-		<span class="label-text flex items-center gap-2">
+	<label class="label" class:flex={compact} class:items-center={compact} class:gap-2={compact}>
+		<span class="label-text flex items-center gap-2 whitespace-nowrap">
 			<Landmark class="size-4 text-primary-500" />
 			Current Bank
 		</span>
 		<div class="flex items-center gap-3">
 			<select
 				name="bank_id"
-				class="select"
+				class="select max-w-md"
 				value={selectedBankId}
 				disabled={saving}
 				onchange={(e) => {
@@ -77,8 +85,10 @@
 			{/if}
 		</div>
 	</label>
-	<p class="text-xs text-surface-600-400 mt-1">
-		Saved to your OBP profile (<span class="font-mono">CURRENT_BANK_ID</span>) and shared across OBP
-		apps.
-	</p>
+	{#if !compact}
+		<p class="text-xs text-surface-600-400 mt-1">
+			Saved to your OBP profile (<span class="font-mono">CURRENT_BANK_ID</span>) and shared across
+			OBP apps.
+		</p>
+	{/if}
 </form>

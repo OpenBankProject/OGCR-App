@@ -58,16 +58,17 @@ export const actions: Actions = {
 			minimum_fill: (formData.get('minimum_fill') as string) ?? ''
 		};
 
+		// The API expects amounts as decimal strings (e.g. "100.00"), not numbers.
 		const body: Record<string, unknown> = {
 			offer_type: values.offer_type,
 			asset_code: values.asset_code,
-			asset_amount: values.asset_amount ? Number(values.asset_amount) : undefined,
+			asset_amount: values.asset_amount || undefined,
 			price_currency: values.price_currency,
-			price_amount: values.price_amount ? Number(values.price_amount) : undefined,
+			price_amount: values.price_amount || undefined,
 			settlement_account_id: values.settlement_account_id
 		};
 		if (values.expiry_datetime) body.expiry_datetime = values.expiry_datetime;
-		if (values.minimum_fill) body.minimum_fill = Number(values.minimum_fill);
+		if (values.minimum_fill) body.minimum_fill = values.minimum_fill;
 
 		for (const key of Object.keys(body)) {
 			if (body[key] === '' || body[key] === null || body[key] === undefined) {
