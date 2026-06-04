@@ -85,15 +85,32 @@
 				</label>
 
 				<label class="label">
-					<span class="label-text">Settlement Account ID *</span>
-					<input
-						type="text"
-						name="settlement_account_id"
-						value={v('settlement_account_id')}
-						class="input"
-						placeholder="e.g., buyer-fiat-account"
-						required
-					/>
+					<span class="label-text">Settlement Account *</span>
+					{#if data.accountsError}
+						<input
+							type="text"
+							name="settlement_account_id"
+							value={v('settlement_account_id') || data.ctx.accountId}
+							class="input"
+							placeholder="account_id"
+							required
+						/>
+						<span class="text-warning-500 text-sm mt-1"
+							>Could not load your accounts ({data.accountsError}). Enter an account_id manually.</span
+						>
+					{:else}
+						{@const selected = v('settlement_account_id') || data.ctx.accountId}
+						<select name="settlement_account_id" class="select" required>
+							{#each data.settlementAccounts as acc (acc.account_id)}
+								<option value={acc.account_id} selected={acc.account_id === selected}>
+									{acc.label ? `${acc.label} — ${acc.account_id}` : acc.account_id}
+								</option>
+							{/each}
+						</select>
+						<span class="text-surface-600-400 text-sm mt-1"
+							>Cash account at {data.ctx.bankId} where EUR is debited (BUY) or credited (SELL).</span
+						>
+					{/if}
 				</label>
 
 				<label class="label">

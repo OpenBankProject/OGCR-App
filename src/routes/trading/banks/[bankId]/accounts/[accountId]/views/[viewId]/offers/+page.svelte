@@ -5,12 +5,28 @@
 
 	let { data }: { data: PageData } = $props();
 
+	interface OfferRow {
+		offer_id: string;
+		status?: string;
+		offer_details?: {
+			offer_type?: string;
+			asset_amount?: string | number;
+			asset_code?: string;
+			price_amount?: string | number;
+			price_currency?: string;
+		};
+	}
+
 	let copied = $state(false);
 
 	const basePath = $derived(page.url.pathname);
 	const ctxBase = $derived(
 		`/trading/banks/${encodeURIComponent(data.ctx.bankId)}/accounts/${encodeURIComponent(data.ctx.accountId)}/views/${encodeURIComponent(data.ctx.viewId)}`
 	);
+
+	const allOffers = $derived((data.offers ?? []) as OfferRow[]);
+	const buyOffers = $derived(allOffers.filter((o) => o.offer_details?.offer_type === 'BUY'));
+	const sellOffers = $derived(allOffers.filter((o) => o.offer_details?.offer_type === 'SELL'));
 
 	async function copyErrorDetails() {
 		if (!data.errorDetails) return;
@@ -94,41 +110,61 @@
 		<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(data.rawResponse, null, 2)}</pre>
 	</details>
 
-	<div class="grid gap-4">
-		{#each data.offers as offer}
-			<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
-				<div class="flex items-center justify-between">
-					<div>
-						<h3 class="h4">
-							<a
-								href="{ctxBase}/offers/{offer.offer_id}"
-								class="text-primary-500 hover:underline"
-							>
-								{offer.offer_details?.offer_type ?? '?'}
-								{offer.offer_details?.asset_amount ?? '?'}
-								{offer.offer_details?.asset_code ?? '?'}
-							</a>
-						</h3>
-						<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-surface-600-400">
-							<span>
-								@ {offer.offer_details?.price_amount}
-								{offer.offer_details?.price_currency}
-							</span>
-							{#if offer.status}
-								<span>Status: <strong>{offer.status}</strong></span>
-							{/if}
-							<span>ID: {offer.offer_id}</span>
-						</div>
+	{#snippet offerCard(offer: OfferRow)}
+		<div class="card p-6 preset-filled-surface-100-900 hover:preset-tonal transition-colors">
+			<div class="flex items-center justify-between gap-4">
+				<div class="min-w-0">
+					<h3 class="h4">
+						<a href="{ctxBase}/offers/{offer.offer_id}" class="text-primary-500 hover:underline">
+							{offer.offer_details?.offer_type ?? '?'}
+							{offer.offer_details?.asset_amount ?? '?'}
+							{offer.offer_details?.asset_code ?? '?'}
+						</a>
+					</h3>
+					<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-surface-600-400">
+						<span>
+							@ {offer.offer_details?.price_amount}
+							{offer.offer_details?.price_currency}
+						</span>
+						{#if offer.status}
+							<span>Status: <strong>{offer.status}</strong></span>
+						{/if}
+						<span class="truncate">ID: {offer.offer_id}</span>
 					</div>
-					<a
-						href="{ctxBase}/offers/{offer.offer_id}"
-						class="btn preset-outlined-primary-500"
-					>
-						<span>View Details</span>
-						<ChevronRight class="size-4" />
-					</a>
 				</div>
+				<a href="{ctxBase}/offers/{offer.offer_id}" class="btn preset-outlined-primary-500 shrink-0">
+					<span>View Details</span>
+					<ChevronRight class="size-4" />
+				</a>
 			</div>
-		{/each}
+		</div>
+	{/snippet}
+
+	<div class="grid gap-6 md:grid-cols-2">
+		<section>
+			<h3 class="h3 mb-3 text-success-600-400">Buy ({buyOffers.length})</h3>
+			{#if buyOffers.length > 0}
+				<div class="grid gap-4">
+					{#each buyOffers as offer (offer.offer_id)}
+						{@render offerCard(offer)}
+					{/each}
+				</div>
+			{:else}
+				<p class="text-surface-600-400 text-sm">No buy offers.</p>
+			{/if}
+		</section>
+
+		<section>
+			<h3 class="h3 mb-3 text-error-600-400">Sell ({sellOffers.length})</h3>
+			{#if sellOffers.length > 0}
+				<div class="grid gap-4">
+					{#each sellOffers as offer (offer.offer_id)}
+						{@render offerCard(offer)}
+					{/each}
+				</div>
+			{:else}
+				<p class="text-surface-600-400 text-sm">No sell offers.</p>
+			{/if}
+		</section>
 	</div>
 {/if}

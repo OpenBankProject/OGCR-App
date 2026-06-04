@@ -3,9 +3,34 @@ import { obp_requests } from '$lib/obp/requests';
 import { OBPRequestError } from '$lib/obp/errors';
 import { tradingPaths } from '$lib/obp/trading';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, params }) => {
 	const accessToken = locals.session.data.oauth?.access_token;
-	return { isAuthenticated: !!accessToken };
+
+	if (!accessToken) {
+		return { isAuthenticated: false, settlementAccounts: [], accountsError: null };
+	}
+
+	try {
+		// v7.0.0 returns explicit `account_id` (v3.0.0 returned a generic `id`).
+		const response = await obp_requests.get('/obp/v7.0.0/my/accounts', accessToken);
+		const all = (response.accounts ?? []) as Array<{
+			account_id: string;
+			label?: string;
+			bank_id: string;
+		}>;
+		const settlementAccounts = all
+			.filter((a) => a.bank_id === params.bankId)
+			.map((a) => ({ account_id: a.account_id, label: a.label ?? '' }));
+		return { isAuthenticated: true, settlementAccounts, accountsError: null };
+	} catch (error) {
+		const accountsError =
+			error instanceof OBPRequestError
+				? error.message
+				: error instanceof Error
+					? error.message
+					: 'Unknown error';
+		return { isAuthenticated: true, settlementAccounts: [], accountsError };
+	}
 };
 
 export const actions: Actions = {
@@ -29,10 +54,11 @@ export const actions: Actions = {
 			settlement_account_id: (formData.get('settlement_account_id') as string) ?? ''
 		};
 
+		// The API expects amounts as decimal strings (e.g. "25.0"), not numbers.
 		const body: Record<string, unknown> = {
 			side: values.side,
-			price: values.price ? Number(values.price) : undefined,
-			quantity: values.quantity ? Number(values.quantity) : undefined,
+			price: values.price || undefined,
+			quantity: values.quantity || undefined,
 			settlement_account_id: values.settlement_account_id
 		};
 		for (const key of Object.keys(body)) {

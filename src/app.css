@@ -12,3 +12,12 @@
 
 /* for dark mode toggling */
 @custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));
+
+/* Placeholder text must read as a hint, not as real entered data. */
+input::placeholder,
+textarea::placeholder,
+.input::placeholder,
+.textarea::placeholder {
+	color: var(--color-surface-400);
+	opacity: 1; /* override the browser default that fades it inconsistently */
+}
