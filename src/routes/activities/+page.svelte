@@ -47,6 +47,13 @@
 	let minPrice = $state('');
 	let maxPrice = $state('');
 	let minCredits = $state('');
+	let verificationStatus = $state('all');
+
+	// Verification lookups derived from activity_verification (see +page.server.ts):
+	// verifiedIds = activities with a "verified" verification; referencedIds = activities
+	// referenced by any verification (so "unverified" = not referenced by any).
+	const verifiedIds = $derived(new Set((data.verifiedActivityIds ?? []) as string[]));
+	const referencedIds = $derived(new Set((data.referencedActivityIds ?? []) as string[]));
 
 	const countries = $derived(
 		[...new Set(activities.map((a) => a.country_code).filter(Boolean))].sort() as string[]
@@ -74,6 +81,17 @@
 			if (categoryKey !== 'all' && cat.key !== categoryKey) return false;
 			if (country !== 'all' && a.country_code !== country) return false;
 
+			// Verification status filter (see issue #1):
+			//   verified   = referenced by a verification whose status_code is "verified"
+			//   unverified = not referenced by ANY verification
+			if (verificationStatus === 'verified' && !(a.activity_id && verifiedIds.has(a.activity_id)))
+				return false;
+			if (
+				verificationStatus === 'unverified' &&
+				!(a.activity_id && !referencedIds.has(a.activity_id))
+			)
+				return false;
+
 			// Price / credits filters only exclude when the field actually exists,
 			// so cards without that data yet are never hidden.
 			const price = num(a.price_per_credit);
@@ -92,6 +110,7 @@
 		!!query.trim() ||
 			categoryKey !== 'all' ||
 			country !== 'all' ||
+			verificationStatus !== 'all' ||
 			!!minPrice ||
 			!!maxPrice ||
 			!!minCredits
@@ -101,6 +120,7 @@
 		query = '';
 		categoryKey = 'all';
 		country = 'all';
+		verificationStatus = 'all';
 		minPrice = '';
 		maxPrice = '';
 		minCredits = '';
@@ -231,6 +251,15 @@
 						{#each countries as c (c)}
 							<option value={c}>{c}</option>
 						{/each}
+					</select>
+				</label>
+
+				<label class="label">
+					<span class="label-text">Verification status</span>
+					<select bind:value={verificationStatus} class="select">
+						<option value="all">All</option>
+						<option value="verified">Verified</option>
+						<option value="unverified">Unverified</option>
 					</select>
 				</label>
 

@@ -1,6 +1,10 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_ACTIVITY, ENTITY_OPERATOR } from '$lib/constants/entities';
+import {
+	ENTITY_ACTIVITY,
+	ENTITY_OPERATOR,
+	ENTITY_ACTIVITY_VERIFICATION
+} from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getAllListings, type ActivityListing } from '$lib/marketplace/listings';
 
@@ -17,6 +21,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			isAuthenticated: false,
 			activities: null,
+			verifiedActivityIds: [] as string[],
+			referencedActivityIds: [] as string[],
 			error: null
 		};
 	}
@@ -41,6 +47,30 @@ export const load: PageServerLoad = async ({ locals }) => {
 			}
 		} catch {
 			// Operators unavailable — cards fall back to "Unknown operator".
+		}
+
+		// Resolve verification status per activity via activity_verification.activity_id.
+		// verifiedActivityIds  = referenced by a verification whose status_code is "verified".
+		// referencedActivityIds = referenced by ANY verification (used to derive "unverified").
+		// Kept in its own try so a verification-fetch failure still renders the activities.
+		const verifiedActivityIds = new Set<string>();
+		const referencedActivityIds = new Set<string>();
+		try {
+			const verResponse = await obp_requests.get(
+				`/obp/dynamic-entity/${ENTITY_ACTIVITY_VERIFICATION}`,
+				accessToken
+			);
+			const verifications = (verResponse[`${ENTITY_ACTIVITY_VERIFICATION}_list`] || []) as Array<{
+				activity_id?: string;
+				status_code?: string;
+			}>;
+			for (const v of verifications) {
+				if (!v.activity_id) continue;
+				referencedActivityIds.add(v.activity_id);
+				if (v.status_code === 'verified') verifiedActivityIds.add(v.activity_id);
+			}
+		} catch {
+			// Verifications unavailable — the verification filter falls back to "All".
 		}
 
 		// Merge the marketplace listing overlay (marketing + commercial terms).
@@ -71,6 +101,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			isAuthenticated: true,
 			activities: enriched,
+			verifiedActivityIds: [...verifiedActivityIds],
+			referencedActivityIds: [...referencedActivityIds],
 			rawResponse: response,
 			error: null
 		};
@@ -79,6 +111,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			return {
 				isAuthenticated: true,
 				activities: null,
+				verifiedActivityIds: [] as string[],
+				referencedActivityIds: [] as string[],
 				error: error.message,
 				errorDetails: error.toJSON()
 			};
@@ -87,6 +121,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return {
 			isAuthenticated: true,
 			activities: null,
+			verifiedActivityIds: [] as string[],
+			referencedActivityIds: [] as string[],
 			error: errorMessage
 		};
 	}
