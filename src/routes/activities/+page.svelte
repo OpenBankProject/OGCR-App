@@ -47,6 +47,12 @@
 	let minPrice = $state('');
 	let maxPrice = $state('');
 	let minCredits = $state('');
+	let verificationStatus = $state('all');
+
+	// Verification lookup derived from activity_verification (see +page.server.ts):
+	// verifiedIds = activities with a "verified" verification. Everything else
+	// (no record, in_progress, failed) counts as "unverified".
+	const verifiedIds = $derived(new Set((data.verifiedActivityIds ?? []) as string[]));
 
 	const countries = $derived(
 		[...new Set(activities.map((a) => a.country_code).filter(Boolean))].sort() as string[]
@@ -74,6 +80,13 @@
 			if (categoryKey !== 'all' && cat.key !== categoryKey) return false;
 			if (country !== 'all' && a.country_code !== country) return false;
 
+			// Verification status filter (see issue #1):
+			//   verified   = has a verification whose status_code is "verified"
+			//   unverified = anything else (no record, in_progress, failed)
+			const isVerified = !!(a.activity_id && verifiedIds.has(a.activity_id));
+			if (verificationStatus === 'verified' && !isVerified) return false;
+			if (verificationStatus === 'unverified' && isVerified) return false;
+
 			// Price / credits filters only exclude when the field actually exists,
 			// so cards without that data yet are never hidden.
 			const price = num(a.price_per_credit);
@@ -92,6 +105,7 @@
 		!!query.trim() ||
 			categoryKey !== 'all' ||
 			country !== 'all' ||
+			verificationStatus !== 'all' ||
 			!!minPrice ||
 			!!maxPrice ||
 			!!minCredits
@@ -101,6 +115,7 @@
 		query = '';
 		categoryKey = 'all';
 		country = 'all';
+		verificationStatus = 'all';
 		minPrice = '';
 		maxPrice = '';
 		minCredits = '';
@@ -235,6 +250,15 @@
 				</label>
 
 				<label class="label">
+					<span class="label-text">Verification status</span>
+					<select bind:value={verificationStatus} class="select">
+						<option value="all">All</option>
+						<option value="verified">Verified</option>
+						<option value="unverified">Unverified</option>
+					</select>
+				</label>
+
+				<label class="label">
 					<span class="label-text">Price range (EUR / tCO₂e)</span>
 					<div class="flex items-center gap-2">
 						<input type="number" step="any" min="0" bind:value={minPrice} class="input" placeholder="Min" />
@@ -327,10 +351,20 @@
 			</div>
 		{/if}
 
-		<!-- Debug: raw response -->
-		<details class="mt-8">
-			<summary class="cursor-pointer text-sm text-surface-600-400">Debug: Raw API Response</summary>
-			<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(data.rawResponse, null, 2)}</pre>
-		</details>
+		<!-- Debug: every OBP call made while loading this page (request + response/error) -->
+		{#each (data.debugCalls ?? []) as call, i (call.label + i)}
+			<details class={i === 0 ? 'mt-8' : 'mt-2'} open={i === 0}>
+				<summary class="cursor-pointer text-sm text-surface-600-400"
+					>Debug: {call.label} — Request</summary
+				>
+				<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(call.request, null, 2)}</pre>
+			</details>
+			<details class="mt-2" open={i === 0}>
+				<summary class="cursor-pointer text-sm text-surface-600-400"
+					>Debug: {call.label} — {call.error ? 'Error' : 'Response'}</summary
+				>
+				<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-xs mt-2">{JSON.stringify(call.error ?? call.response, null, 2)}</pre>
+			</details>
+		{/each}
 	{/if}
 </div>
