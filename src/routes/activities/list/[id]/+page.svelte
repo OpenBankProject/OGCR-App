@@ -5,6 +5,8 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
+	let submitting = $state(false);
+
 	const activity = $derived((data.activity ?? {}) as Record<string, unknown>);
 	const listing = $derived(data.listing);
 
@@ -111,7 +113,18 @@
 			</div>
 
 			<!-- Operator-editable: marketing + commercial -->
-			<form method="POST" action="?/save" use:enhance class="card p-6 preset-filled-surface-100-900 space-y-6">
+			<form
+			method="POST"
+			action="?/save"
+			use:enhance={() => {
+				submitting = true;
+				return async ({ update }) => {
+					await update();
+					submitting = false;
+				};
+			}}
+			class="card p-6 preset-filled-surface-100-900 space-y-6"
+		>
 				<div class="flex items-start gap-2 text-sm text-surface-600-400">
 					<Info class="size-4 text-primary-500 shrink-0 mt-0.5" />
 					<p>These are the only fields you set as the operator: how the activity is presented, and its commercial terms.</p>
@@ -158,7 +171,9 @@
 					<span class="label-text">Publish this listing to the marketplace</span>
 				</label>
 
-				<button type="submit" class="btn preset-filled-primary-500 w-full">Save listing</button>
+				<button type="submit" class="btn preset-filled-primary-500 w-full" disabled={submitting}>
+				{submitting ? 'Saving…' : 'Save listing'}
+			</button>
 			</form>
 		</div>
 	{/if}

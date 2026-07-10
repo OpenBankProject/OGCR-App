@@ -29,11 +29,12 @@ export const actions: Actions = {
 			amount: (formData.get('amount') as string) ?? ''
 		};
 
+		// The API expects amounts as decimal strings (e.g. "25.0"), not numbers.
 		const body: Record<string, unknown> = {
 			order_id: values.order_id,
 			counter_order_id: values.counter_order_id,
-			price: values.price ? Number(values.price) : undefined,
-			amount: values.amount ? Number(values.amount) : undefined
+			price: values.price || undefined,
+			amount: values.amount || undefined
 		};
 		for (const key of Object.keys(body)) {
 			if (body[key] === '' || body[key] === null || body[key] === undefined) {

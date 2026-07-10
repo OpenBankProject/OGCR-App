@@ -5,6 +5,8 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
+	let submitting = $state(false);
+
 	function v(field: string): string {
 		return form?.values?.[field] ?? '';
 	}
@@ -68,7 +70,17 @@
 		{/if}
 
 		<div class="card p-8 preset-filled-surface-100-900 max-w-2xl">
-			<form method="POST" use:enhance class="space-y-6">
+			<form
+				method="POST"
+				use:enhance={() => {
+					submitting = true;
+					return async ({ update }) => {
+						await update();
+						submitting = false;
+					};
+				}}
+				class="space-y-6"
+			>
 				<label class="label">
 					<span class="label-text">Legal name *</span>
 					<input
@@ -142,7 +154,9 @@
 					</span>
 				</label>
 
-				<button type="submit" class="btn preset-filled-primary-500">Create Operator</button>
+				<button type="submit" class="btn preset-filled-primary-500" disabled={submitting}>
+					{submitting ? 'Creating…' : 'Create Operator'}
+				</button>
 			</form>
 		</div>
 	{/if}

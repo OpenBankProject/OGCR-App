@@ -16,6 +16,10 @@ class ConsoleLogger implements Logger {
 
 	private log(level: LogLevel, ...args: any[]): void {
 		try {
+			// Debug logs commonly carry request/response payloads (tokens, session
+			// data); never emit them outside local development.
+			if (level === 'debug' && process.env.NODE_ENV === 'production') return;
+
 			const timestamp = new Date().toISOString();
 			const prefix = `[${timestamp}] [${level.toUpperCase()}] [${this.context}]`;
 

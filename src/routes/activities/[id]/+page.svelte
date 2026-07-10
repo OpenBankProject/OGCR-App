@@ -7,6 +7,9 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let copied = $state(false);
+	let savingActivity = $state(false);
+	let addingActivityVerification = $state(false);
+	let addingMonitoringVerification = $state(false);
 
 	function v(field: string): string {
 		if (form?.values?.[field] !== undefined) return form.values[field];
@@ -148,7 +151,17 @@
 		{/if}
 
 		<!-- Editable Activity Form -->
-		<form method="POST" action="?/update" use:enhance>
+		<form
+			method="POST"
+			action="?/update"
+			use:enhance={() => {
+				savingActivity = true;
+				return async ({ update }) => {
+					await update();
+					savingActivity = false;
+				};
+			}}
+		>
 			<div class="card p-5 preset-filled-surface-100-900">
 				<!-- All fields on a consistent 6-column grid -->
 				<div class="grid grid-cols-2 md:grid-cols-6 gap-x-3 gap-y-3">
@@ -267,9 +280,9 @@
 
 				<!-- Save -->
 				<div class="flex justify-end mt-4">
-					<button type="submit" class="btn preset-filled-primary-500 btn-sm">
+					<button type="submit" class="btn preset-filled-primary-500 btn-sm" disabled={savingActivity}>
 						<Save class="size-4" />
-						<span>Save Changes</span>
+						<span>{savingActivity ? 'Saving…' : 'Save Changes'}</span>
 					</button>
 				</div>
 			</div>
@@ -299,7 +312,18 @@
 					{#if form?.action === 'addActivityVerification' && form?.error}
 						<p class="text-xs text-error-500 mb-1">{form.error}</p>
 					{/if}
-					<form method="POST" action="?/addActivityVerification" use:enhance class="grid grid-cols-[auto_1fr_auto] gap-2 items-end">
+					<form
+						method="POST"
+						action="?/addActivityVerification"
+						use:enhance={() => {
+							addingActivityVerification = true;
+							return async ({ update }) => {
+								await update();
+								addingActivityVerification = false;
+							};
+						}}
+						class="grid grid-cols-[auto_1fr_auto] gap-2 items-end"
+					>
 						<label class="label min-w-0">
 							<span class="label-text text-xs">Status</span>
 							<select name="status_code" class="input text-sm py-1 w-full" required>
@@ -312,9 +336,14 @@
 							<span class="label-text text-xs">Message</span>
 							<input type="text" name="status_message" class="input text-sm py-1 w-full" placeholder="Optional" />
 						</label>
-						<button type="submit" class="btn preset-filled-primary-500 btn-sm" title="Add verification">
+						<button
+							type="submit"
+							class="btn preset-filled-primary-500 btn-sm"
+							title="Add verification"
+							disabled={addingActivityVerification}
+						>
 							<Plus class="size-4" />
-							<span>Add</span>
+							<span>{addingActivityVerification ? 'Adding…' : 'Add'}</span>
 						</button>
 					</form>
 				</div>
@@ -340,7 +369,18 @@
 					{#if form?.action === 'addMonitoringVerification' && form?.error}
 						<p class="text-xs text-error-500 mb-1">{form.error}</p>
 					{/if}
-					<form method="POST" action="?/addMonitoringVerification" use:enhance class="grid grid-cols-[auto_1fr_auto] gap-2 items-end">
+					<form
+						method="POST"
+						action="?/addMonitoringVerification"
+						use:enhance={() => {
+							addingMonitoringVerification = true;
+							return async ({ update }) => {
+								await update();
+								addingMonitoringVerification = false;
+							};
+						}}
+						class="grid grid-cols-[auto_1fr_auto] gap-2 items-end"
+					>
 						<label class="label min-w-0">
 							<span class="label-text text-xs">Status</span>
 							<select name="status_code" class="input text-sm py-1 w-full" required>
@@ -353,9 +393,14 @@
 							<span class="label-text text-xs">Message</span>
 							<input type="text" name="status_message" class="input text-sm py-1 w-full" placeholder="Optional" />
 						</label>
-						<button type="submit" class="btn preset-filled-primary-500 btn-sm" title="Add verification">
+						<button
+							type="submit"
+							class="btn preset-filled-primary-500 btn-sm"
+							title="Add verification"
+							disabled={addingMonitoringVerification}
+						>
 							<Plus class="size-4" />
-							<span>Add</span>
+							<span>{addingMonitoringVerification ? 'Adding…' : 'Add'}</span>
 						</button>
 					</form>
 				</div>

@@ -1,7 +1,24 @@
 import { createLogger } from '$lib/utils/logger';
 const logger = createLogger('OBPRequests');
 import { env } from '$env/dynamic/public';
-import { OBPErrorBase, OBPRequestError, type OBPRequestDetails, type OBPResponseDetails } from '$lib/obp/errors';
+import {
+	OBPErrorBase,
+	OBPRequestError,
+	type OBPRequestDetails,
+	type OBPResponseDetails
+} from '$lib/obp/errors';
+
+/** A successful empty body (e.g. 204 from DELETE) is `{}`, not a parse failure. */
+async function parseResponseBody(response: Response, url: string): Promise<any> {
+	const text = await response.text();
+	if (!text) return {};
+	try {
+		return JSON.parse(text);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
+	}
+}
 
 class OBPRequests {
 	base_url: string;
@@ -37,13 +54,7 @@ class OBPRequests {
 			headers
 		});
 
-		let data;
-		try {
-			data = await response.json();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
-		}
+		const data = await parseResponseBody(response, url);
 
 		if (!response.ok) {
 			logger.error('Failed to fetch OBP data:', { statusText: response.statusText, data });
@@ -94,13 +105,7 @@ class OBPRequests {
 			body: JSON.stringify(body)
 		});
 
-		let data;
-		try {
-			data = await response.json();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
-		}
+		const data = await parseResponseBody(response, url);
 
 		if (!response.ok) {
 			logger.error('Failed to post OBP data:', { statusText: response.statusText, data });
@@ -149,13 +154,7 @@ class OBPRequests {
 			headers
 		});
 
-		let data;
-		try {
-			data = await response.json();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
-		}
+		const data = await parseResponseBody(response, url);
 
 		if (!response.ok) {
 			logger.error('Failed to delete OBP data:', response.statusText, data);
@@ -206,13 +205,7 @@ class OBPRequests {
 			body: JSON.stringify(body)
 		});
 
-		let data;
-		try {
-			data = await response.json();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
-		}
+		const data = await parseResponseBody(response, url);
 
 		if (!response.ok) {
 			logger.error('Failed to put OBP data:', { statusText: response.statusText, data });

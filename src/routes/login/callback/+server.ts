@@ -4,6 +4,7 @@ import { oauth2ProviderFactory } from '$lib/oauth/providerFactory';
 import type { OAuth2Tokens } from 'arctic';
 import type { RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
+import { isSafeRelativePath } from '$lib/utils/safeRedirect';
 
 export async function GET(event: RequestEvent): Promise<Response> {
 	// Check for OAuth error responses first
@@ -120,9 +121,12 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		});
 	}
 
+	const codeVerifier = event.cookies.get('ogcr_oauth_verifier') ?? null;
+	event.cookies.delete('ogcr_oauth_verifier', { path: '/' });
+
 	let tokens: OAuth2Tokens;
 	try {
-		tokens = await oauthClient.validateAuthorizationCode(token_endpoint, code, null);
+		tokens = await oauthClient.validateAuthorizationCode(token_endpoint, code, codeVerifier);
 	} catch (e: any) {
 		logger.error('Error validating authorization code:', e);
 
@@ -184,8 +188,10 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	if (user.user_id && user.email) {
 		const { session } = event.locals;
 
-		// Get target location from session before overwriting
-		const targetLocation = session.data.target_location || '/';
+		// Get target location from session before overwriting; re-validate since
+		// it was written before this request and must still be a same-origin path.
+		const storedTarget = session.data.target_location;
+		const targetLocation = isSafeRelativePath(storedTarget) ? storedTarget : '/';
 
 		await session.setData({
 			user: user,
@@ -196,7 +202,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 			}
 		});
 		await session.save();
-		logger.debug('Session data set:', session.data);
+		logger.debug('Session data set for user:', user.username || user.user_id);
 
 		return new Response(null, {
 			status: 302,

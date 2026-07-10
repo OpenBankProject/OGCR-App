@@ -5,6 +5,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { sveltekitSessionHandle } from 'svelte-kit-sessions';
 import RedisStore from 'svelte-kit-connect-redis';
+import { env } from '$env/dynamic/private';
 
 import { oauth2ProviderManager } from '$lib/oauth/providerManager';
 import { SessionOAuthHelper } from '$lib/oauth/sessionHelper';
@@ -12,6 +13,27 @@ import { redisService } from '$lib/redis/services/RedisService';
 
 // Constants
 const DEFAULT_PORT = 5175;
+
+// Session cookies are signed with this secret; a shared/guessable value lets
+// anyone forge a valid session cookie against this deployment.
+const SESSION_SECRET = env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+	throw new Error(
+		'SESSION_SECRET environment variable is not set. Set it to a long random string before starting the server.'
+	);
+}
+
+// Routes that must be reachable without an authenticated session. Everything
+// else is denied-by-default so a new route can't accidentally skip auth by
+// forgetting to add its own check.
+const PUBLIC_ROUTE_PREFIXES = ['/login', '/logout', '/design', '/api/'];
+
+function isPublicRoute(routeId: string): boolean {
+	if (routeId === '/') return true;
+	return PUBLIC_ROUTE_PREFIXES.some(
+		(prefix) => routeId === prefix.replace(/\/$/, '') || routeId.startsWith(prefix)
+	);
+}
 
 // Check if server is running on non-default port
 function checkServerPort() {
@@ -34,8 +56,7 @@ const redisClient = redisService.getClient();
 await oauth2ProviderManager.start();
 
 function needsAuthorization(routeId: string): boolean {
-	// protected routes are put in the /(protected)/ route group
-	return routeId.startsWith('/(protected)/');
+	return !isPublicRoute(routeId);
 }
 
 const checkSessionValidity: Handle = async ({ event, resolve }) => {
@@ -107,7 +128,7 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 export const handle: Handle = sequence(
 	sveltekitSessionHandle({
 		name: 'ogcr-app-connect.sid',
-		secret: 'secret',
+		secret: SESSION_SECRET,
 		store: new RedisStore({
 			client: redisClient,
 			prefix: 'ogcr-app-session:'
