@@ -178,10 +178,24 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
+		// Surface OBP's own error (e.g. "OBP-10018: Too Many Requests. ...") rather than a
+		// generic message, so the reason is visible without digging through server logs.
+		// OBP error bodies are `{ "code": <http status>, "message": "OBP-xxxxx: ..." }`.
+		let obpMessage = errorText.trim();
+		try {
+			const parsed = JSON.parse(errorText);
+			if (parsed && typeof parsed.message === 'string') obpMessage = parsed.message;
+		} catch {
+			// Not JSON — keep the raw body text.
+		}
+		const userMessage =
+			`OBP API returned HTTP ${currentUserResponse.status} for GET ${currentUserUrl}` +
+			(obpMessage ? `: ${obpMessage}` : '');
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: `/login?error=${encodeURIComponent('Failed to retrieve user information. Please try again or contact your administrator.')}`
+				Location: `/login?error=${encodeURIComponent(userMessage)}`
 			}
 		});
 	}
