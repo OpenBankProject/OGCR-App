@@ -11,6 +11,9 @@ export const SITE_MAP: Record<string, PageRoleConfig> = {
 	'/activities': {
 		required: [{ role: `CanGetDynamicEntity_System${ENTITY_ACTIVITY}` }]
 	},
+	'/operators': {
+		required: [{ role: `CanGetDynamicEntity_System${ENTITY_OPERATOR}` }]
+	},
 	'/my/operators': {
 		required: [
 			{ role: `CanGetDynamicEntity_System${ENTITY_OPERATOR}` },

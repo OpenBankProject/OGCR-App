@@ -13,12 +13,16 @@ import { healthCheckRegistry, OIDCHealthCheckService } from '$lib/health-check';
 import { RedisHealthCheckService } from '$lib/server/health-check/RedisHealthCheckService';
 import { PUBLIC_OBP_BASE_URL } from '$env/static/public';
 import { env } from '$env/dynamic/private';
+import { building } from '$app/environment';
 
 // Constants
-const DEFAULT_PORT = 5175;
+// Dev server port, must match `server.port` in vite.config.ts and the OAuth callback URL.
+const DEFAULT_PORT = 5200;
 
-// Check if server is running on non-default port
+// Check if the dev server is running on a port other than the one the OAuth callback
+// URL was registered for. Skipped in production, where PORT is set by the container.
 function checkServerPort() {
+	if (process.env.NODE_ENV === 'production') return;
 	const envPort = process.env.PORT || process.env.VITE_PORT || process.env.SERVER_PORT;
 
 	if (envPort && parseInt(envPort) !== DEFAULT_PORT) {
@@ -29,8 +33,24 @@ function checkServerPort() {
 	}
 }
 
+// Session cookie signing secret. Must be set in production; in development a fixed
+// insecure default keeps `npm run dev` working without extra setup.
+function resolveSessionSecret(): string {
+	const secret = env.SESSION_SECRET;
+	if (secret && secret.length >= 16) return secret;
+	if (process.env.NODE_ENV === 'production' && !building) {
+		throw new Error(
+			'SESSION_SECRET must be set (at least 16 characters) in production. ' +
+				'Generate one with: openssl rand -hex 32'
+		);
+	}
+	logger.warn('SESSION_SECRET is not set (or too short). Using an insecure development default.');
+	return 'ogcr-app-insecure-dev-session-secret';
+}
+
 // Startup scripts
 checkServerPort();
+const sessionSecret = resolveSessionSecret();
 
 // Init Redis
 const redisClient = redisService.getClient();
@@ -48,6 +68,23 @@ function initHealthChecks() {
 
 	// Sessions are stored in Redis, so its health belongs on the status page too
 	healthCheckRegistry.register(new RedisHealthCheckService(redisService));
+
+	// The tokenizer, if it exposes its health endpoint. It writes to the chain
+	// and never to OBP, so nothing on the OBP side reveals whether it is
+	// running: the chain mirror runs the opposite way, and a tokenization
+	// backlog of zero on a dead tokenizer with no new work looks like success.
+	// Optional, because the tokenizer is not part of every deployment; without
+	// the URL it is simply not monitored rather than permanently unhealthy.
+	const tokenizerHealthUrl = env.TOKENIZER_HEALTH_URL;
+	if (tokenizerHealthUrl) {
+		healthCheckRegistry.register({
+			serviceName: 'OGCR Tokenizer',
+			url: tokenizerHealthUrl,
+			details: {
+				TOKENIZER_HEALTH_URL: tokenizerHealthUrl
+			}
+		});
+	}
 
 	const testTokenDisabled = env.OIDC_HEALTHCHECK_TEST_TOKEN === 'false';
 	const testTokenStrict = env.OIDC_HEALTHCHECK_TEST_TOKEN_STRICT === 'true';
@@ -164,7 +201,7 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 export const handle: Handle = sequence(
 	sveltekitSessionHandle({
 		name: 'ogcr-app-connect.sid',
-		secret: 'secret',
+		secret: sessionSecret,
 		store: new RedisStore({
 			client: redisClient,
 			prefix: 'ogcr-app-session:'

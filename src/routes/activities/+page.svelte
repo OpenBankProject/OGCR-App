@@ -212,7 +212,9 @@
 				<pre class="bg-surface-200-800 p-4 rounded overflow-auto text-sm">{data.error}</pre>
 			{/if}
 		</div>
-	{:else if activities.length === 0}
+	{:else if activities.length === 0 && verificationStatus === 'all'}
+		<!-- Only when nothing is filtered server-side: with a verification filter active, an
+		     empty result must still show the filter bar so the filter can be cleared. -->
 		<div class="card p-8 preset-filled-surface-100-900">
 			<h2 class="h3 mb-2">No Activities Found</h2>
 			<p class="text-surface-600-400">No activities exist yet.</p>
@@ -297,8 +299,14 @@
 
 		<!-- Listing cards -->
 		{#if filtered.length === 0}
-			<div class="card p-8 preset-filled-surface-100-900 text-center">
+			<div class="card p-8 preset-filled-surface-100-900 text-center space-y-4">
 				<p class="text-surface-600-400">No activities match your filters.</p>
+				{#if hasActiveFilters}
+					<button type="button" onclick={resetFilters} class="btn preset-tonal-surface">
+						<X class="size-4" />
+						<span>Clear filters</span>
+					</button>
+				{/if}
 			</div>
 		{:else}
 			<div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">

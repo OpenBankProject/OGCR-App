@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { Building2, ArrowLeft, Lock, CheckCircle2 } from '@lucide/svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -43,6 +44,9 @@
 					<p class="text-surface-600-400">
 						This operator isn't linked to your user, so it's not yours to edit.
 					</p>
+					<a href="/operators/{page.params.operatorId}" class="btn btn-sm preset-outlined-primary-500 mt-4">
+						View public operator page
+					</a>
 				</div>
 			</div>
 		</div>

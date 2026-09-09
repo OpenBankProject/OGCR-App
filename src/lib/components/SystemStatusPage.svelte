@@ -2,13 +2,23 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Copy, Check } from '@lucide/svelte';
 	import type { HealthSummary, ServiceHealthView } from '$lib/health-check/summarize';
+	import type { Backlog } from '$lib/chain/backlog';
 
 	let {
 		data,
 		title,
 		opeyPublicUrl
 	}: {
-		data: HealthSummary;
+		/**
+		 * The health summary, optionally extended with per-request checks the
+		 * background registry cannot make. `chainMirrorChecked` is false when the
+		 * viewer has no OBP credentials, so the chain mirror could not be read.
+		 */
+		data: HealthSummary & {
+			chainMirrorChecked?: boolean;
+			backlog?: Backlog | null;
+			backlogError?: string | null;
+		};
 		title: string;
 		/** PUBLIC_OPEY_BASE_URL of the consuming app; pass undefined when unset. */
 		opeyPublicUrl?: string;
@@ -435,6 +445,101 @@
 			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center" data-testid="no-services-monitored">
 				<p class="text-gray-600 dark:text-gray-400">
 					No services are being monitored — nothing can be said about system health.
+				</p>
+			</div>
+		{/if}
+
+		{#if data.chainMirrorChecked === false}
+			<!-- The chain mirror needs OBP credentials to check, so a logged-out
+			     visitor gets an explanation rather than a silently missing service. -->
+			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6" data-testid="chain-mirror-not-checked">
+				<p class="text-gray-600 dark:text-gray-400">
+					The chain mirror is not listed because checking it needs your OBP credentials.
+					<a href="/login" class="underline">Log in</a> to include it, or open
+					<a href="/chain" class="underline">the chain page</a> for detail.
+				</p>
+			</div>
+		{:else if data.chainMirrorChecked}
+			<p class="text-sm text-gray-500 dark:text-gray-400">
+				Chain detail and recent on-chain activity: <a href="/chain" class="underline">the chain page</a>.
+			</p>
+		{/if}
+
+		{#if data.backlog}
+			<!-- Kept out of the health summary on purpose: see the status loader.
+			     A backlog is a measurement, and a snapshot cannot distinguish a
+			     queue in progress from a stalled one. -->
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-testid="tokenization-backlog">
+				<h3 class="text-xl font-bold mb-1">Tokenization backlog</h3>
+				<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+					Registry records that should be on the chain but are not yet. This is the only
+					available signal about the tokenizer: it writes to the chain, not to OBP, so
+					the chain mirror above says nothing about whether it is running.
+				</p>
+
+				<div class="overflow-x-auto">
+					<table class="w-full text-sm">
+						<thead>
+							<tr class="text-left text-gray-500 dark:text-gray-400">
+								<th class="py-2">Record type</th>
+								<th class="py-2">Expected</th>
+								<th class="py-2">On chain</th>
+								<th class="py-2">Pending</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each data.backlog.entries as entry}
+								<tr class="border-t border-gray-200 dark:border-gray-700">
+									<td class="py-2">
+										<div class="font-medium">{entry.label}</div>
+										<div class="text-xs text-gray-500 dark:text-gray-400">{entry.rule}</div>
+									</td>
+									<td class="py-2">{entry.expected}</td>
+									<td class="py-2">{entry.onChain}</td>
+									<td class="py-2 font-semibold {entry.pending.length > 0 ? 'text-amber-600 dark:text-amber-400' : ''}">
+										{entry.pending.length}
+									</td>
+								</tr>
+								{#if entry.pending.length > 0}
+									<tr class="bg-gray-50 dark:bg-gray-900">
+										<td colspan="4" class="py-2 px-3 text-xs">
+											<span class="text-gray-500 dark:text-gray-400">Waiting:</span>
+											<span class="font-mono">{entry.pending.join(', ')}</span>
+										</td>
+									</tr>
+								{/if}
+								{#if entry.unexpected.length > 0}
+									<tr class="bg-gray-50 dark:bg-gray-900">
+										<td colspan="4" class="py-2 px-3 text-xs">
+											<span class="text-gray-500 dark:text-gray-400">
+												On chain but not expected by the registry:
+											</span>
+											<span class="font-mono">{entry.unexpected.join(', ')}</span>
+										</td>
+									</tr>
+								{/if}
+							{/each}
+						</tbody>
+					</table>
+				</div>
+
+				<p class="text-sm mt-4">
+					{#if data.backlog.upToDate}
+						<span class="text-green-600 dark:text-green-400">Everything expected is on the chain.</span>
+					{:else}
+						<span class="text-amber-600 dark:text-amber-400">
+							{data.backlog.totalPending} record(s) waiting.
+						</span>
+						A backlog is normal briefly while the tokenizer works through it. One that
+						stays put, or grows between reloads, means it is not keeping up.
+					{/if}
+				</p>
+			</div>
+		{:else if data.backlogError}
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" data-testid="tokenization-backlog-error">
+				<h3 class="text-xl font-bold mb-1">Tokenization backlog</h3>
+				<p class="text-sm text-gray-600 dark:text-gray-400">
+					Could not be calculated: {data.backlogError}
 				</p>
 			</div>
 		{/if}

@@ -22,6 +22,7 @@
 
 		const labelMap: Record<string, string> = {
 			activities: 'Activities',
+			chain: 'Chain',
 			my: 'My',
 			operators: 'Operators',
 			'dynamic-entities': 'Dynamic Entities',

@@ -101,7 +101,7 @@
 			<!-- Operator -->
 			{#if data.operatorId}
 				<a
-					href="/my/operators/{data.operatorId}"
+					href="/operators/{data.operatorId}"
 					class="card p-4 preset-filled-surface-100-900 hover:preset-tonal transition-colors flex items-center gap-3 shrink-0"
 				>
 					<Building2 class="size-7 text-secondary-500 shrink-0" />
