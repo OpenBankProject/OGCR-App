@@ -12,7 +12,7 @@ import { getOperatorsForUserId } from '$lib/marketplace/ownership';
 export interface PublicOperator {
 	operator_id: string;
 	legal_name: string | null;
-	country_code: string | null;
+	country_id: string | null;
 	ogcr_wallet_address: string | null;
 }
 
@@ -27,9 +27,9 @@ export interface OperatorContact {
 export interface OperatorActivity {
 	activity_id: string;
 	name: string | null;
-	type: string | null;
+	activity_type: string | null;
 	city: string | null;
-	country_code: string | null;
+	country_id: string | null;
 }
 
 function str(record: Record<string, unknown>, key: string): string | null {
@@ -60,7 +60,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		const operator: PublicOperator = {
 			operator_id: operatorId,
 			legal_name: str(record, 'legal_name'),
-			country_code: str(record, 'country_code'),
+			country_id: str(record, 'country_id'),
 			ogcr_wallet_address: str(record, 'ogcr_wallet_address')
 		};
 
@@ -102,9 +102,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				.map((a) => ({
 					activity_id: a.activity_id as string,
 					name: str(a, 'name'),
-					type: str(a, 'type'),
+					activity_type: str(a, 'activity_type'),
 					city: str(a, 'city'),
-					country_code: str(a, 'country_code')
+					country_id: str(a, 'country_id')
 				}));
 		} catch {
 			// Activities unavailable — the page shows the operator without them.

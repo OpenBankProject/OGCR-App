@@ -1,19 +1,48 @@
 /* ============================================================
- * OGCR Design System — REFERENCE COPY (do not import)
+ * OGCR Design System — REFERENCE MIRROR (do not import)
  *
- * Verbatim copy of OGCR-design/ogcr-design-system/src/index.css
- * captured 2026-05-04. Kept here so the canonical token list lives
- * inside this repo for offline reference. The active theme is in
- * ./ogcr-theme.css, which mirrors these tokens onto Skeleton's
- * --color-* scale.
+ * Hand-mirrored token values from the OGCR Design System. Kept here
+ * so the canonical token list lives inside this repo for offline
+ * reference. The active theme is in ./ogcr-theme.css, which mirrors
+ * these tokens onto Skeleton's --color-* scale.
  *
- * If the upstream design system changes, re-copy this file and
- * reconcile differences into ogcr-theme.css.
+ * The design system is React; this app is Svelte, so its components
+ * cannot be imported and we mirror the values by hand. Why that is,
+ * what it costs, and how to re-reconcile when upstream moves:
  *
- * Original header:
- *   OGCR Design System — tokens
- *   Source: Figma file 2P6XrQJhT8I39IR5LGK7RT (OGCR – Design System)
- *   Mirrors the Figma variable names; see docs/design-system.md.
+ *     ../design_system_integration.md
+ *
+ * ---- Upstream provenance -----------------------------------
+ *   repo     git@github.com:Maji-Studio/ogcr.git  (branch: main)
+ *   read at  182d425e76ce204826c9b2440930b5a8f7d02094  (2026-09-07)
+ *   package  @majistudio/ogcr-design-system 1.1.0
+ *   source   packages/design-system/src/styles/palette.css  (colors)
+ *            packages/design-system/src/styles/theme.css    (the rest)
+ *   spec     packages/design-system/docs/design-system.md
+ *
+ *   Tokens last changed upstream by:
+ *     e9471331f60bec1d76c91198771be4f392602cb7  (2026-08-13)
+ *     "feat(ds): align tokens to figma and ship the full stylesheet contract"
+ *
+ *   e947133 is the pin that matters — 182d425 is only the HEAD we
+ *   read. If `git log e947133..main -- packages/design-system/src/styles/`
+ *   is empty, this file is current however far HEAD has moved.
+ *
+ *   Upstream's own source of truth is Figma file
+ *   2P6XrQJhT8I39IR5LGK7RT (OGCR – Design System), which it last
+ *   reconciled on 2026-08-13.
+ *
+ *   The predecessor repo Maji-Studio/ogcr-design-system is ARCHIVED
+ *   and frozen at 1.0.0. Do not reconcile against it.
+ *
+ * Reconciled: 2026-09-22. The previous copy claimed to mirror
+ * src/index.css @ 2026-05-04; that file no longer exists upstream
+ * (split into palette.css + theme.css) and 24 of 62 color tokens had
+ * drifted or gone missing. See the doc for the full list.
+ *
+ * Naming note: upstream ships these as `--ds-<name>` (palette) and
+ * `--color-<name>` (Tailwind @theme). We keep the spec's own bare
+ * names, which is what ogcr-theme.css and app code reference.
  * ============================================================ */
 
 :root {
@@ -28,23 +57,32 @@
   --orange-400: #fb923c;
   --orange-500: #f97316;
   --amber-300: #fcd34d;
+  --yellow-300: #fde047;
   --white: #ffffff;
 
   /* --- Text --------------------------------------------------- */
   --text-primary: #0f3655;
   --text-secondary: #6a8196;
   --text-neutral: #334155;
-  --text-positive: #416c51;
+  --text-positive: #4f8263;
   --text-negative: #b91c1c;
   --text-warning: #c2410c;
+  --text-progress: #265277;
 
   /* --- Icon --------------------------------------------------- */
   --icon-primary: #0f3655;
   --icon-secondary: #6a8196;
   --icon-neutral: #334155;
-  --icon-positive: #416c51;
+  --icon-positive: #4f8263;
   --icon-negative: #b91c1c;
   --icon-warning: #c2410c;
+  --icon-progress: #265277;
+  /* `-light` tier — Figma icon/{positive,negative,warning,progress}-light.
+     Upstream components used to fake these with the raw primitives. */
+  --icon-positive-light: #6db087; /* brand-green-500 */
+  --icon-negative-light: #ef4444; /* red-500 */
+  --icon-warning-light: #f97316; /* orange-500 */
+  --icon-progress-light: #326d9e; /* brand-blue-500 */
 
   /* --- Surface ------------------------------------------------- */
   --surface-page: #f8f3ef;
@@ -55,27 +93,56 @@
   --surface-positive: #e2efe6;
   --surface-warning: #ffedd5;
   --surface-negative: #fee2e2;
+  --surface-progress: #e2edf6;
 
   /* --- Border -------------------------------------------------- */
   --border-light: #e7e5e4;
   --border-medium: #d6d3d1;
   --border-strong: #a8a29e;
+  /* Code-only upstream: no Figma provenance. Do not use in new code. */
   --border-default: #01012e14;
   --border-high-contrast: #443321;
   --border-positive-light: #c5dfce;
   --border-warning-light: #fed7aa;
   --border-negative-light: #fecaca;
   --border-negative-strong: #dc2626;
+  /* `-strong` tier. Figma's border/neutral-light is deliberately not
+     imported upstream: it duplicates border/light (a Figma defect). */
+  --border-neutral-strong: #57534e; /* stone-600 */
+  --border-positive-strong: #5e9975; /* brand-green-600 */
+  --border-warning-strong: #ea580c; /* orange-600 */
 
   /* --- Interaction -------------------------------------------- */
   --interaction-primary-default: #4f8263;
-  --interaction-primary-hover: #416c51;
-  --interaction-primary-active: #416c51;
+  --interaction-primary-hover: #335641;
+  --interaction-primary-active: #335641;
   --interaction-primary-focus: #e2efe6;
-  --interaction-secondary-focus: #e2d0bf;
+  /* Secondary tier — `default` is white (a secondary button is an
+     outlined white surface); hover/active are the brand-blue fill. */
+  --interaction-secondary-default: #ffffff;
+  --interaction-secondary-hover: #1c3d59; /* brand-blue-800 */
+  --interaction-secondary-active: #1c3d59; /* brand-blue-800 */
+  --interaction-secondary-focus: #c3daed;
+  /* Code-only upstream: Figma has no tertiary interaction tier. */
+  --interaction-tertiary-active: #e2efe6;
+
+  /* DEPRECATED — removed upstream in 1.1.0. Per the spec: "It existed,
+     referenced nothing, and was removed; use --focus-error (the full
+     shadow) instead." Kept only because app code still reads it. */
   --focus-ring-error: #fecaca;
 
-  /* --- Spacing ------------------------------------------------- */
+  /* --- Chrome: scrollbars ------------------------------------- */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: var(--border-medium);
+
+  /* --- Stacking (runtime-overridable upstream) ---------------- */
+  --z-overlay: 50;
+  --z-toast: 100;
+
+  /* --- Spacing ------------------------------------------------- *
+   * The shipped stylesheet expresses these as a numeric-px scale
+   * (--space-m 16px is --spacing-16 there). These are the spec's
+   * t-shirt names. `2xl` is undefined upstream by design. */
   --space-none: 0;
   --space-2xs: 4px;
   --space-xs: 8px;
@@ -85,16 +152,20 @@
   --space-xl: 32px;
   --space-3xl: 64px;
 
-  /* --- Radius -------------------------------------------------- */
+  /* --- Radius -------------------------------------------------- *
+   * Shipped as a numeric-px scale (--radius-l 12px is --radius-12). */
   --radius-none: 0;
   --radius-xs: 2px;
   --radius-s: 4px;
   --radius-m: 8px;
   --radius-l: 12px;
   --radius-xl: 16px;
-  --radius-full: 999px;
+  --radius-full: 9999px;
 
-  /* --- Elevation ---------------------------------------------- */
+  /* --- Elevation ---------------------------------------------- *
+   * Figma defines exactly ONE elevation effect. There is no
+   * s/m/xs step and none should be invented — `shadow-elevation-s`
+   * does not exist and silently produces nothing. */
   --elevation-l:
     0 0 2px 0 rgba(68, 51, 33, 0.08),
     0 8px 16px 0 rgba(68, 51, 33, 0.16);
@@ -104,8 +175,11 @@
   --font-family-display: 'Helvetica Now Display', system-ui, -apple-system, sans-serif;
   --font-family-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --font-size-xs: 14px;
-  --font-size-s: 16px;
+  /* Ladder: 10/14/18/20/24/32/40/48/64. `m` is 18px (Figma font/size/m);
+     it was the one wrong step upstream and moved 16 -> 18, so body copy
+     and h4 grew 2px. 16px is not on the ladder at all. */
+  --font-size-xs: 10px;
+  --font-size-s: 14px;
   --font-size-m: 18px;
   --font-size-l: 20px;
   --font-size-xl: 24px;
@@ -117,112 +191,4 @@
   /* --- Motion ------------------------------------------------- */
   --motion-fast: 150ms ease-out;
   --motion-base: 200ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-/* ============================================================
- * Base
- * ============================================================ */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-family-default);
-  font-size: var(--font-size-m);
-  line-height: 1.5;
-  color: var(--text-neutral);
-  background: var(--surface-page);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-synthesis: none;
-}
-
-#root {
-  min-height: 100svh;
-}
-
-button {
-  font-family: inherit;
-}
-
-/* ============================================================
- * Typography utility classes (mirror Figma named text styles)
- * Sizes shift at the desktop breakpoint (≥1024px).
- * ============================================================ */
-
-.text-h1 {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-2xl);
-  line-height: 1.2;
-}
-
-.text-h2 {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-xl);
-  line-height: 1.2;
-}
-
-.text-h3 {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-l);
-  line-height: 1.2;
-}
-
-.text-h4 {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-m);
-  line-height: 1.2;
-}
-
-.text-body {
-  font-family: var(--font-family-default);
-  font-weight: 400;
-  font-size: var(--font-size-m);
-  line-height: 1.5;
-}
-
-.text-body-s {
-  font-family: var(--font-family-default);
-  font-weight: 400;
-  font-size: var(--font-size-xs);
-  line-height: 1.4;
-}
-
-.text-label-button {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-xs);
-  line-height: 1;
-  letter-spacing: 0.28px;
-}
-
-.text-label-input {
-  font-family: var(--font-family-default);
-  font-weight: 500;
-  font-size: var(--font-size-s);
-  line-height: 1.4;
-}
-
-@media (min-width: 1024px) {
-  .text-h1 { font-size: var(--font-size-3xl); }
-  .text-h2 { font-size: var(--font-size-2xl); }
-  .text-h3 { font-size: var(--font-size-xl); }
-  .text-h4 { font-size: var(--font-size-l); }
-  .text-body { font-size: var(--font-size-l); }
-  .text-body-s { font-size: var(--font-size-s); }
-  .text-label-button { font-size: var(--font-size-s); }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { checkRoles, type UserEntitlement } from './roleCheck';
 
 const entitlements: UserEntitlement[] = [
-	{ entitlement_id: 'e1', role_name: 'CanGetDynamicEntity_Systemactivity', bank_id: '' },
+	{ entitlement_id: 'e1', role_name: 'CanGetDynamicEntityRecord_activity', bank_id: 'SYS' },
 	{ entitlement_id: 'e2', role_name: 'CanCreateAccount', bank_id: 'gh.29.uk' }
 ];
 
@@ -15,17 +15,17 @@ describe('checkRoles', () => {
 
 	it('OR (default): any one required role is enough', () => {
 		const result = checkRoles(
-			[{ role: 'CanGetDynamicEntity_Systemactivity' }, { role: 'CanDoSomethingElse' }],
+			[{ role: 'CanGetDynamicEntityRecord_activity' }, { role: 'CanDoSomethingElse' }],
 			entitlements
 		);
 		expect(result.hasAllRoles).toBe(true);
-		expect(result.hasRoles).toEqual([{ role: 'CanGetDynamicEntity_Systemactivity' }]);
+		expect(result.hasRoles).toEqual([{ role: 'CanGetDynamicEntityRecord_activity' }]);
 		expect(result.missingRoles).toEqual([{ role: 'CanDoSomethingElse' }]);
 	});
 
 	it('AND: every required role must be present', () => {
 		const result = checkRoles(
-			[{ role: 'CanGetDynamicEntity_Systemactivity' }, { role: 'CanDoSomethingElse' }],
+			[{ role: 'CanGetDynamicEntityRecord_activity' }, { role: 'CanDoSomethingElse' }],
 			entitlements,
 			'AND'
 		);

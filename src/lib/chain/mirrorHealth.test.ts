@@ -36,12 +36,16 @@ describe('chainMirrorSnapshot', () => {
 		expect(snap.error).toContain('No chain sync');
 	});
 
-	it('is unhealthy when a fresh run had errors, rather than hiding them', () => {
+	it('is degraded when a fresh run had errors, rather than hiding them', () => {
 		const snap = chainMirrorSnapshot(
 			deriveHeartbeat(status(10, { error_count: 2, run_status: 'partial' }), NOW),
 			NOW
 		);
-		expect(snap.status).toBe('unhealthy');
+		expect(snap.status).toBe('degraded');
+		expect(snap.conecutiveFailures).toBe(0);
+		// A partial run is reported as a warning, not an error: the mirror is running.
+		expect(snap.error).toBeUndefined();
+		expect(snap.warning).toContain('2 error(s)');
 	});
 
 	it('is unknown rather than unhealthy when the mirror has never run', () => {

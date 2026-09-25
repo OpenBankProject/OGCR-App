@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { healthCheckRegistry, summarizeHealth } from '$lib/health-check';
+import { buildSystemStatus } from '$lib/server/systemStatus';
 
-export const GET: RequestHandler = async () => {
-	return json(summarizeHealth(healthCheckRegistry.getSnapshots()));
+export const GET: RequestHandler = async ({ locals }) => {
+	return json(await buildSystemStatus(locals.session.data.oauth?.access_token));
 };

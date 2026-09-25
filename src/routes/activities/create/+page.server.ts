@@ -3,6 +3,8 @@ import { obp_requests } from '$lib/obp/requests';
 import { ENTITY_ACTIVITY } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getOperatorsForUser } from '$lib/marketplace/ownership';
+import { getCountries, type CountryRecord } from '$lib/reference/countries';
+import { getPractices, type PracticeRecord } from '$lib/reference/practices';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = locals.session;
@@ -28,9 +30,26 @@ export const load: PageServerLoad = async ({ locals }) => {
 		// No suggestions available — the operator_id field still accepts free text.
 	}
 
+	// Reference lists for the country and practice pickers: both are stored on the
+	// activity as ids. Tolerant: a fetch failure leaves the field as free text.
+	let countries: CountryRecord[] = [];
+	let practices: PracticeRecord[] = [];
+	try {
+		countries = await getCountries(accessToken);
+	} catch {
+		// No list available — the country field still accepts a typed ISO code.
+	}
+	try {
+		practices = await getPractices(accessToken);
+	} catch {
+		// No list available — the practice field still accepts a typed id.
+	}
+
 	return {
 		isAuthenticated: true,
-		myOperators
+		myOperators,
+		countries,
+		practices
 	};
 };
 
@@ -57,13 +76,12 @@ export const actions: Actions = {
 			website: (formData.get('website') as string) ?? '',
 			image: (formData.get('image') as string) ?? '',
 			media_links: (formData.get('media_links') as string) ?? '',
-			technologies_practices_processes:
-				(formData.get('technologies_practices_processes') as string) ?? '',
+			technologies_practices_processes_id:
+				(formData.get('technologies_practices_processes_id') as string) ?? '',
 			operator_id: (formData.get('operator_id') as string) ?? '',
-			type: (formData.get('type') as string) ?? '',
+			activity_type: (formData.get('activity_type') as string) ?? '',
 			city: (formData.get('city') as string) ?? '',
-			country_code: (formData.get('country_code') as string) ?? '',
-			activity_plan_id: (formData.get('activity_plan_id') as string) ?? '',
+			country_id: (formData.get('country_id') as string) ?? '',
 			start_date: (formData.get('start_date') as string) ?? '',
 			end_date: (formData.get('end_date') as string) ?? '',
 			cobenefits: (formData.get('cobenefits') as string) ?? '',
@@ -82,12 +100,11 @@ export const actions: Actions = {
 			website: values.website,
 			image: values.image,
 			media_links: values.media_links,
-			technologies_practices_processes: values.technologies_practices_processes,
+			technologies_practices_processes_id: values.technologies_practices_processes_id,
 			operator_id: values.operator_id,
-			type: values.type,
+			activity_type: values.activity_type,
 			city: values.city,
-			country_code: values.country_code,
-			activity_plan_id: values.activity_plan_id,
+			country_id: values.country_id,
 			start_date: values.start_date,
 			end_date: values.end_date,
 			cobenefits: values.cobenefits,

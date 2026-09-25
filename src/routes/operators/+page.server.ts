@@ -7,7 +7,7 @@ import { OBPRequestError } from '$lib/obp/errors';
 export interface OperatorSummary {
 	operator_id: string;
 	legal_name: string | null;
-	country_code: string | null;
+	country_id: string | null;
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			.map((r) => ({
 				operator_id: r.operator_id as string,
 				legal_name: typeof r.legal_name === 'string' ? r.legal_name : null,
-				country_code: typeof r.country_code === 'string' ? r.country_code : null
+				country_id: typeof r.country_id === 'string' ? r.country_id : null
 			}))
 			.sort((a, b) => (a.legal_name ?? '').localeCompare(b.legal_name ?? ''));
 

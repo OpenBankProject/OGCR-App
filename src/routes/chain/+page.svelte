@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 	import { Link2, RefreshCw, ExternalLink, HelpCircle } from '@lucide/svelte';
 	import ChainHeartbeat from '$lib/components/ChainHeartbeat.svelte';
+	import Timestamp from '$lib/components/Timestamp.svelte';
+	import { formatAge, HEARTBEAT_STATES } from '$lib/chain/heartbeat';
 	import { totalMirrored } from '$lib/chain/heartbeat';
 	import { explorerLinks, shortenHex } from '$lib/chain/explorer';
 	import { invalidateAll } from '$app/navigation';
@@ -70,7 +72,17 @@
 		<ChainHeartbeat heartbeat={data.heartbeat} />
 
 		<div class="card p-6 preset-filled-surface-100-900">
-			<h2 class="h4 mb-1">Last mirror run</h2>
+			<div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+				<h2 class="h4">Last mirror run</h2>
+				{#if status?.synced_at}
+					<div class="text-sm text-surface-600-400">
+						<Timestamp iso={status.synced_at} />
+						{#if data.heartbeat.ageSeconds !== null}
+							<span class="text-surface-500">· {formatAge(data.heartbeat.ageSeconds)} ago</span>
+						{/if}
+					</div>
+				{/if}
+			</div>
 			<p class="text-surface-600-400 text-sm mb-4">
 				Records written by OGCR-chain-cache on its most recent pass.
 				{#if status?.mirrored_types}
@@ -198,6 +210,34 @@
 					</table>
 				</div>
 			{/if}
+		</div>
+
+		<!-- The heartbeat names its state in a short phrase ("Chain partial sync")
+		     that says little on its own; this spells each one out. When the status
+		     record could not be read, the heartbeat above is a placeholder, so no
+		     state is marked as current. -->
+		<div class="card p-6 preset-filled-surface-100-900">
+			<h2 class="h4 mb-1">What the chain status means</h2>
+			<p class="text-surface-600-400 text-sm mb-4">
+				The app does not talk to the chain directly. OGCR-chain-cache copies chain state into
+				OBP on a schedule and writes a sync record at the end of every run; the chain status is
+				read from that record.
+			</p>
+			<dl class="space-y-3 text-sm">
+				{#each Object.entries(HEARTBEAT_STATES) as [state, { label, meaning }] (state)}
+					{@const current = !data.error && state === data.heartbeat.state}
+					<div
+						class="rounded p-3 {current ? 'border-2 border-primary-500 bg-primary-500/10' : 'border border-surface-300-700'}"
+						aria-current={current ? 'true' : undefined}
+					>
+						<dt class="font-semibold">
+							{label}
+							{#if current}<span class="ml-2 text-xs font-normal text-primary-600-400">(current)</span>{/if}
+						</dt>
+						<dd class="text-surface-600-400 mt-1">{meaning}</dd>
+					</div>
+				{/each}
+			</dl>
 		</div>
 	{/if}
 </div>

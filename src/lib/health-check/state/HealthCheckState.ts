@@ -1,8 +1,11 @@
 export interface HealthCheckSnapshot {
     service: string;
-    status: 'healthy' | 'unhealthy' | 'unknown';
+    /** 'degraded': working, but not fully, e.g. a sync run where some records failed. */
+    status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
     responseTimeMs?: number;
     error?: string;
+    /** Something worth knowing that is not a failure, e.g. a partly failed sync run. */
+    warning?: string;
     lastChecked: string; // ISO timestamp
     conecutiveFailures: number;
     intervalMs?: number; // How often this check runs — lets consumers detect stale results

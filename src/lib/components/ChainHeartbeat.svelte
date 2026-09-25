@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Activity, AlertTriangle, CircleOff, HelpCircle } from '@lucide/svelte';
-	import { formatAge, type Heartbeat, type HeartbeatState } from '$lib/chain/heartbeat';
+	import { formatAge, HEARTBEAT_STATES, type Heartbeat, type HeartbeatState } from '$lib/chain/heartbeat';
+	import Timestamp from '$lib/components/Timestamp.svelte';
 
 	let {
 		heartbeat,
@@ -10,15 +11,15 @@
 
 	// Colour carries the same meaning as the wording, never on its own: every
 	// state also names itself in text, so this reads without relying on colour.
-	const presentation: Record<HeartbeatState, { label: string; dot: string; text: string; icon: any }> = {
-		live: { label: 'Chain connected', dot: 'bg-success-500', text: 'text-success-600-400', icon: Activity },
-		degraded: { label: 'Chain syncing with errors', dot: 'bg-warning-500', text: 'text-warning-600-400', icon: AlertTriangle },
-		stale: { label: 'Chain sync stalled', dot: 'bg-error-500', text: 'text-error-600-400', icon: AlertTriangle },
-		never: { label: 'Chain never synced', dot: 'bg-surface-400', text: 'text-surface-600-400', icon: CircleOff },
-		unknown: { label: 'Chain sync unknown', dot: 'bg-surface-400', text: 'text-surface-600-400', icon: HelpCircle }
+	const presentation: Record<HeartbeatState, { dot: string; text: string; icon: any }> = {
+		live: { dot: 'bg-success-500', text: 'text-success-600-400', icon: Activity },
+		degraded: { dot: 'bg-warning-500', text: 'text-warning-600-400', icon: AlertTriangle },
+		stale: { dot: 'bg-error-500', text: 'text-error-600-400', icon: AlertTriangle },
+		never: { dot: 'bg-surface-400', text: 'text-surface-600-400', icon: CircleOff },
+		unknown: { dot: 'bg-surface-400', text: 'text-surface-600-400', icon: HelpCircle }
 	};
 
-	let p = $derived(presentation[heartbeat.state]);
+	let p = $derived({ ...presentation[heartbeat.state], label: HEARTBEAT_STATES[heartbeat.state].label });
 	let status = $derived(heartbeat.status);
 </script>
 
@@ -79,7 +80,7 @@
 				{#if status?.synced_at}
 					<p class="text-xs text-surface-500 mt-4">
 						Considered stalled after {heartbeat.staleAfterSeconds}s without a sync.
-						Last recorded at {status.synced_at}.
+						Last recorded at <Timestamp iso={status.synced_at} />.
 					</p>
 				{/if}
 			</div>

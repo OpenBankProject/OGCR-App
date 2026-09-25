@@ -31,6 +31,8 @@
 			login: 'Login',
 			logout: 'Logout',
 			design: 'Design System',
+			registry: 'Registry',
+			certificates: 'Certificates',
 			trading: 'Trading',
 			banks: 'Bank',
 			accounts: 'Account',
@@ -57,7 +59,10 @@
 
 <div class="flex h-screen w-full flex-col overflow-hidden">
 	<!-- Top bar -->
-	<header class="flex items-center justify-between px-6 border-b border-surface-200-800" style="height: 56px; flex-shrink: 0;">
+	<header
+		class="flex items-center justify-between border-b border-surface-200-800 px-6"
+		style="height: 56px; flex-shrink: 0;"
+	>
 		<div class="flex items-center gap-2">
 			<a href="/" class="flex items-center gap-2 hover:opacity-80">
 				<img src="/ogcr_logo.svg" alt="OGCR" class="h-8" />
@@ -77,9 +82,9 @@
 			<LightSwitch />
 			{#if isAuthenticated}
 				<a href="/user" class="hover:text-tertiary-400">{data.username}</a>
-				<a href="/logout" class="btn btn-sm preset-outlined-primary-500">Logout</a>
+				<a href="/logout" class="btn preset-outlined-primary-500 btn-sm">Logout</a>
 			{:else}
-				<a href="/login" class="btn btn-sm preset-filled-surface-950-50">Login</a>
+				<a href="/login" class="btn preset-filled-surface-950-50 btn-sm">Login</a>
 			{/if}
 		</div>
 	</header>

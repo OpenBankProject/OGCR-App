@@ -8,8 +8,8 @@
 	const contact = $derived(data.contact);
 	const activities = $derived(data.activities ?? []);
 
-	function region(a: { city: string | null; country_code: string | null }): string {
-		return [a.city, a.country_code].filter(Boolean).join(', ') || 'Unknown region';
+	function region(a: { city: string | null; country_id: string | null }): string {
+		return [a.city, a.country_id].filter(Boolean).join(', ') || 'Unknown region';
 	}
 </script>
 
@@ -61,7 +61,7 @@
 						<dt class="text-xs uppercase tracking-wide text-surface-600-400">Country</dt>
 						<dd class="flex items-center gap-2">
 							<MapPin class="size-4 text-surface-500" />
-							<span>{operator.country_code || '—'}</span>
+							<span>{operator.country_id || '—'}</span>
 						</dd>
 					</div>
 					<div class="sm:col-span-2">
@@ -131,7 +131,7 @@
 							class="card p-4 preset-filled-surface-100-900 hover:preset-tonal transition-colors block"
 						>
 							<h3 class="h4 text-primary-500 truncate">{activity.name || 'Unnamed Activity'}</h3>
-							<p class="text-sm text-surface-600-400">{activity.type || 'Unknown type'}</p>
+							<p class="text-sm text-surface-600-400">{activity.activity_type || 'Unknown type'}</p>
 							<p class="text-xs text-surface-600-400 flex items-center gap-1 mt-1">
 								<MapPin class="size-3" />
 								{region(activity)}

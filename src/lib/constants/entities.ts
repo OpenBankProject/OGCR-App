@@ -10,6 +10,12 @@ export const ENTITY_OPERATOR = `${ENTITY_PREFIX}operator`;
 // email-matching used by getOperatorsForUser once records exist.
 export const ENTITY_USER_OPERATOR_RELATIONSHIP = `${ENTITY_PREFIX}user_operator_relationship`;
 export const ENTITY_PARCEL = `${ENTITY_PREFIX}parcel`;
+// Reference list of countries: `country_id` (ISO code) + `country_name`. Other
+// entities (operator, activity) store the `country_id`.
+export const ENTITY_COUNTRY = `${ENTITY_PREFIX}country`;
+// Reference list of farming technologies, practices and processes. An activity
+// stores the `technologies_practices_processes_id` of one of these records.
+export const ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES = `${ENTITY_PREFIX}technologies_practices_processes`;
 export const ENTITY_PARCEL_OWNERSHIP_VERIFICATION = `${ENTITY_PREFIX}parcel_owner_verification`;
 export const ENTITY_ACTIVITY_PARCEL_VERIFICATION = `${ENTITY_PREFIX}activity_parcel_verification`;
 export const ENTITY_ACTIVITY_VERIFICATION = `${ENTITY_PREFIX}activity_verification`;
@@ -35,6 +41,8 @@ export const ENTITY_CONSTANTS = {
 	ENTITY_OPERATOR,
 	ENTITY_USER_OPERATOR_RELATIONSHIP,
 	ENTITY_PARCEL,
+	ENTITY_COUNTRY,
+	ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES,
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
 	ENTITY_ACTIVITY_PARCEL_VERIFICATION,
 	ENTITY_ACTIVITY_VERIFICATION,

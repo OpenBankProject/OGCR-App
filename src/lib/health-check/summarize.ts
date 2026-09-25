@@ -1,6 +1,6 @@
 import type { HealthCheckSnapshot } from './state/HealthCheckState';
 
-export type OverallStatus = 'healthy' | 'partial' | 'unhealthy' | 'unknown';
+export type OverallStatus = 'healthy' | 'partial' | 'degraded' | 'unhealthy' | 'unknown';
 
 // Provider checks registered as 'OAuth2: <provider>' form one login group:
 // users need only one working provider, so a broken provider alongside a
@@ -20,6 +20,7 @@ export interface HealthSummary {
     summary: {
         total: number;
         healthy: number;
+        degraded: number;
         unhealthy: number;
         unknown: number;
         stale: number;
@@ -38,6 +39,8 @@ const DEFAULT_STALE_AFTER_MS = 3 * 60_000;
  * - OAuth2 provider checks are one group: as long as one provider is healthy,
  *   failed providers yield 'partial' instead of 'unhealthy'. With no healthy
  *   provider left (or a non-OAuth service down), the status is 'unhealthy'.
+ * - A service reporting 'degraded' is working but not fully, so the system is
+ *   'degraded': never 'healthy', but not as bad as a service that is down.
  */
 export function summarizeHealth(
     snapshots: Record<string, HealthCheckSnapshot>,
@@ -54,6 +57,7 @@ export function summarizeHealth(
     const list = Object.values(services);
     const effectiveStatus = (s: ServiceHealthView) => (s.stale ? 'unknown' : s.status);
     const healthy = list.filter((s) => effectiveStatus(s) === 'healthy').length;
+    const degraded = list.filter((s) => effectiveStatus(s) === 'degraded').length;
     const unhealthy = list.filter((s) => effectiveStatus(s) === 'unhealthy').length;
     const unknown = list.filter((s) => effectiveStatus(s) === 'unknown').length;
 
@@ -71,6 +75,8 @@ export function summarizeHealth(
         overallStatus = 'unhealthy';
     } else if (oauthUnhealthy > 0) {
         overallStatus = 'partial';
+    } else if (degraded > 0) {
+        overallStatus = 'degraded';
     } else if (unknown > 0) {
         overallStatus = 'unknown';
     } else {
@@ -85,6 +91,7 @@ export function summarizeHealth(
         summary: {
             total: list.length,
             healthy,
+            degraded,
             unhealthy,
             unknown,
             stale: list.filter((s) => s.stale).length

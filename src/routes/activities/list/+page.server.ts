@@ -47,9 +47,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 				return {
 					activity_id: a.activity_id,
 					name: a.name,
-					type: a.type,
+					activity_type: a.activity_type,
 					city: a.city,
-					country_code: a.country_code,
+					country_id: a.country_id,
 					operator_id: a.operator_id,
 					listed: listing?.listed ?? false,
 					price_per_credit: listing?.price_per_credit ?? null,

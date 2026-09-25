@@ -19,9 +19,11 @@ export const CHAIN_MIRROR_SERVICE = 'Chain mirror (OGCR-chain-cache)';
 /**
  * Map a heartbeat onto the status page's vocabulary.
  *
- * `degraded` maps to unhealthy rather than healthy: a run that failed to write
- * some records means the mirror is not doing its job, and a status page that
- * called that healthy would be hiding exactly what it exists to surface.
+ * `degraded` stays degraded rather than being rounded to healthy: a run that
+ * failed to write some records means the mirror is not fully doing its job, and
+ * a status page that called that healthy would be hiding exactly what it exists
+ * to surface. Nor is it unhealthy: the mirror is running and the chain is
+ * reachable, which is a different situation from a mirror that has stopped.
  * `never` maps to unknown instead, because a mirror that has not run yet is
  * unconfigured rather than broken.
  */
@@ -41,14 +43,15 @@ export function chainMirrorSnapshot(
 
 	let status: HealthCheckSnapshot['status'];
 	let error: string | undefined;
+	let warning: string | undefined;
 
 	switch (heartbeat.state) {
 		case 'live':
 			status = 'healthy';
 			break;
 		case 'degraded':
-			status = 'unhealthy';
-			error = heartbeat.message;
+			status = 'degraded';
+			warning = heartbeat.message;
 			break;
 		case 'stale':
 			status = 'unhealthy';
@@ -72,6 +75,7 @@ export function chainMirrorSnapshot(
 		// declared, fall back to the same default the heartbeat uses.
 		intervalMs: heartbeat.staleAfterSeconds * 1000,
 		...(error ? { error } : {}),
+		...(warning ? { warning } : {}),
 		details
 	};
 }

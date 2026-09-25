@@ -1,31 +1,70 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import ChainHeartbeat from '$lib/components/ChainHeartbeat.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import { Leaf, Building2, Store, Link2, Palette, Library } from '@lucide/svelte';
 
-	let { data }: { data: PageData } = $props();
+	// Destinations are the app's existing routes — Operators lives under /my
+	// because the page is scoped to the operators linked to the signed-in user.
+	const destinations = [
+		{
+			href: '/registry',
+			icon: Library,
+			title: 'Registry',
+			description: 'Browse the public carbon activity registry.'
+		},
+		{
+			href: '/activities',
+			icon: Leaf,
+			title: 'Activities',
+			description: 'Create and manage activities for testing against the DCR.'
+		},
+		{
+			href: '/my/operators',
+			icon: Building2,
+			title: 'Operators',
+			description: 'Manage operator records.'
+		},
+		{
+			href: '/trading',
+			icon: Store,
+			title: 'Trading',
+			description: 'Open the trading interface.'
+		},
+		{
+			href: '/chain',
+			icon: Link2,
+			title: 'Chain',
+			description: 'Inspect on-chain state and the sync status.'
+		},
+		{
+			href: '/design',
+			icon: Palette,
+			title: 'Design System',
+			description: 'Browse OGCR components and tokens.'
+		}
+	];
 </script>
 
-<div class="flex h-full w-full items-center justify-center p-8">
-	<div class="max-w-4xl text-center">
-		<img src="/ogcr_logo.svg" alt="OGCR" class="h-16 mx-auto mb-6" />
-		<h1 class="h1 mb-6">Welcome to OGCR App</h1>
-		<p class="text-xl text-surface-600-400 mb-4">
-			An example application to interact with the OGCR entities
-		</p>
-		<p class="text-surface-600-400">
-			See <a href="/activities" class="anchor">Activities</a>,
-			manage your <a href="/my/operators" class="anchor">Operators</a>,
-			open <a href="/trading" class="anchor">Trading</a>,
-			check the <a href="/chain" class="anchor">Chain</a>,
-			or browse the <a href="/design" class="anchor">Design System</a>.
-		</p>
+<div class="flex h-full w-full justify-center p-8">
+	<div class="w-full max-w-5xl">
+		<div class="text-center">
+			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
+			<h1 class="mb-6 h1">Welcome to OGCR App</h1>
+			<p class="mb-4 text-xl text-surface-600-400">
+				An example application to interact with the OGCR entities
+			</p>
+		</div>
 
-		{#if data.heartbeat}
-			<!-- Shown on the landing page so the chain connection is visible without
-			     anyone going looking for it. That is the whole point of a heartbeat. -->
-			<div class="mt-8 flex justify-center">
-				<ChainHeartbeat heartbeat={data.heartbeat} compact />
-			</div>
-		{/if}
+		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). Six
+		     cards divide evenly into three, where the four-column desktop maximum
+		     would leave a ragged 4 + 2. -->
+		<nav aria-label="Sections" class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{#each destinations as { href, icon: Icon, title, description } (href)}
+				<Card {href} {title} subtitle={description}>
+					{#snippet leading()}
+						<Icon class="size-6" aria-hidden="true" />
+					{/snippet}
+				</Card>
+			{/each}
+		</nav>
 	</div>
 </div>

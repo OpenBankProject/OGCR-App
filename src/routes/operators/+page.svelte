@@ -43,7 +43,7 @@
 						<p class="h4 text-secondary-500 truncate">{op.legal_name || op.operator_id}</p>
 						<p class="text-xs text-surface-600-400 flex items-center gap-1">
 							<MapPin class="size-3" />
-							{op.country_code || 'Unknown country'}
+							{op.country_id || 'Unknown country'}
 						</p>
 					</div>
 				</a>

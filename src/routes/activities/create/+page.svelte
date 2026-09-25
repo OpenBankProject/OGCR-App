@@ -2,6 +2,8 @@
 	import type { PageData, ActionData } from './$types';
 	import { FolderKanban, ArrowLeft, Copy, Check } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
+	import ReferenceSelect from '$lib/components/ReferenceSelect.svelte';
+	import { countryOptions, practiceOptions } from '$lib/reference/options';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -155,8 +157,8 @@
 							<span class="label-text">Type</span>
 							<input
 								type="text"
-								name="type"
-								value={v('type')}
+								name="activity_type"
+								value={v('activity_type')}
 								class="input"
 								placeholder="e.g., CARBON_FARMING"
 							/>
@@ -174,24 +176,14 @@
 						</label>
 
 						<label class="label">
-							<span class="label-text">Country Code</span>
-							<input
-								type="text"
-								name="country_code"
-								value={v('country_code')}
-								class="input"
+							<span class="label-text">Country</span>
+							<ReferenceSelect
+								name="country_id"
+								value={v('country_id')}
+								options={countryOptions(data.countries)}
+								emptyLabel="Select a country…"
 								placeholder="e.g., DE"
-							/>
-						</label>
-
-						<label class="label">
-							<span class="label-text">Activity Plan ID</span>
-							<input
-								type="text"
-								name="activity_plan_id"
-								value={v('activity_plan_id')}
-								class="input"
-								placeholder="Associated plan ID"
+								fallbackHint="The country list could not be loaded — enter the country code directly."
 							/>
 						</label>
 					</div>
@@ -232,12 +224,13 @@
 
 					<label class="label">
 						<span class="label-text">Technologies, Practices & Processes</span>
-						<input
-							type="text"
-							name="technologies_practices_processes"
-							value={v('technologies_practices_processes')}
-							class="input"
-							placeholder="e.g., agroforestry, cover cropping"
+						<ReferenceSelect
+							name="technologies_practices_processes_id"
+							value={v('technologies_practices_processes_id')}
+							options={practiceOptions(data.practices)}
+							emptyLabel="Select a practice…"
+							placeholder="e.g., tpp_01JS0347FKH"
+							fallbackHint="The practice list could not be loaded — enter the practice id directly."
 						/>
 					</label>
 

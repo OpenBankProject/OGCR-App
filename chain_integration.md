@@ -251,10 +251,15 @@ It appears in two places:
 
 - **The landing page**, compact, so the connection is visible without anyone
   going looking for it.
-- **`/chain`**, in full, with per-entity counts from the last run and a recent
-  chain activity table ordered by block. That page re-reads itself on the
-  mirror's own cadence, since a heartbeat that only updates on reload is not
-  much of a heartbeat.
+- **`/chain`**, in full, with per-entity counts from the last run, the time of
+  that pass, and a recent chain activity table ordered by block. That page
+  re-reads itself on the mirror's own cadence, since a heartbeat that only
+  updates on reload is not much of a heartbeat.
+
+Timestamps render as UTC on the server and switch to the reader's own time zone
+once mounted. Formatting a date the obvious way would render server-local time
+and then be replaced during hydration, which is a mismatch; emitting a
+deterministic UTC string first avoids it.
 
 The recent activity table carries a note explaining that a short list with an
 old newest block is a quiet chain rather than a broken one, so the two signals

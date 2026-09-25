@@ -3,6 +3,8 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { Building2, ArrowLeft, Lock, CheckCircle2 } from '@lucide/svelte';
+	import ReferenceSelect from '$lib/components/ReferenceSelect.svelte';
+	import { countryOptions } from '$lib/reference/options';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -100,8 +102,15 @@
 						<input type="text" name="postcode" value={v('postcode')} class="input" />
 					</label>
 					<label class="label">
-						<span class="label-text">Country code</span>
-						<input type="text" name="country_code" value={v('country_code')} class="input" />
+						<span class="label-text">Country</span>
+						<ReferenceSelect
+							name="country_id"
+							value={v('country_id')}
+							options={countryOptions(data.countries)}
+							emptyLabel="Select a country…"
+							placeholder="e.g., DE"
+							fallbackHint="The country list could not be loaded — enter the country code directly."
+						/>
 					</label>
 				</div>
 

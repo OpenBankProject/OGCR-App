@@ -46,6 +46,40 @@ export interface Heartbeat {
 }
 
 /**
+ * What each state means, in words a registry user can act on.
+ *
+ * Kept beside `deriveHeartbeat` so the explanation cannot drift from the rule
+ * that produces the state. `label` is the short form the indicator shows.
+ */
+export const HEARTBEAT_STATES: Record<HeartbeatState, { label: string; meaning: string }> = {
+	live: {
+		label: 'Chain connected',
+		meaning:
+			'The chain mirror (OGCR-chain-cache) ran recently and every part of its last run succeeded. On-chain data shown in the app is current.'
+	},
+	degraded: {
+		label: 'Chain partial sync',
+		meaning:
+			'The mirror is still running on schedule, but its last run failed to copy some chain records into OBP (it reported errors, or finished as "partial"). The chain itself is reachable; what you see in the app may be missing or behind for the records that failed. If this persists across runs, check the OGCR-chain-cache logs for the failing entity.'
+	},
+	stale: {
+		label: 'Chain sync stalled',
+		meaning:
+			'The mirror has not recorded a run for more than three of its sync intervals. It has probably stopped, so on-chain data in the app is frozen at the last sync.'
+	},
+	never: {
+		label: 'Chain never synced',
+		meaning:
+			'No sync record exists yet. The mirror has not been run against this OBP instance, so no chain data has reached the registry.'
+	},
+	unknown: {
+		label: 'Chain sync unknown',
+		meaning:
+			'A sync record exists but has no readable timestamp, so its age cannot be judged. Rather than guess, the app reports nothing about the connection.'
+	}
+};
+
+/**
  * How long a record may go unrefreshed before it counts as stale.
  *
  * A single missed run is normal — a slow scan, a blip. Three intervals is late
@@ -115,7 +149,7 @@ export function deriveHeartbeat(
 			ageSeconds,
 			staleAfterSeconds: threshold,
 			status,
-			message: `Syncing, but the last run reported ${status.error_count ?? 0} error(s). Some chain data may be out of date.`
+			message: `Partial sync: the last run reported ${status.error_count ?? 0} error(s). Some chain data may be out of date.`
 		};
 	}
 
