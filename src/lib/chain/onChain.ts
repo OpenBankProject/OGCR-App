@@ -15,7 +15,8 @@ import {
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
 	ENTITY_ACTIVITY_VERIFICATION,
 	ENTITY_CERTIFICATE_OF_COMPLIANCE,
-	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION
+	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION,
+	entityPath
 } from '$lib/constants/entities';
 import type { ChainSyncStatus } from '$lib/chain/heartbeat';
 import { diffIds, summarizeBacklog, type Backlog } from '$lib/chain/backlog';
@@ -43,7 +44,7 @@ export interface ChainEvent {
 }
 
 async function listEntity(entity: string, accessToken: string): Promise<Record<string, any>[]> {
-	const response = await obp_requests.get(`/obp/dynamic-entity/${entity}`, accessToken);
+	const response = await obp_requests.get(entityPath(entity), accessToken);
 	return (response[`${entity}_list`] ?? []) as Record<string, any>[];
 }
 

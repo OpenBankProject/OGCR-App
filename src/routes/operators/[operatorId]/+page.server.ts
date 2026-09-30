@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_ACTIVITY, ENTITY_OPERATOR } from '$lib/constants/entities';
+import { ENTITY_ACTIVITY, ENTITY_OPERATOR, entityPath } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getOperatorsForUserId } from '$lib/marketplace/ownership';
 
@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	try {
 		const operatorResponse = await obp_requests.get(
-			`/obp/dynamic-entity/${ENTITY_OPERATOR}/${operatorId}`,
+			`${entityPath(ENTITY_OPERATOR)}/${operatorId}`,
 			accessToken
 		);
 		const record = (operatorResponse[ENTITY_OPERATOR] || operatorResponse) as Record<
@@ -91,7 +91,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		try {
 			const params = new URLSearchParams({ operator_id: operatorId });
 			const activitiesResponse = await obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY}?${params.toString()}`,
+				`${entityPath(ENTITY_ACTIVITY)}?${params.toString()}`,
 				accessToken
 			);
 			const all = (activitiesResponse[`${ENTITY_ACTIVITY}_list`] || []) as Array<

@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_ACTIVITY } from '$lib/constants/entities';
+import { ENTITY_ACTIVITY, entityPathV7, unwrapV7List } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getOperatorsForUser, operatorIdSet } from '$lib/marketplace/ownership';
 import { getAllListings } from '$lib/marketplace/listings';
@@ -32,13 +32,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		// Only the user's own registry activities can be listed.
 		const [activitiesResponse, listings] = await Promise.all([
-			obp_requests.get(`/obp/dynamic-entity/${ENTITY_ACTIVITY}`, accessToken),
+			obp_requests.get(entityPathV7(ENTITY_ACTIVITY), accessToken),
 			getAllListings()
 		]);
 
-		const allActivities = (activitiesResponse[`${ENTITY_ACTIVITY}_list`] || []) as Array<
+		const allActivities = unwrapV7List<
 			Record<string, unknown> & { activity_id?: string; operator_id?: string }
-		>;
+		>(activitiesResponse, ENTITY_ACTIVITY);
 
 		const activities = allActivities
 			.filter((a) => a.operator_id && ownedOperatorIds.has(a.operator_id))

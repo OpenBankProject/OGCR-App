@@ -11,7 +11,7 @@ import { SessionOAuthHelper } from '$lib/oauth/sessionHelper';
 import { redisService } from '$lib/redis/services/RedisService';
 import { healthCheckRegistry, OIDCHealthCheckService } from '$lib/health-check';
 import { RedisHealthCheckService } from '$lib/server/health-check/RedisHealthCheckService';
-import { PUBLIC_OBP_BASE_URL } from '$env/static/public';
+import { env as publicEnv } from '$env/dynamic/public';
 import { env } from '$env/dynamic/private';
 import { building } from '$app/environment';
 
@@ -60,9 +60,9 @@ await oauth2ProviderManager.start();
 function initHealthChecks() {
 	healthCheckRegistry.register({
 		serviceName: 'OBP API',
-		url: `${PUBLIC_OBP_BASE_URL}/obp/v5.1.0/root`,
+		url: `${publicEnv.PUBLIC_OBP_BASE_URL}/obp/v5.1.0/root`,
 		details: {
-			PUBLIC_OBP_BASE_URL
+			PUBLIC_OBP_BASE_URL: publicEnv.PUBLIC_OBP_BASE_URL ?? '[MISSING]'
 		}
 	});
 

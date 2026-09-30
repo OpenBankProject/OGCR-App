@@ -8,7 +8,7 @@ const lists: Record<string, any[]> = {};
 vi.mock('$lib/obp/requests', () => ({
 	obp_requests: {
 		get: async (endpoint: string) => {
-			const entity = endpoint.replace('/obp/dynamic-entity/', '');
+			const entity = endpoint.replace(/^\/obp\/dynamic-entity\/(banks\/[^/]+\/)?/, '');
 			if (lists[entity] === undefined) throw new Error(`no fixture for ${entity}`);
 			return { [`${entity}_list`]: lists[entity] };
 		}

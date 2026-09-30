@@ -23,7 +23,7 @@ describe('getCountries', () => {
 			{ country_id: 'AT', country_name: 'Austria' },
 			{ country_id: 'DE', country_name: 'Germany' }
 		]);
-		expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/country', 'tok');
+		expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/banks/ogcr/country', 'tok');
 	});
 
 	it('drops records without a country_id and falls back to the id for a missing name', async () => {

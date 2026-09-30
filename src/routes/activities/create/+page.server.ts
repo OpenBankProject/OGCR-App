@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_ACTIVITY } from '$lib/constants/entities';
+import { ENTITY_ACTIVITY, entityPathV7 } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getOperatorsForUser } from '$lib/marketplace/ownership';
 import { getCountries, type CountryRecord } from '$lib/reference/countries';
@@ -136,7 +136,7 @@ export const actions: Actions = {
 
 		try {
 			const response = await obp_requests.post(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY}`,
+				entityPathV7(ENTITY_ACTIVITY),
 				body,
 				accessToken
 			);

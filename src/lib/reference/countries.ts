@@ -1,5 +1,5 @@
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_COUNTRY } from '$lib/constants/entities';
+import { ENTITY_COUNTRY, entityPath } from '$lib/constants/entities';
 import type { CountryRecord } from './options';
 
 export type { CountryRecord };
@@ -12,7 +12,7 @@ export type { CountryRecord };
  * that is the order a picker reads in.
  */
 export async function getCountries(accessToken: string): Promise<CountryRecord[]> {
-	const response = await obp_requests.get(`/obp/dynamic-entity/${ENTITY_COUNTRY}`, accessToken);
+	const response = await obp_requests.get(entityPath(ENTITY_COUNTRY), accessToken);
 	const records = (response?.[`${ENTITY_COUNTRY}_list`] || []) as Array<Record<string, unknown>>;
 
 	return records

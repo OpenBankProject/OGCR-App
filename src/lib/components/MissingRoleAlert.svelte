@@ -4,8 +4,9 @@
 
 	// Mirrors OBP-Frontend/apps/api-manager's MissingRoleAlert.svelte (same collapsible
 	// alert, role list, scope badge, green request button, tip box) so the "request a
-	// role" UX is consistent across OBP apps. Simplified: OGCR-App's SITE_MAP roles are
-	// all system-wide dynamic-entity roles today, so there's no bank-scope picker.
+	// role" UX is consistent across OBP apps. Simplified: OGCR-App's SITE_MAP roles all
+	// name the one bank the entities live in (OBP_ENTITY_SPACE_ID), so there's no
+	// bank-scope picker.
 	interface Props {
 		missing: RoleRequirement[];
 	}
@@ -18,7 +19,9 @@
 	let submitError = $state<string | null>(null);
 
 	let roleNames = $derived(missing.map((m) => m.role));
-	let anyBankScoped = $derived(missing.some((m) => m.bankId));
+	// `SYS` is how OBP names the system space, so it is not a bank to show.
+	let bankIds = $derived([...new Set(missing.map((m) => m.bankId).filter((b) => b && b !== 'SYS'))]);
+	let anyBankScoped = $derived(bankIds.length > 0);
 
 	// PageRoleCheck keeps this component mounted across navigations as long as the
 	// surrounding page keeps failing its role check, so a stale success/error message
@@ -80,7 +83,7 @@
 
 			{#if anyBankScoped}
 				<div class="scope-display scope-bank">
-					<strong>Bank-level role</strong>
+					<strong>Bank-level role</strong> at <code>{bankIds.join(', ')}</code>
 				</div>
 			{:else}
 				<div class="scope-display scope-system">

@@ -23,7 +23,7 @@ describe('getPractices', () => {
 			{ technologies_practices_processes_id: 'tpp1', practice_name: 'Cover cropping' },
 			{ technologies_practices_processes_id: 'tpp2', practice_name: 'Reduced tillage' }
 		]);
-		expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/technologies_practices_processes', 'tok');
+		expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/banks/ogcr/technologies_practices_processes', 'tok');
 	});
 
 	it('drops records without an id and falls back to the id for a missing name', async () => {

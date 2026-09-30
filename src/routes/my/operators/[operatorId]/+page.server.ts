@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_OPERATOR } from '$lib/constants/entities';
+import { ENTITY_OPERATOR, entityPath } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getOperatorsForUserId, updateUserOperatorRelationship } from '$lib/marketplace/ownership';
 import { getCountries, type CountryRecord } from '$lib/reference/countries';
@@ -97,7 +97,7 @@ export const actions: Actions = {
 			}
 
 			const response = await obp_requests.put(
-				`/obp/dynamic-entity/${ENTITY_OPERATOR}/${operatorId}`,
+				`${entityPath(ENTITY_OPERATOR)}/${operatorId}`,
 				body,
 				accessToken
 			);

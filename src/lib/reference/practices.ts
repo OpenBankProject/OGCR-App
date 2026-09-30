@@ -1,5 +1,5 @@
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES } from '$lib/constants/entities';
+import { ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES, entityPath } from '$lib/constants/entities';
 import type { PracticeRecord } from './options';
 
 export type { PracticeRecord };
@@ -12,7 +12,7 @@ export type { PracticeRecord };
  */
 export async function getPractices(accessToken: string): Promise<PracticeRecord[]> {
 	const entity = ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES;
-	const response = await obp_requests.get(`/obp/dynamic-entity/${entity}`, accessToken);
+	const response = await obp_requests.get(entityPath(entity), accessToken);
 	const records = (response?.[`${entity}_list`] || []) as Array<Record<string, unknown>>;
 
 	return records

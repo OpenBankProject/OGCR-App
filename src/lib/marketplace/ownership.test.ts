@@ -30,7 +30,7 @@ describe('ownership', () => {
 			get.mockResolvedValueOnce({ operator_list: operators });
 			const mine = await getOperatorsForUser('tok', '  ALPHA@example.com ');
 			expect(mine.map((o) => o.legal_name)).toEqual(['Alpha Farm', 'No id']);
-			expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/operator', 'tok');
+			expect(get).toHaveBeenCalledWith('/obp/dynamic-entity/banks/ogcr/operator', 'tok');
 		});
 	});
 
@@ -101,7 +101,7 @@ describe('ownership', () => {
 		});
 		const created = await linkUserToOperator('tok', { userId: 'u1', operatorId: 'op1' });
 		expect(post).toHaveBeenCalledWith(
-			'/obp/dynamic-entity/user_operator_relationship',
+			'/obp/dynamic-entity/banks/ogcr/user_operator_relationship',
 			{ user_id: 'u1', operator_id: 'op1', relationship: 'Owner' },
 			'tok'
 		);

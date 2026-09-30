@@ -3,6 +3,39 @@ import { env } from '$env/dynamic/private';
 const DEFAULT_PREFIX = '';
 export const ENTITY_PREFIX = env.OBP_ENTITY_PREFIX || DEFAULT_PREFIX;
 
+// The bank (aka Space) that owns this deployment's dynamic entities. Same
+// variable, and same meaning, as OGCR-DynamicEntities' `obp_space.py`, so the
+// app reads from wherever those scripts created the entities. Set it to the
+// empty string for system level entities; unset means the `ogcr` bank.
+const DEFAULT_SPACE_ID = 'ogcr';
+export const ENTITY_SPACE_ID = (env.OBP_ENTITY_SPACE_ID ?? DEFAULT_SPACE_ID).trim();
+
+// The bank id entity Roles are granted at: the space's bank id, or the literal
+// `SYS` for system level entities.
+export const ENTITY_ROLE_BANK_ID = ENTITY_SPACE_ID || 'SYS';
+
+/** Path of an entity's records in the configured space, e.g. `/obp/dynamic-entity/banks/ogcr/activity`. */
+export function entityPath(entity: string): string {
+	const space = ENTITY_SPACE_ID ? `/banks/${encodeURIComponent(ENTITY_SPACE_ID)}` : '';
+	return `/obp/dynamic-entity${space}/${entity}`;
+}
+
+/**
+ * v7.0.0 path of an entity's records in the configured space, e.g.
+ * `/obp/v7.0.0/banks/ogcr/dynamic-entities/activity` (`SYS` for system level entities).
+ * List items come back wrapped — `{ "<entity>": {...record}, "metadata": {...} }` — so read
+ * them with `unwrapV7List()`.
+ */
+export function entityPathV7(entity: string): string {
+	return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/dynamic-entities/${entity}`;
+}
+
+/** The plain records of a v7.0.0 list response, unwrapped from their `{ "<entity>": ..., "metadata": ... }` items. */
+export function unwrapV7List<T = Record<string, unknown>>(response: any, entity: string): T[] {
+	const items = (response?.[`${entity}_list`] || []) as Array<Record<string, unknown>>;
+	return items.map((item) => item[entity] as T).filter((record) => record != null);
+}
+
 export const ENTITY_ACTIVITY = `${ENTITY_PREFIX}activity`;
 export const ENTITY_OPERATOR = `${ENTITY_PREFIX}operator`;
 // Junction linking an OBP user to an operator. `relationship` reads user → operator

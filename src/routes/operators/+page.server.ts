@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_OPERATOR } from '$lib/constants/entities';
+import { ENTITY_OPERATOR, entityPath } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 
 // Public directory of registry operators: only public facts, no contact details.
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	try {
-		const response = await obp_requests.get(`/obp/dynamic-entity/${ENTITY_OPERATOR}`, accessToken);
+		const response = await obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken);
 		const records = (response[`${ENTITY_OPERATOR}_list`] || []) as Array<Record<string, unknown>>;
 		const operators: OperatorSummary[] = records
 			.filter((r) => typeof r.operator_id === 'string')

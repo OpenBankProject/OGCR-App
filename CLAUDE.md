@@ -23,15 +23,21 @@ This lists all dynamic endpoints (all verbs, all entities) and returns for each:
 
 ### URL Pattern for Dynamic Entities
 
-All dynamic entity CRUD operations use `/obp/dynamic-entity/{entity_name}`:
+The OGCR entities are defined at bank level (OBP v7.0.0), in the bank named by
+`OBP_ENTITY_SPACE_ID` (default `ogcr`). All CRUD operations use
+`/obp/dynamic-entity/banks/{BANK_ID}/{entity_name}`:
 
-- **List all:** `GET /obp/dynamic-entity/{entity_name}`
-- **Get single:** `GET /obp/dynamic-entity/{entity_name}/{id}`
-- **Create:** `POST /obp/dynamic-entity/{entity_name}`
-- **Update:** `PUT /obp/dynamic-entity/{entity_name}/{id}`
-- **Delete:** `DELETE /obp/dynamic-entity/{entity_name}/{id}`
+- **List all:** `GET /obp/dynamic-entity/banks/{BANK_ID}/{entity_name}`
+- **Get single:** `GET /obp/dynamic-entity/banks/{BANK_ID}/{entity_name}/{id}`
+- **Create:** `POST /obp/dynamic-entity/banks/{BANK_ID}/{entity_name}`
+- **Update:** `PUT /obp/dynamic-entity/banks/{BANK_ID}/{entity_name}/{id}`
+- **Delete:** `DELETE /obp/dynamic-entity/banks/{BANK_ID}/{entity_name}/{id}`
 
-Do NOT use `/obp/v5.1.0/management/system-dynamic-entities/` for CRUD operations.
+Never write these paths by hand: build them with `entityPath()` from
+`$lib/constants/entities`, which applies the configured space. Roles for the
+records are granted at that bank id (`ENTITY_ROLE_BANK_ID`).
+
+Do NOT use the `/management/.../dynamic-entities` endpoints for CRUD operations; they manage definitions.
 
 ### POST Request Pattern
 
