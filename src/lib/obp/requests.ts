@@ -136,7 +136,7 @@ let obp_requests_instance: OBPRequests | null = null;
 export const obp_requests = {
 	get instance(): OBPRequests {
 		if (!obp_requests_instance) {
-			obp_requests_instance = new OBPRequests(env.PUBLIC_OBP_BASE_URL);
+			obp_requests_instance = new OBPRequests(env.PUBLIC_OBP_BASE_URL ?? '');
 		}
 		return obp_requests_instance;
 	},

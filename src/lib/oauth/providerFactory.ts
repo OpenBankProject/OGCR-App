@@ -32,7 +32,7 @@ class KeyCloakStrategy implements OAuth2ProviderStrategy {
 		const client = new OAuth2ClientWithConfig(
 			env.KEYCLOAK_OAUTH_CLIENT_ID ?? '',
 			env.KEYCLOAK_OAUTH_CLIENT_SECRET ?? '',
-			env.APP_CALLBACK_URL,
+			env.APP_CALLBACK_URL ?? '',
 			'keycloak'
 		);
 
@@ -62,9 +62,9 @@ class OBPOIDCStrategy implements OAuth2ProviderStrategy {
 		});
 
 		const client = new OAuth2ClientWithConfig(
-			env.OBP_OAUTH_CLIENT_ID,
-			env.OBP_OAUTH_CLIENT_SECRET,
-			env.APP_CALLBACK_URL,
+			env.OBP_OAUTH_CLIENT_ID ?? '',
+			env.OBP_OAUTH_CLIENT_SECRET ?? '',
+			env.APP_CALLBACK_URL ?? '',
 			'obp-oidc'
 		);
 
@@ -93,7 +93,7 @@ class GoogleStrategy implements OAuth2ProviderStrategy {
 		const client = new OAuth2ClientWithConfig(
 			env.GOOGLE_OAUTH_CLIENT_ID,
 			env.GOOGLE_OAUTH_CLIENT_SECRET,
-			env.APP_CALLBACK_URL,
+			env.APP_CALLBACK_URL ?? '',
 			'google'
 		);
 
