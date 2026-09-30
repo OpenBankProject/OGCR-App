@@ -22,7 +22,9 @@ npm run dev             # http://localhost:5200
 ```
 
 `.env.example` documents every variable, which are required, and which are optional.
-`SESSION_SECRET` must be set (`openssl rand -hex 32`).
+`SESSION_SECRET` signs the session cookie; generate one with `openssl rand -hex 32`. In
+production the app refuses to start without it (at least 16 characters); in development
+it warns and falls back to an insecure default. See [release_notes.md](./release_notes.md).
 
 Alternatively, `docker compose up` builds the app and starts Redis alongside it on port
 3000; it reads the same variables from the environment.
@@ -69,4 +71,5 @@ pinned to which upstream commit, and which components have been ported to Svelte
 | [design_system_integration.md](./design_system_integration.md) | How this app consumes the OGCR Design System                            |
 | [chain_integration.md](./chain_integration.md)                 | How on-chain state reaches the app, and the heartbeat                   |
 | [open_questions.md](./open_questions.md)                       | Unresolved design and product questions                                 |
+| [release_notes.md](./release_notes.md)                         | Notable and breaking changes, with upgrade steps                        |
 | [CLAUDE.md](./CLAUDE.md)                                       | Notes on discovering OBP dynamic entity endpoints                       |
