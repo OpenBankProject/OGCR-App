@@ -20,6 +20,22 @@ export function entityPath(entity: string): string {
 	return `/obp/dynamic-entity${space}/${entity}`;
 }
 
+/**
+ * v7.0.0 path of an entity's records in the configured space, e.g.
+ * `/obp/v7.0.0/banks/ogcr/dynamic-entities/activity` (`SYS` for system level entities).
+ * List items come back wrapped — `{ "<entity>": {...record}, "metadata": {...} }` — so read
+ * them with `unwrapV7List()`.
+ */
+export function entityPathV7(entity: string): string {
+	return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/dynamic-entities/${entity}`;
+}
+
+/** The plain records of a v7.0.0 list response, unwrapped from their `{ "<entity>": ..., "metadata": ... }` items. */
+export function unwrapV7List<T = Record<string, unknown>>(response: any, entity: string): T[] {
+	const items = (response?.[`${entity}_list`] || []) as Array<Record<string, unknown>>;
+	return items.map((item) => item[entity] as T).filter((record) => record != null);
+}
+
 export const ENTITY_ACTIVITY = `${ENTITY_PREFIX}activity`;
 export const ENTITY_OPERATOR = `${ENTITY_PREFIX}operator`;
 // Junction linking an OBP user to an operator. `relationship` reads user → operator
