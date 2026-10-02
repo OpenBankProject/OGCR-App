@@ -46,6 +46,10 @@ export interface RegistryActivity {
 	certification_status: string | null;
 	certificate_issue_date: string | null;
 	certificate_expiry_date: string | null;
+	/** From activity_on_chain, the activity's latest mint: Unix seconds, null until minted. */
+	minted_at: number | null;
+	/** From activity_on_chain: the token's metadata URI, often an inline `data:` URI. */
+	token_uri: string | null;
 }
 
 export interface RegistryActivitiesResult {
@@ -85,6 +89,27 @@ export async function getRegistryActivities(
 			count: 0,
 			error: error instanceof Error ? error.message : 'Could not reach the registry'
 		};
+	}
+}
+
+/** The mint time as an ISO string, or null when the activity has not been minted. */
+export function mintedAtIso(mintedAt: number | null | undefined): string | null {
+	if (typeof mintedAt !== 'number' || !Number.isFinite(mintedAt)) return null;
+	return new Date(mintedAt * 1000).toISOString();
+}
+
+/** The metadata a `data:` token URI carries inline, decoded; null for any other URI,
+ *  which is a link to the metadata rather than the metadata itself. */
+export function inlineTokenMetadata(tokenUri: string | null | undefined): string | null {
+	const match = tokenUri?.match(/^data:([^,]*?)(;base64)?,(.*)$/s);
+	if (!match) return null;
+	const [, , base64, payload] = match;
+	try {
+		if (!base64) return decodeURIComponent(payload);
+		const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+		return new TextDecoder().decode(bytes);
+	} catch {
+		return null;
 	}
 }
 

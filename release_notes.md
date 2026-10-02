@@ -20,8 +20,9 @@ comes from `PUBLIC_OBP_BASE_URL`; the response shape is unchanged.
    python3 dynamic_resource_docs.py create registry_activities_query
    ```
 
-3. The `activity`, `country`, `operator`, `activity_verification` and
-   `certificate_of_compliance` Dynamic Entities must have public access. Otherwise
+3. The `activity`, `country`, `operator`, `activity_verification`,
+   `certificate_of_compliance` and `activity_on_chain` Dynamic Entities must have public
+   access. Otherwise
    signed-out visitors get a 403 and the registry pages show an error with no data.
 
 Check it with an anonymous call; it should return `{"activities": [...], "count": N}`:

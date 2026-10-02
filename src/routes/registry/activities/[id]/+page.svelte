@@ -2,7 +2,10 @@
 	import type { PageData } from './$types';
 	import FieldList, { type Field } from '$lib/components/FieldList.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
+	import { formatUtc } from '$lib/utils/datetime';
 	import {
+		inlineTokenMetadata,
+		mintedAtIso,
 		registryCertificateHref,
 		registryOperatorHref,
 		type RegistryActivity
@@ -15,6 +18,18 @@
 
 	function range(start: string | null, end: string | null): string | null {
 		return start && end ? `${start} – ${end}` : (start ?? end);
+	}
+
+	/** An inline `data:` token URI is shown decoded; any other is a link to the metadata,
+	 *  followed only when it is a web address the browser can open. */
+	function tokenField(tokenUri: string | null): Field {
+		const metadata = inlineTokenMetadata(tokenUri);
+		if (metadata !== null) return { label: 'Token metadata', value: metadata };
+		return {
+			label: 'Token URI',
+			value: tokenUri,
+			href: tokenUri && /^https?:\/\//i.test(tokenUri) ? tokenUri : undefined
+		};
 	}
 
 	// The same columns as the registry list, each linked onward where there is
@@ -51,7 +66,9 @@
 						label: 'Monitoring period',
 						value: range(activity.monitoring_period_start_date, activity.monitoring_period_end_date)
 					},
-					{ label: 'Summary', value: activity.summary }
+					{ label: 'Summary', value: activity.summary },
+					{ label: 'Minted', value: formatUtc(mintedAtIso(activity.minted_at)) ?? 'Not minted' },
+					tokenField(activity.token_uri)
 				]
 			: []
 	);

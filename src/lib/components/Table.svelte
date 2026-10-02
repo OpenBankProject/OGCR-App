@@ -33,6 +33,8 @@
 		caption,
 		emptyMessage = 'No records',
 		regionLabel,
+		maxHeight,
+		stickyFirstColumn = false,
 		cell
 	}: {
 		columns: TableColumn[];
@@ -41,6 +43,12 @@
 		emptyMessage?: string;
 		/** Accessible name for the scroll region. */
 		regionLabel?: string;
+		/** Caps the table's height (any CSS length) so it scrolls inside its own box, with
+		 *  the header row pinned. Without it a long, wide table's horizontal scrollbar sits
+		 *  below the last row, out of sight. */
+		maxHeight?: string;
+		/** Pins the first column while scrolling sideways, so each row stays identifiable. */
+		stickyFirstColumn?: boolean;
 		/** Renders one cell. Falls back to the raw value when not supplied. */
 		cell?: Snippet<[Record<string, unknown>, TableColumn]>;
 	} = $props();
@@ -91,12 +99,22 @@
 	}
 </script>
 
-<div class="ogcr-table">
+<div
+	class="ogcr-table"
+	data-sticky-header={maxHeight ? '' : undefined}
+	data-sticky-first-column={stickyFirstColumn ? '' : undefined}
+>
 	<!-- A horizontally scrolling region must be reachable by keyboard, or a keyboard user
 	     cannot scroll to the columns that overflow. WCAG 2.1.1; the linter's rule does not
 	     know about the scroll container case. -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-	<div class="ogcr-table__scroll" role="region" aria-label={regionLabel ?? caption} tabindex="0">
+	<div
+		class="ogcr-table__scroll"
+		role="region"
+		aria-label={regionLabel ?? caption}
+		tabindex="0"
+		style:max-height={maxHeight}
+	>
 		<table class="ogcr-table__table">
 			{#if caption}
 				<caption class="ogcr-table__caption">{caption}</caption>
@@ -300,6 +318,40 @@
 		font-weight: 500;
 	}
 
+	/* Sticky cells need an opaque background, or rows show through them. The header
+	   rule moves to a shadow because a collapsed border does not stick with its cell. */
+	[data-sticky-header] .ogcr-table__scroll {
+		overflow: auto;
+	}
+	[data-sticky-header] .ogcr-table__th {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		background: var(--surface-neutral);
+		border-bottom: none;
+		box-shadow: inset 0 -1px 0 var(--border-medium);
+	}
+	[data-sticky-first-column] .ogcr-table__th:first-child,
+	[data-sticky-first-column] .ogcr-table__td:first-child {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+		background: var(--surface-light);
+		box-shadow: inset -1px 0 0 var(--border-light);
+	}
+	[data-sticky-first-column] .ogcr-table__th:first-child {
+		z-index: 3;
+		background: var(--surface-neutral);
+	}
+	[data-sticky-header][data-sticky-first-column] .ogcr-table__th:first-child {
+		box-shadow:
+			inset 0 -1px 0 var(--border-medium),
+			inset -1px 0 0 var(--border-light);
+	}
+	[data-sticky-first-column] .ogcr-table__tr:hover .ogcr-table__td:first-child {
+		background: var(--surface-neutral);
+	}
+
 	.ogcr-table__empty {
 		padding: var(--space-xl) var(--space-m);
 		text-align: center;
@@ -344,6 +396,14 @@
 	}
 	:global([data-mode='dark']) .ogcr-table__sort:hover {
 		color: var(--color-surface-50);
+	}
+	:global([data-mode='dark']) [data-sticky-header] .ogcr-table__th,
+	:global([data-mode='dark']) [data-sticky-first-column] .ogcr-table__th:first-child,
+	:global([data-mode='dark']) [data-sticky-first-column] .ogcr-table__tr:hover .ogcr-table__td:first-child {
+		background: var(--color-surface-800);
+	}
+	:global([data-mode='dark']) [data-sticky-first-column] .ogcr-table__td:first-child {
+		background: var(--color-surface-900);
 	}
 	:global([data-mode='dark']) .ogcr-table__empty {
 		color: var(--color-surface-400);

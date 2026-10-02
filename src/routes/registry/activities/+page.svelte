@@ -5,6 +5,7 @@
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import {
 		distinctValues,
+		mintedAtIso,
 		registryActivityHref,
 		registryCertificateHref,
 		registryOperatorHref,
@@ -51,17 +52,20 @@
 
 	/**
 	 * Ordered by what a buyer scans for, not the order §4.3 of the brief lists them in.
-	 * Ten nowrap columns overflow any realistic viewport, and the design system's table
+	 * Eleven nowrap columns overflow any realistic viewport, and the design system's table
 	 * scrolls horizontally by design — so the question is which columns are visible
-	 * before you scroll. Status and certificate decide whether an activity is worth
-	 * looking at, so they sit next to the name; dates, operator and the free-text
-	 * summary are detail and follow. No column was dropped.
+	 * before you scroll. Status, certificate and whether it is minted on-chain decide
+	 * whether an activity is worth looking at, so they sit next to the name; dates,
+	 * operator and the free-text summary are detail and follow. No column was dropped. The table scrolls inside a
+	 * window-high box with the header and the name pinned, so its sideways scrollbar is
+	 * always in view and every row stays identifiable while scrolling.
 	 */
 	const columns: TableColumn[] = [
 		{ key: 'name', header: 'Activity name', sortable: true },
 		{ key: 'activity_type', header: 'Type', sortable: true },
 		{ key: 'verification_status', header: 'Activity status', sortable: true },
 		{ key: 'certificate', header: 'Certificate' },
+		{ key: 'minted', header: 'Minted', sortable: true },
 		{ key: 'location', header: 'Location', sortable: true },
 		{ key: 'operator_legal_name', header: 'Operator', sortable: true },
 		{ key: 'start_date', header: 'Start', sortable: true },
@@ -79,7 +83,9 @@
 				a.monitoring_period_start_date && a.monitoring_period_end_date
 					? `${a.monitoring_period_start_date} – ${a.monitoring_period_end_date}`
 					: '',
-			certificate: a.certificate_of_compliance_id ?? ''
+			certificate: a.certificate_of_compliance_id ?? '',
+			// The day only, like the other date columns; the activity page has the time.
+			minted: mintedAtIso(a.minted_at)?.slice(0, 10) ?? ''
 		}))
 	);
 
@@ -161,6 +167,8 @@
 		{columns}
 		{rows}
 		regionLabel="Registry activities"
+		maxHeight="calc(100dvh - 8rem)"
+		stickyFirstColumn
 		emptyMessage={filtersApplied ? 'No activities match these filters' : 'No activities'}
 	>
 		{#snippet cell(row, column)}
@@ -209,6 +217,14 @@
 					</a>
 				{:else}
 					<span class="ogcr-cell-muted">Not yet certified</span>
+				{/if}
+			{:else if column.key === 'minted'}
+				{#if row.minted && activityHref}
+					<a href={activityHref} class="ogcr-cell-link">{row.minted}</a>
+				{:else if row.minted}
+					{row.minted}
+				{:else}
+					<span class="ogcr-cell-muted">Not minted</span>
 				{/if}
 			{:else if column.key === 'location'}
 				{#if typeof row.country_name === 'string' && row.country_name}
