@@ -3,7 +3,13 @@
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
 	import Pill from '$lib/components/Pill.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
-	import { distinctValues, type RegistryActivity } from '$lib/registry/activities';
+	import {
+		distinctValues,
+		registryActivityHref,
+		registryCertificateHref,
+		registryOperatorHref,
+		type RegistryActivity
+	} from '$lib/registry/activities';
 	import { Search } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -158,32 +164,83 @@
 		emptyMessage={filtersApplied ? 'No activities match these filters' : 'No activities'}
 	>
 		{#snippet cell(row, column)}
+			<!-- Every cell goes to the most relevant detail: the activity's own facts open its
+			     page, the operator and certificate open theirs, and type and country — which
+			     have no page of their own — narrow the list to their peers. -->
+			{@const activityHref =
+				typeof row.activity_id === 'string' ? registryActivityHref(row.activity_id) : null}
 			{#if column.key === 'name'}
-				<!-- Detail pages are out of scope for now; the link is the certificate. -->
-				<span class="ogcr-cell-strong">{show(row.name)}</span>
-			{:else if column.key === 'summary'}
-				<span class="ogcr-cell-truncate" title={typeof row.summary === 'string' ? row.summary : ''}>
-					{show(row.summary)}
-				</span>
+				{#if activityHref}
+					<a href={activityHref} class="anchor ogcr-cell-strong">{show(row.name)}</a>
+				{:else}
+					<span class="ogcr-cell-strong">{show(row.name)}</span>
+				{/if}
 			{:else if column.key === 'activity_type'}
-				{#if row.activity_type}
-					<Pill tone="neutral">{row.activity_type}</Pill>
+				{#if typeof row.activity_type === 'string' && row.activity_type}
+					<button
+						type="button"
+						class="ogcr-cell-filter"
+						title="Show only {row.activity_type} activities"
+						onclick={() => (creditType = row.activity_type as string)}
+					>
+						<Pill tone="neutral">{row.activity_type}</Pill>
+					</button>
 				{:else}
 					{DASH}
 				{/if}
 			{:else if column.key === 'verification_status'}
 				<!-- Text, not colour alone: the label is the signal, the tone reinforces it. -->
-				<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
-					{row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
-				</Pill>
+				{@const pill = row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
+				{#if activityHref}
+					<a href={activityHref} title="Activity details">
+						<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
+							{pill}
+						</Pill>
+					</a>
+				{:else}
+					<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
+						{pill}
+					</Pill>
+				{/if}
 			{:else if column.key === 'certificate'}
-				{#if row.certificate_of_compliance_id}
-					<a href="/registry/certificates/{row.certificate_of_compliance_id}" class="anchor">
+				{#if typeof row.certificate_of_compliance_id === 'string' && row.certificate_of_compliance_id}
+					<a href={registryCertificateHref(row.certificate_of_compliance_id)} class="anchor">
 						View certificate
 					</a>
 				{:else}
 					<span class="ogcr-cell-muted">Not yet certified</span>
 				{/if}
+			{:else if column.key === 'location'}
+				{#if typeof row.country_name === 'string' && row.country_name}
+					<button
+						type="button"
+						class="ogcr-cell-filter ogcr-cell-link"
+						title="Show only activities in {row.country_name}"
+						onclick={() => (country = row.country_name as string)}
+					>
+						{show(row.location)}
+					</button>
+				{:else}
+					{show(row.location)}
+				{/if}
+			{:else if column.key === 'operator_legal_name'}
+				{#if typeof row.operator_id === 'string' && row.operator_id}
+					<a href={registryOperatorHref(row.operator_id)} class="anchor">
+						{show(row.operator_legal_name ?? row.operator_id)}
+					</a>
+				{:else}
+					{show(row.operator_legal_name)}
+				{/if}
+			{:else if activityHref}
+				<!-- Dates, monitoring period and summary are the activity's own facts. -->
+				<a
+					href={activityHref}
+					class="ogcr-cell-link"
+					class:ogcr-cell-truncate={column.key === 'summary'}
+					title={column.key === 'summary' && typeof row.summary === 'string' ? row.summary : undefined}
+				>
+					{show(row[column.key])}
+				</a>
 			{:else}
 				{show(row[column.key])}
 			{/if}
@@ -265,6 +322,27 @@
 
 	.ogcr-cell-muted {
 		color: var(--text-secondary);
+	}
+
+	/* Links on plain facts (dates, summary, location) keep the table's text colour so
+	   the grid stays calm; the underline on hover/focus says they go somewhere. */
+	.ogcr-cell-link {
+		color: inherit;
+		text-decoration: none;
+	}
+	.ogcr-cell-link:hover,
+	.ogcr-cell-link:focus-visible {
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	/* Type and location narrow the list rather than navigate, so they are buttons. */
+	.ogcr-cell-filter {
+		padding: 0;
+		background: none;
+		border: none;
+		font: inherit;
+		cursor: pointer;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

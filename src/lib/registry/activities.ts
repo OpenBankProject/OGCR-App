@@ -88,6 +88,15 @@ export async function getRegistryActivities(
 	}
 }
 
+/** Public registry detail pages. All three read the same registry endpoint, so a
+ *  signed-out visitor can follow every link in the registry. */
+export const registryActivityHref = (activityId: string) =>
+	`/registry/activities/${encodeURIComponent(activityId)}`;
+export const registryOperatorHref = (operatorId: string) =>
+	`/registry/operators/${encodeURIComponent(operatorId)}`;
+export const registryCertificateHref = (certificateId: string) =>
+	`/registry/certificates/${encodeURIComponent(certificateId)}`;
+
 /** Distinct non-empty values of a field, sorted — used to populate the filter dropdowns
  *  from the data actually present rather than a hardcoded list. */
 export function distinctValues(
