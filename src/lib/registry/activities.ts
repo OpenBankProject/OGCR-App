@@ -4,25 +4,26 @@ import { env } from '$env/dynamic/public';
  * The public registry read model.
  *
  * Unlike the rest of the app, the registry does NOT read dynamic entities directly.
- * It calls one OBP Dynamic Resource Doc that joins activity, operator, country,
+ * It calls one OBP Dynamic Resource Doc, a Dynamic Query (a JSON declaration OBP runs
+ * without compiling anything), that joins activity, operator, country,
  * certificate_of_compliance and activity_verification server-side and projects only
- * the columns below. That matters for two reasons:
+ * the columns below.
  *
- *   - It is public. The endpoint is created with `roles: ""`, so no access token is
- *     involved and a signed-out visitor sees the same registry a buyer would.
- *   - Because it is public, the projection IS the access control. Opening the
- *     underlying entities for public read would expose every field on them; this
- *     exposes the registry columns and nothing else.
+ * It is called without an access token, so a signed-out visitor sees the same registry
+ * a buyer would. What that caller may see is decided by OBP from the access settings
+ * on the entity definitions, not here: a caller who can't read one of the joined
+ * entities gets a 403 (rendered as `error`), and a field hidden from the caller comes
+ * back null — which every field below already allows.
  *
- * Source of the endpoint: OGCR-DynamicEntities/registry_activities_endpoint.scala,
- * deployed with dynamic_resource_docs.py.
+ * Source of the endpoint: OGCR-DynamicEntities/registry_activities_query.json,
+ * deployed with `dynamic_resource_docs.py create registry_activities_query`.
  */
 
 /** Served under an extra `dynamic-resource-doc` segment — see the note in
  *  OGCR-DynamicEntities/dynamic_resource_docs.py; the Dynamic Endpoint glossary
  *  documents a shorter path that 404s. */
 export const REGISTRY_ACTIVITIES_PATH =
-	'/obp/dynamic-endpoint/dynamic-resource-doc/registry/activities';
+	'/obp/dynamic-endpoint/dynamic-resource-doc/registry/activities-query';
 
 /** One row of the registry. Every field can be null: the endpoint left-joins, and an
  *  activity with no certificate or no resolvable operator is normal, not an error. */
