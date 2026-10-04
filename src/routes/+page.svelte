@@ -51,8 +51,8 @@
 	];
 
 	// Below the fold: this deployment's OBP data model, then its other OBP apps, wherever
-	// OBP's app directory says they are, then the app's own design system. Only the
-	// public MCP server is linked, never public_obp_mcp_internal_url.
+	// OBP's app directory says they are. Only the public MCP server is linked, never
+	// public_obp_mcp_internal_url.
 	const tools = $derived(
 		[
 			{
@@ -72,12 +72,6 @@
 				icon: Bot,
 				title: 'MCP Server',
 				description: 'Connect AI tools to the API.'
-			},
-			{
-				href: '/design',
-				icon: Palette,
-				title: 'Design System',
-				description: 'Browse OGCR components and tokens.'
 			}
 		].filter((tool): tool is typeof tool & { href: string } => tool.href !== null)
 	);
@@ -87,7 +81,7 @@
 	<title>OGCR DCR</title>
 </svelte:head>
 
-<!-- The app's own sections first; after a gap, the technical environment of this deployment. -->
+<!-- The app's own sections first; then the technical environment of this deployment; the design system last. -->
 <section class="flex w-full justify-center p-8">
 	<div class="w-full max-w-5xl">
 		<div class="text-center">
@@ -112,7 +106,7 @@
 </section>
 
 {#if tools.length > 0}
-	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8 pb-12">
+	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8">
 		<div class="w-full max-w-5xl">
 			<h2 id="obp-tools" class="mb-6 text-center h3">Technical Environment</h2>
 			<nav aria-labelledby="obp-tools" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,3 +121,17 @@
 		</div>
 	</section>
 {/if}
+
+<section aria-labelledby="design" class="mt-16 flex w-full justify-center px-8 pb-12">
+	<div class="w-full max-w-5xl">
+		<h2 id="design" class="mb-6 text-center h3">Design</h2>
+		<!-- One card, centred at the width of one column of the grids above. -->
+		<nav aria-labelledby="design" class="mx-auto grid max-w-sm grid-cols-1">
+			<Card href="/design" title="Design System" subtitle="Browse OGCR components and tokens.">
+				{#snippet leading()}
+					<Palette class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+		</nav>
+	</div>
+</section>
