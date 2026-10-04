@@ -25,7 +25,7 @@
 			chain: 'Chain',
 			my: 'My',
 			operators: 'Operators',
-			'dynamic-entities': 'Entities',
+			schema: 'Schema',
 			create: 'Create',
 			user: 'My Account',
 			login: 'Login',
