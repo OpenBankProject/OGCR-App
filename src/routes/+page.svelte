@@ -62,22 +62,22 @@
 	const tools = $derived(
 		[
 			{
-				href: '/dynamic-entities',
+				href: '/schema',
 				icon: Database,
-				title: 'Entities',
-				description: 'Lookup, link, main and on-chain tables, with their endpoints and roles.'
+				title: 'Schema',
+				description: 'View schema and endpoints.'
 			},
 			{
 				href: data.apiManagerUrl,
 				icon: Wrench,
 				title: 'API Manager',
-				description: 'Manage OBP entities, roles and consumers.'
+				description: 'Manage schema and access.'
 			},
 			{
 				href: data.mcpUrl,
 				icon: Bot,
 				title: 'MCP Server',
-				description: 'Connect an AI assistant to OBP.'
+				description: 'Connect AI tools to the API.'
 			}
 		].filter((tool): tool is typeof tool & { href: string } => tool.href !== null)
 	);
@@ -116,7 +116,7 @@
 {#if tools.length > 0}
 	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8 pb-12">
 		<div class="w-full max-w-5xl">
-			<h2 id="obp-tools" class="mb-6 text-center h3">OBP tools</h2>
+			<h2 id="obp-tools" class="mb-6 text-center h3">Environment</h2>
 			<nav aria-labelledby="obp-tools" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each tools as { href, icon: Icon, title, description } (title)}
 					<Card {href} {title} subtitle={description}>

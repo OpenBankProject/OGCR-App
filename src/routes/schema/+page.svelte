@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import Kpi from '$lib/components/Kpi.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import { LOOKUP_MAX_COLUMNS_EXCLUSIVE, type EntityCategory } from '$lib/obp/dynamicSummary';
 	import { apiManagerEntityHref, entityPage } from '$lib/obp/entityPages';
-	import { BookA, Table2, Link2, Plug, KeyRound, Waypoints, ExternalLink } from '@lucide/svelte';
+	import { ExternalLink } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -12,25 +11,31 @@
 
 	// Most important first: the main tables lead (top / left), then the chain mirrors,
 	// then the supporting link and lookup tables.
-	const categories: { key: EntityCategory; title: string; description: string; icon: typeof Table2 }[] = [
-		{ key: 'main', title: 'Main tables', description: 'The registry and marketplace records.', icon: Table2 },
+	// `noun` is the lower-case form used in the summary sentence.
+	const categories: { key: EntityCategory; title: string; noun: string; description: string }[] = [
+		{
+			key: 'main',
+			title: 'Main tables',
+			noun: 'main',
+			description: 'The registry and marketplace records.'
+		},
 		{
 			key: 'onChain',
 			title: 'On-chain tables',
-			description: 'Mirrors of chain state, named *_on_chain.',
-			icon: Link2
+			noun: 'on-chain',
+			description: 'Mirrors of chain state, named *_on_chain.'
 		},
 		{
 			key: 'link',
 			title: 'Link tables',
-			description: 'Only *_id columns: they join other entities.',
-			icon: Waypoints
+			noun: 'link',
+			description: 'Only *_id columns: they join other entities.'
 		},
 		{
 			key: 'lookup',
 			title: 'Lookup tables',
-			description: `Fewer than ${LOOKUP_MAX_COLUMNS_EXCLUSIVE} columns, e.g. a code and its name.`,
-			icon: BookA
+			noun: 'lookup',
+			description: `Fewer than ${LOOKUP_MAX_COLUMNS_EXCLUSIVE} columns, e.g. a code and its name.`
 		}
 	];
 
@@ -38,11 +43,11 @@
 </script>
 
 <svelte:head>
-	<title>Entities — OGCR DCR</title>
+	<title>Schema — OGCR DCR</title>
 </svelte:head>
 
 <div class="mx-auto max-w-[1400px] px-6 py-8">
-	<h1 class="text-h1 mb-2">Entities</h1>
+	<h1 class="text-h1 mb-2">Schema</h1>
 	<p class="text-body mb-8 text-surface-600-400">
 		The OBP Dynamic Entities and Dynamic Resource Docs of space <code>{data.space}</code>, counted
 		from OBP's resource docs.
@@ -53,42 +58,22 @@
 	{:else if summary}
 		<section aria-labelledby="summary-counts">
 			<h2 id="summary-counts" class="sr-only">Counts</h2>
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-				{#each categories as category (category.key)}
-					<Kpi
-						label={category.title}
-						value={summary.entities[category.key].length}
-						secondaryText={category.description}
-						accentBar={false}
+			<p class="ogcr-summary">
+				The schema holds
+				{#each categories as category, i (category.key)}
+					{i === categories.length - 1 ? 'and ' : ''}<span class="ogcr-summary__n"
+						>{summary.entities[category.key].length}</span
 					>
-						{#snippet icon()}
-							<category.icon />
-						{/snippet}
-					</Kpi>
+					{category.noun}{i < categories.length - 2 ? ',' : ''}{' '}
 				{/each}
-				<Kpi
-					label="Endpoints"
-					value={total(summary.endpoints)}
-					secondaryText="{summary.endpoints.entity} for entities, {summary.endpoints
-						.resourceDoc} resource docs"
-					accentBar={false}
-				>
-					{#snippet icon()}
-						<Plug />
-					{/snippet}
-				</Kpi>
-				<Kpi
-					label="Roles"
-					value={total(summary.roles)}
-					secondaryText="{summary.roles.entity} for entities, {summary.roles
-						.resourceDoc} for resource docs"
-					accentBar={false}
-				>
-					{#snippet icon()}
-						<KeyRound />
-					{/snippet}
-				</Kpi>
-			</div>
+				tables, served by <span class="ogcr-summary__n">{total(summary.endpoints)}</span>
+				endpoints and guarded by <span class="ogcr-summary__n">{total(summary.roles)}</span> roles.
+			</p>
+			<p class="text-body-s mt-2 text-surface-600-400">
+				Endpoints: {summary.endpoints.entity} for entities, {summary.endpoints.resourceDoc} for
+				resource docs. Roles: {summary.roles.entity} for entities, {summary.roles.resourceDoc} for
+				resource docs.
+			</p>
 		</section>
 
 		<section aria-labelledby="entity-lists" class="mt-10">
@@ -99,6 +84,7 @@
 					{@const entities = summary.entities[category.key]}
 					<div class="ogcr-panel">
 						<h3 class="ogcr-panel__title">{category.title} ({entities.length})</h3>
+						<p class="ogcr-panel__description text-surface-600-400">{category.description}</p>
 						{#if entities.length === 0}
 							<p class="text-body-s text-surface-600-400">None</p>
 						{:else}
@@ -145,6 +131,20 @@
 </div>
 
 <style>
+	.ogcr-summary {
+		max-width: 60rem;
+		font-size: var(--font-size-l);
+		line-height: 1.6;
+		color: var(--text-secondary);
+	}
+	/* The figures carry the sentence, so they are set at KPI-value size. */
+	.ogcr-summary__n {
+		font-size: var(--font-size-xl);
+		font-weight: 500;
+		color: var(--text-primary);
+		font-variant-numeric: tabular-nums;
+	}
+
 	.ogcr-panel {
 		padding: var(--space-m);
 		background: var(--surface-light);
@@ -159,6 +159,10 @@
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
 		color: var(--text-secondary);
+	}
+	.ogcr-panel__description {
+		margin-bottom: var(--space-s);
+		font-size: var(--font-size-s);
 	}
 	.ogcr-panel__list li {
 		display: flex;
@@ -191,6 +195,12 @@
 	}
 
 	/* See Card.svelte — the design system ships no dark palette. */
+	:global([data-mode='dark']) .ogcr-summary {
+		color: var(--color-surface-400);
+	}
+	:global([data-mode='dark']) .ogcr-summary__n {
+		color: var(--color-primary-200);
+	}
 	:global([data-mode='dark']) .ogcr-panel {
 		background: var(--color-surface-900);
 		border-color: var(--color-surface-700);
