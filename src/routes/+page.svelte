@@ -47,18 +47,12 @@
 			icon: Link2,
 			title: 'Chain',
 			description: 'Inspect on-chain state and the sync status.'
-		},
-		{
-			href: '/design',
-			icon: Palette,
-			title: 'Design System',
-			description: 'Browse OGCR components and tokens.'
 		}
 	];
 
 	// Below the fold: this deployment's OBP data model, then its other OBP apps, wherever
-	// OBP's app directory says they are. Only the public MCP server is linked, never
-	// public_obp_mcp_internal_url.
+	// OBP's app directory says they are, then the app's own design system. Only the
+	// public MCP server is linked, never public_obp_mcp_internal_url.
 	const tools = $derived(
 		[
 			{
@@ -78,6 +72,12 @@
 				icon: Bot,
 				title: 'MCP Server',
 				description: 'Connect AI tools to the API.'
+			},
+			{
+				href: '/design',
+				icon: Palette,
+				title: 'Design System',
+				description: 'Browse OGCR components and tokens.'
 			}
 		].filter((tool): tool is typeof tool & { href: string } => tool.href !== null)
 	);
@@ -87,20 +87,18 @@
 	<title>OGCR DCR</title>
 </svelte:head>
 
-<!-- The app's own sections first; after a gap, the OBP tools of this deployment. -->
+<!-- The app's own sections first; after a gap, the technical environment of this deployment. -->
 <section class="flex w-full justify-center p-8">
 	<div class="w-full max-w-5xl">
 		<div class="text-center">
 			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
 			<h1 class="mb-6 h1">OGCR DCR</h1>
-			<p class="mb-4 text-xl text-surface-600-400">
-				Explore features and architecture of the OGCR DCR
+			<p class="mb-4 h3 text-surface-600-400">
+				Explore and Operate
 			</p>
 		</div>
 
-		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). Six
-		     cards divide evenly into three, where the four-column desktop maximum
-		     would leave a ragged 4 + 2. -->
+		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->
 		<nav aria-label="Sections" class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{#each destinations as { href, icon: Icon, title, description } (href)}
 				<Card {href} {title} subtitle={description}>
@@ -116,7 +114,7 @@
 {#if tools.length > 0}
 	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8 pb-12">
 		<div class="w-full max-w-5xl">
-			<h2 id="obp-tools" class="mb-6 text-center h3">Environment</h2>
+			<h2 id="obp-tools" class="mb-6 text-center h3">Technical Environment</h2>
 			<nav aria-labelledby="obp-tools" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each tools as { href, icon: Icon, title, description } (title)}
 					<Card {href} {title} subtitle={description}>
