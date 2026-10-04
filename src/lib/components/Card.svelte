@@ -16,8 +16,9 @@
 	 *
 	 * Two deliberate extensions to the upstream API, neither of which changes how
 	 * a plain Card renders:
-	 *   - `href` renders the card as an anchor, making the whole card one click
-	 *     target (upstream is always a <section>).
+	 *   - `href` makes the title a link (upstream has no link variant). Only the
+	 *     title is the link, not the whole card: text inside an anchor cannot be
+	 *     selected by dragging, and the subtitle and body must stay selectable.
 	 *   - `leading` is a snippet slot before the titles, for an icon.
 	 */
 	import type { Snippet } from 'svelte';
@@ -62,7 +63,8 @@
 			<div class="ogcr-card__titles">
 				{#if title}
 					<!-- svelte-ignore svelte_component_deprecated -->
-					<svelte:element this={`h${headingLevel}`} class="ogcr-card__title">{title}</svelte:element
+					<svelte:element this={`h${headingLevel}`} class="ogcr-card__title"
+						>{#if href}<a {href} class="ogcr-card__link">{title}</a>{:else}{title}{/if}</svelte:element
 					>
 				{/if}
 				{#if subtitle}
@@ -79,24 +81,13 @@
 	{/if}
 {/snippet}
 
-{#if href}
-	<a
-		{href}
-		class="ogcr-card ogcr-card--link ogcr-card--padding-{padding} {className}"
-		class:ogcr-card--floating={floating}
-		{...rest}
-	>
-		{@render inner()}
-	</a>
-{:else}
-	<section
-		class="ogcr-card ogcr-card--padding-{padding} {className}"
-		class:ogcr-card--floating={floating}
-		{...rest}
-	>
-		{@render inner()}
-	</section>
-{/if}
+<section
+	class="ogcr-card ogcr-card--padding-{padding} {className}"
+	class:ogcr-card--floating={floating}
+	{...rest}
+>
+	{@render inner()}
+</section>
 
 <style>
 	.ogcr-card {
@@ -126,36 +117,24 @@
 		box-shadow: var(--elevation-l);
 	}
 
-	/* Link cards lift on hover via elevation and a border shift — never a fill
-	   change, which would not survive a theme swap and reads as a state change
-	   rather than an affordance. */
-	.ogcr-card--link {
-		text-decoration: none;
+	/* The title link reads as the title, underlining on hover like any link. */
+	.ogcr-card__link {
 		color: inherit;
-		transition:
-			border-color var(--motion-fast),
-			box-shadow var(--motion-fast);
+		text-decoration: none;
 	}
-
-	.ogcr-card--link:hover {
-		border-color: var(--border-strong);
-		box-shadow: var(--elevation-l);
+	.ogcr-card__link:hover {
+		text-decoration: underline;
 	}
 
 	/* Two-stop focus ring, spec §8: an inner surface halo so the ring has
 	   breathing room without outline-offset, then the solid interaction tone
 	   at 4px, which clears the 3:1 minimum of WCAG SC 2.4.11. */
-	.ogcr-card--link:focus-visible {
+	.ogcr-card__link:focus-visible {
 		outline: none;
+		border-radius: var(--radius-s);
 		box-shadow:
 			0 0 0 2px var(--surface-light),
 			0 0 0 4px var(--interaction-primary-default);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.ogcr-card--link {
-			transition: none;
-		}
 	}
 
 	.ogcr-card__header {
@@ -236,11 +215,7 @@
 		color: var(--color-primary-200);
 	}
 
-	:global([data-mode='dark']) .ogcr-card--link:hover {
-		border-color: var(--color-surface-500);
-	}
-
-	:global([data-mode='dark']) .ogcr-card--link:focus-visible {
+	:global([data-mode='dark']) .ogcr-card__link:focus-visible {
 		box-shadow:
 			0 0 0 2px var(--color-surface-900),
 			0 0 0 4px var(--interaction-primary-default);

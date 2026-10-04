@@ -727,7 +727,8 @@
 			<Card title="Link card" subtitle="app extension" href="/design" padding="l">
 				<p class="text-body-s" style="color: var(--text-secondary);">
 					<code>href</code> and the <code>leading</code> snippet are our two documented additions to the
-					upstream API. Hover lifts by elevation, never by fill.
+					upstream API. With <code>href</code> only the title is a link, so the rest of the card
+					stays selectable text.
 				</p>
 			</Card>
 		</div>
