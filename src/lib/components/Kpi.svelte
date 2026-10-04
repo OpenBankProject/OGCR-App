@@ -13,6 +13,8 @@
 	 * status signal. `accentBar={false}` gives the quiet icon-led tile used in a
 	 * dense row — which is what the registry summary uses, since a tone would
 	 * imply a judgement we have no data to make.
+	 *
+	 * `href` turns the label and value into links to the page behind the figure.
 	 */
 	import type { Snippet } from 'svelte';
 
@@ -25,6 +27,7 @@
 		icon,
 		tone = 'positive',
 		accentBar = true,
+		href,
 		class: className = '',
 		...rest
 	}: {
@@ -34,6 +37,7 @@
 		icon?: Snippet;
 		tone?: Tone;
 		accentBar?: boolean;
+		href?: string;
 		class?: string;
 		[key: string]: unknown;
 	} = $props();
@@ -48,10 +52,18 @@
 			{#if icon}
 				<span class="ogcr-kpi__icon" aria-hidden="true">{@render icon()}</span>
 			{/if}
-			<span class="ogcr-kpi__label">{label}</span>
+			{#if href}
+				<a {href} class="ogcr-kpi__label ogcr-kpi__link">{label}</a>
+			{:else}
+				<span class="ogcr-kpi__label">{label}</span>
+			{/if}
 		</span>
 	</header>
-	<div class="ogcr-kpi__value">{value}</div>
+	{#if href}
+		<a {href} class="ogcr-kpi__value ogcr-kpi__link" tabindex="-1">{value}</a>
+	{:else}
+		<div class="ogcr-kpi__value">{value}</div>
+	{/if}
 	{#if secondaryText}
 		<p class="ogcr-kpi__secondary">{secondaryText}</p>
 	{/if}
@@ -133,6 +145,16 @@
 		color: var(--text-primary);
 		/* Figures line up column-to-column when several tiles sit in a row. */
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* The value link duplicates the label link, so it is taken out of the tab
+	   order (tabindex="-1") to avoid two stops for one destination. */
+	.ogcr-kpi__link {
+		text-decoration: none;
+	}
+	.ogcr-kpi__link:hover,
+	.ogcr-kpi__link:focus-visible {
+		text-decoration: underline;
 	}
 
 	.ogcr-kpi__secondary {
