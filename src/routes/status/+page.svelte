@@ -5,4 +5,4 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<SystemStatusPage {data} title="System Status - OGCR App" />
+<SystemStatusPage {data} title="System Status - OGCR DCR" />

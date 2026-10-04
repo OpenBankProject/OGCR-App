@@ -25,6 +25,14 @@ comes from `PUBLIC_OBP_BASE_URL`; the response shape is unchanged.
    access. Otherwise
    signed-out visitors get a 403 and the registry pages show an error with no data.
 
+4. For acceptable speed, OBP must use its SQL indexes for the joins. Set
+   `dynamic_entity.indexing.backend=auto` in OBP's props (the default, `inmemory`,
+   reads every record of every joined entity on each call), on Postgres or SQL Server,
+   then restart OBP. The entities' join fields must be declared indexed (run the
+   OGCR-DynamicEntities index/update scripts) and their indexes must reach state
+   `ready` in the `dynamicentityindex` table. Without this the registry with ~150
+   activities takes ~15s to load.
+
 Check it with an anonymous call; it should return `{"activities": [...], "count": N}`:
 
 ```sh
