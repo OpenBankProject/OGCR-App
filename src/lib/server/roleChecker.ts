@@ -18,6 +18,13 @@ import type { PageRoleConfig } from '$lib/utils/roleCheck';
 // space the entities live in (OBP_ENTITY_SPACE_ID), so a grant at some other bank does not pass a
 // page whose data calls would then 403, and a role request asks for the grant at the right bank.
 export const SITE_MAP: Record<string, PageRoleConfig> = {
+	// Either one lists the space's groups; an all-banks grant has no bank id to match.
+	'/group-entitlements': {
+		required: [
+			{ role: 'CanGetGroupsAtOneBank', bankId: ENTITY_ROLE_BANK_ID },
+			{ role: 'CanGetGroupsAtAllBanks' }
+		]
+	},
 	'/activities': {
 		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_ACTIVITY}`, bankId: ENTITY_ROLE_BANK_ID }]
 	},

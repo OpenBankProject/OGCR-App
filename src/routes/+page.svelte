@@ -14,7 +14,8 @@
 		Compass,
 		KeyRound,
 		Globe,
-		MessageSquare
+		MessageSquare,
+		Users
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -82,6 +83,12 @@
 				icon: Database,
 				title: 'Schema',
 				description: 'View schema and endpoints.'
+			},
+			{
+				href: '/group-entitlements',
+				icon: Users,
+				title: 'Group entitlements',
+				description: 'What each group can do with each entity.'
 			},
 			{
 				href: data.apiExplorerUrl,

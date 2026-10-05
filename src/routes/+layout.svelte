@@ -26,6 +26,7 @@
 			my: 'My',
 			operators: 'Operators',
 			schema: 'Schema',
+			'group-entitlements': 'Group entitlements',
 			create: 'Create',
 			user: 'My Account',
 			login: 'Login',
