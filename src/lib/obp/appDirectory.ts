@@ -10,8 +10,13 @@ import { env } from '$env/dynamic/public';
 export const APP_DIRECTORY_PATH = '/obp/v6.0.0/app-directory';
 
 /** The app-directory names this app links to. */
+export const API_EXPLORER_URL = 'public_obp_api_explorer_url';
 export const API_MANAGER_URL = 'public_obp_api_manager_url';
 export const MCP_URL = 'public_obp_mcp_url';
+export const PORTAL_URL = 'public_obp_portal_url';
+
+/** The Portal's guide to authenticating against OBP (OAuth2 / OpenID Connect). */
+export const PORTAL_AUTHENTICATION_PATH = '/developers/oauth2-oidc';
 
 /** name -> URL, for the entries that hold an http(s) URL. */
 export type AppDirectory = Record<string, string>;

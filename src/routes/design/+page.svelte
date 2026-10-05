@@ -187,6 +187,12 @@
 
 	// Upstream sections refer to packages/design-system/docs/design-system.md.
 	const componentPorts = [
+		{
+			name: 'Button',
+			spec: '§4.1',
+			ported: true,
+			note: 'src/lib/components/Button.svelte — adds href, keeps the label selectable'
+		},
 		{ name: 'Card', spec: '§4.3', ported: true, note: 'src/lib/components/Card.svelte' },
 		{ name: 'Pill', spec: '§4.6', ported: false, note: '' },
 		{ name: 'Message', spec: '§4.9', ported: false, note: '' },
