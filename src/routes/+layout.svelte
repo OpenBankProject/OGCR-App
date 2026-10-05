@@ -32,6 +32,7 @@
 			logout: 'Logout',
 			design: 'Design System',
 			registry: 'Registry',
+			simple: 'Simple view',
 			certificates: 'Certificates',
 			trading: 'Trading',
 			banks: 'Bank',

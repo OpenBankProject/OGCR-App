@@ -12,45 +12,65 @@
 		Bot,
 		Database,
 		Compass,
-		KeyRound
+		KeyRound,
+		Globe,
+		MessageSquare
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	// Destinations are the app's existing routes — Operators lives under /my
-	// because the page is scoped to the operators linked to the signed-in user.
-	const destinations = [
-		{
-			href: '/registry',
-			icon: Library,
-			title: 'Registry',
-			description: 'Browse the public carbon activity registry.'
-		},
-		{
-			href: '/activities',
-			icon: Leaf,
-			title: 'Activities',
-			description: 'Create and manage activities for testing against the DCR.'
-		},
-		{
-			href: '/my/operators',
-			icon: Building2,
-			title: 'Operators',
-			description: 'Manage operator records.'
-		},
-		{
-			href: '/trading',
-			icon: Store,
-			title: 'Trading',
-			description: 'Open the trading interface.'
-		},
-		{
-			href: '/chain',
-			icon: Link2,
-			title: 'Chain',
-			description: 'Inspect on-chain state and the sync status.'
-		}
-	];
+	// because the page is scoped to the operators linked to the signed-in user —
+	// then the OBP Portal, whose home page also hosts the Opey agent chat.
+	const destinations = $derived(
+		[
+			{
+				href: '/registry',
+				icon: Library,
+				title: 'Registry',
+				description: 'Browse the public carbon activity registry.'
+			},
+			{
+				href: '/activities',
+				icon: Leaf,
+				title: 'Activities',
+				description: 'Create and manage activities for testing against the DCR.'
+			},
+			{
+				href: '/my/operators',
+				icon: Building2,
+				title: 'Operators',
+				description: 'Manage operator records.'
+			},
+			{
+				href: '/trading',
+				icon: Store,
+				title: 'Trading',
+				description: 'Open the trading interface.'
+			},
+			{
+				href: '/chain',
+				icon: Link2,
+				title: 'Chain',
+				description: 'Inspect on-chain state and the sync status.'
+			},
+			{
+				href: data.portalUrl,
+				icon: Globe,
+				title: 'Portal',
+				description: 'Register, get API keys and read the guides.'
+			},
+			{
+				href: data.portalUrl,
+				icon: MessageSquare,
+				title: 'Agent',
+				description: 'Ask the agent about the DCR and its schema.'
+			}
+		].filter(
+			(destination): destination is typeof destination & { href: string } =>
+				destination.href !== null
+		)
+	);
 
 	// Below the fold: this deployment's OBP data model, then its other OBP apps, wherever
 	// OBP's app directory says they are. Only the public MCP server is linked, never
@@ -101,14 +121,12 @@
 		<div class="text-center">
 			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
 			<h1 class="mb-6 h1">OGCR DCR</h1>
-			<p class="mb-4 h3 text-surface-600-400">
-				Explore and Operate
-			</p>
+			<p class="mb-4 h3">Explore and Create</p>
 		</div>
 
 		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->
 		<nav aria-label="Sections" class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each destinations as { href, icon: Icon, title, description } (href)}
+			{#each destinations as { href, icon: Icon, title, description } (title)}
 				<Card {href} {title} subtitle={description}>
 					{#snippet leading()}
 						<Icon class="size-6" aria-hidden="true" />
@@ -122,7 +140,9 @@
 {#if tools.length > 0}
 	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8">
 		<div class="w-full max-w-5xl">
-			<h2 id="obp-tools" class="mb-6 text-center h3">Technical Environment</h2>
+			<h2 id="obp-tools" class="mb-6 text-center h3">
+				Schema, Documentation, Endpoints, Access, Observe, Program
+			</h2>
 			<nav aria-labelledby="obp-tools" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{#each tools as { href, icon: Icon, title, description } (title)}
 					<Card {href} {title} subtitle={description}>

@@ -20,6 +20,11 @@ Everything in this document exists so that mirroring is a _checkable_ operation 
 than a copy that silently rots — which is exactly what happened to the previous copy
 (see the [drift log](#drift-log)).
 
+**Using the design system is mandatory in this app.** All UI takes its colours, type,
+spacing, radii and elevation from the named DS tokens and uses the ported components
+below. Skeleton ramp steps that are not DS anchors are not a substitute. The working rules
+are in `CLAUDE.md` under _Always use the OGCR Design System_.
+
 ## Upstream provenance (what we are pinned to)
 
 |                                                |                                                                                                                                                                          |
@@ -182,6 +187,7 @@ the two in step.
 
 | Upstream component | Spec          | Status here                                                                                                                                                                    |
 | ------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Button             | §4.1          | **ported** — `src/lib/components/Button.svelte`. Adds `href` (renders an anchor) and drops `select-none`; icon-only not yet ported |
 | Card               | §4.3          | **ported** — `src/lib/components/Card.svelte`                                                                                                                                  |
 | Pill               | §4.6          | **ported** — `src/lib/components/Pill.svelte`                                                                                                                                  |
 | Message            | §4.9          | not needed — the app's `ObpErrorDisplay` already handles OBP errors (it detects missing-entitlement messages and renders `MissingRoleAlert`), which DS Message would not       |
@@ -217,8 +223,9 @@ the header trail.
   page. Add a `:global([data-mode='dark'])` block falling back to the Skeleton dark
   surfaces the rest of the app uses. When upstream ships a dark palette, those blocks
   should be replaced by `--ds-*` overrides rather than extended.
-- **Document any API extension** in the component header. `Card` has two: `href` (renders
-  as an anchor so the whole card is one click target) and a `leading` snippet for an icon.
+- **Document any API extension** in the component header. `Card` has two: `href` (makes
+  the title a link; only the title, so the rest of the card stays selectable text) and a
+  `leading` snippet for an icon.
 
 ### A trap in the spec
 

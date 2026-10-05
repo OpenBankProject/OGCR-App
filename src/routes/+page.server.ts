@@ -17,6 +17,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		apiExplorerUrl: directory[API_EXPLORER_URL] ?? null,
 		apiManagerUrl: directory[API_MANAGER_URL] ?? null,
 		mcpUrl: directory[MCP_URL] ?? null,
+		portalUrl: portalUrl ?? null,
 		authenticationUrl: portalUrl
 			? `${portalUrl.replace(/\/$/, '')}${PORTAL_AUTHENTICATION_PATH}`
 			: null

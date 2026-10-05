@@ -1,5 +1,28 @@
 # OGCR App - Claude Code Notes
 
+## Always use the OGCR Design System
+
+Every piece of UI in this app must use the OGCR Design System. This is a requirement,
+not a preference. How the app consumes it (token mirror, ported components, porting
+conventions) is in `design_system_integration.md`; the live reference is `/design`.
+
+- **Colour, type, spacing, radius, elevation:** use the design system's named tokens
+  from `src/ogcr-theme.css` (`var(--text-primary)`, `var(--text-secondary)`,
+  `var(--surface-light)`, `var(--space-m)`, `var(--radius-l)`, the `text-h1` / `text-body`
+  classes, ...). Do not pick a colour from the Skeleton ramps (`text-surface-600-400`,
+  `bg-primary-300`, ...): most ramp steps are interpolated and match no design system
+  token. Never hard-code hex values or pixel sizes that a token already covers.
+- **Components:** use the ported components in `src/lib/components/` (`Card`, `Pill`,
+  `Kpi`, `Table`) rather than hand-rolling the same thing. If the design system has a
+  component that is not ported yet, port it (see "Porting conventions" in
+  `design_system_integration.md`) rather than inventing a look.
+- **No design system answer?** Ask before inventing one. Dark mode is the documented
+  exception: the design system has no dark palette, so components add a
+  `:global([data-mode='dark'])` block using the Skeleton dark surfaces.
+- **Existing code:** much of the app predates this rule (for example, around 180 uses of
+  `text-surface-600-400`). Bring the lines you are already changing onto design system
+  tokens, but do not sweep files the task does not touch.
+
 ## OBP API Dynamic Endpoints Discovery
 
 Dynamic entity structures change over time. Always fetch the current documentation before working with endpoints.
