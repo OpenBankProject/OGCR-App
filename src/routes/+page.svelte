@@ -10,7 +10,9 @@
 		Library,
 		Wrench,
 		Bot,
-		Database
+		Database,
+		Compass,
+		KeyRound
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -62,6 +64,12 @@
 				description: 'View schema and endpoints.'
 			},
 			{
+				href: data.apiExplorerUrl,
+				icon: Compass,
+				title: 'API Explorer',
+				description: 'Browse and try the API endpoints.'
+			},
+			{
 				href: data.apiManagerUrl,
 				icon: Wrench,
 				title: 'API Manager',
@@ -72,6 +80,12 @@
 				icon: Bot,
 				title: 'MCP Server',
 				description: 'Connect AI tools to the API.'
+			},
+			{
+				href: data.authenticationUrl,
+				icon: KeyRound,
+				title: 'Authentication',
+				description: 'How to authenticate against the API.'
 			}
 		].filter((tool): tool is typeof tool & { href: string } => tool.href !== null)
 	);
