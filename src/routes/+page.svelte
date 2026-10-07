@@ -58,7 +58,7 @@
 			{
 				href: data.portalUrl,
 				icon: Globe,
-				title: 'Portal',
+				title: 'Register',
 				description: 'Register, get API keys and read the guides.'
 			},
 			{
