@@ -16,11 +16,11 @@ over the registry.
 So the chain reaches the app indirectly:
 
 ```
-OGCR chain (EVM, chain id 2025)
+OGCR chain (EVM, chain id 20253)
         │  read (no private key)
         ▼
-OGCR-chain-cache            Go service, one-shot mirror
-        │  write via DirectLogin
+OGCR-chain-cache            Go service, mirrors on a loop (serve mode)
+        │  write as a Platform App (OAuth2 client credentials)
         ▼
 OBP dynamic entities        *_on_chain
         │  read via OBP API
@@ -37,8 +37,8 @@ entity first. That constraint shapes the heartbeat design in section 4.
 |---|---|---|
 | `parcel_on_chain` | `parcel_id` | ParcelNFT |
 | `activity_on_chain` | `activity_id` | ActivityNFT |
-| `certification_on_chain` | `certification_of_compliance_id` | CertificationNFT |
-| `carbon_credit_batch_on_chain` | `batch_key` | CarbonCreditBatchNFT |
+| `certification_on_chain` | `certificate_of_compliance_id` | CertificationNFT |
+| `carbon_credit_batch_on_chain` | `carbon_credit_batch_id` (`<monitoring verification id>:<unit>`) | CarbonCreditBatchNFT |
 | `carbon_credit_balance_on_chain` | `owner_address` | CarbonCredit (ERC-20) |
 
 The first four are built from `*Minted` events, so each record is a faithful
@@ -206,15 +206,15 @@ The cacher writes one record per run to `chain_sync_status`:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `sync_key` | string | Business key, one record per chain, e.g. `chain-2025` |
+| `sync_key` | string | Business key, one record per chain, e.g. `chain-20253` |
 | `chain_id` | integer | EVM chain id the run read |
 | `head_block` | integer | Chain head at the end of the run |
 | `synced_at` | string | ISO-8601 timestamp the run finished |
-| `run_status` | string | `ok` or `partial`, when some upserts failed |
+| `run_status` | string | `ok` or `partial`, when some upserts failed. A token the cacher skips because its activity is not in this OBP (such as the chain's example token) does not make a run partial |
 | `parcel_count` … | integer | Records mirrored per entity in that run |
 
 A string business key for the same reason `carbon_credit_batch_on_chain` uses
-`batch_key`: records are matched with a server-side query filter, which is
+`carbon_credit_batch_id`: records are matched with a server-side query filter, which is
 dependable for a string field and not for an integer one.
 
 Two behaviours matter more than the fields:
@@ -266,8 +266,8 @@ old newest block is a quiet chain rather than a broken one, so the two signals
 are not confused.
 
 Identifiers in that table link to a page in the app where one exists. Activities
-link to their own page; credit batches and certifications resolve through
-`activity_nft_id` to the activity they belong to. Records with no page, such as
+link to their own page; credit batches and certifications carry the
+`activity_id` they belong to and link to that. Records with no page, such as
 parcels, fall back to the registry URL the token itself carries on-chain.
 
 ### Transactions and the block explorer
