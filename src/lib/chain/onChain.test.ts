@@ -46,26 +46,29 @@ describe('getRecentChainEvents', () => {
 		expect(e.tokenId).toBe(1);
 	});
 
-	it('resolves a credit batch to its activity page via the activity NFT id', async () => {
-		lists['activity_on_chain'] = [{ activity_id: 'activity_local_1', token_id: '1', block_number: '2' }];
+	it('links a credit batch to its activity page via the activity_id it carries', async () => {
 		lists['carbon_credit_batch_on_chain'] = [
 			{
-				batch_key: '1:permanent_carbon_removal',
-				credit_type: 'permanent_carbon_removal',
+				carbon_credit_batch_id: 'mv1:permanent_removal',
+				batch_name: 'Permanent Removals Carbon Credit Batch',
+				unit_type: 'Permanent Removal',
 				token_id: '1',
+				activity_id: 'activity_local_1',
 				activity_nft_id: '1',
-				certification_url: 'http://localhost:8080/obp/dynamic-entity/certificate_of_compliance/coc_local_1',
+				certificate_of_compliance_uri:
+					'http://localhost:8080/obp/dynamic-entity/certificate_of_compliance/coc_local_1',
 				block_number: '2'
 			}
 		];
 		const batch = (await getRecentChainEvents('token')).find((e) => e.kind === 'Credit Batch')!;
-		expect(batch.label).toBe('permanent_carbon_removal');
+		expect(batch.label).toBe('Permanent Removals Carbon Credit Batch');
 		expect(batch.href).toBe('/activities/activity_local_1');
+		expect(batch.registryUrl).toContain('coc_local_1');
 	});
 
-	it('leaves href null when the activity NFT id matches nothing', async () => {
+	it('leaves href null when a batch carries no activity_id', async () => {
 		lists['carbon_credit_batch_on_chain'] = [
-			{ batch_key: '9:x', credit_type: 'x', token_id: '9', activity_nft_id: '9', block_number: '1' }
+			{ carbon_credit_batch_id: 'mv9:x', unit_type: 'x', token_id: '9', block_number: '1' }
 		];
 		const [e] = await getRecentChainEvents('token');
 		expect(e.href).toBeNull();

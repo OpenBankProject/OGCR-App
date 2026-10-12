@@ -1,17 +1,9 @@
 <script lang="ts">
-	import {
-		HelpCircle,
-		Award,
-		Wallet,
-		Coins,
-		Banknote,
-		ArrowRightLeft,
-		Layers,
-		Info,
-		FlaskConical,
-		ArrowLeft,
-		ArrowDown
-	} from '@lucide/svelte';
+	import type { PageData } from './$types';
+	import Card from '$lib/components/Card.svelte';
+	import { HelpCircle, Coins, Banknote, Info, FlaskConical, ArrowLeft } from '@lucide/svelte';
+
+	let { data }: { data: PageData } = $props();
 </script>
 
 <div class="p-8 max-w-4xl mx-auto space-y-8">
@@ -25,181 +17,20 @@
 	</a>
 
 	<p class="text-surface-600-400">
-		Carbon credits in OGCR are recorded on a blockchain. This page explains the model in plain
-		English — no prior blockchain knowledge assumed. The short version: <strong
-			>a certificate proves where credits came from, and the credits live in a wallet that belongs
-			to that certificate.</strong
-		>
+		How OGCR's tokens work, from the OBP glossary. The glossary is generated from the smart
+		contracts' own documentation, so it is always the authority on how the contracts behave.
 	</p>
 
-	<!-- The two kinds of token -->
-	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
-		<h2 class="h2">Two kinds of token</h2>
+	{#each data.glossaryItems as item (item.title)}
+		<Card title={item.title} headingLevel={2} padding="l">
+			<!-- OBP renders the item's markdown to HTML; the glossary is part of OBP itself. -->
+			<div class="glossary">{@html item.html}</div>
+		</Card>
+	{:else}
 		<p class="text-surface-600-400">
-			Everything on the chain is one of two kinds. The difference matters, because they answer
-			different questions.
+			The glossary could not be loaded from OBP. Try again later.
 		</p>
-		<div class="grid gap-4 md:grid-cols-2">
-			<div class="card p-6 preset-filled-surface-50-950 space-y-2">
-				<div class="flex items-center gap-3">
-					<Award class="size-6 text-primary-500" />
-					<h3 class="h3">Certificates</h3>
-				</div>
-				<p class="text-sm text-surface-600-400">
-					Each one is <strong>unique and one-of-a-kind</strong> — like a passport or a title deed.
-					It answers <em>"what is this, and where did it come from?"</em> Parcels, activities,
-					certifications and credit batches are all certificates.
-				</p>
-				<p class="text-xs text-surface-500">Technically: ERC-721, often called an NFT.</p>
-			</div>
-			<div class="card p-6 preset-filled-surface-50-950 space-y-2">
-				<div class="flex items-center gap-3">
-					<Coins class="size-6 text-primary-500" />
-					<h3 class="h3">Credits</h3>
-				</div>
-				<p class="text-sm text-surface-600-400">
-					These are <strong>interchangeable units</strong> — like coins or shares. One is exactly
-					as good as another. They answer <em>"how many?"</em> A balance of 300 is just a number
-					attached to an address.
-				</p>
-				<p class="text-xs text-surface-500">Technically: ERC-20, the Carbon Credit token.</p>
-			</div>
-		</div>
-	</section>
-
-	<!-- The chain of records -->
-	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
-		<div class="flex items-center gap-3">
-			<Layers class="size-6 text-primary-500" />
-			<h2 class="h2">The chain of records</h2>
-		</div>
-		<p class="text-surface-600-400">
-			Credits are not created out of nowhere. Each one traces back through a chain of certificates,
-			every link recorded on-chain before the next can exist.
-		</p>
-		<div class="space-y-2">
-			<div class="card p-4 preset-filled-surface-50-950">
-				<strong>Parcel</strong> — a piece of land.
-			</div>
-			<div class="flex justify-center text-surface-500"><ArrowDown class="size-4" /></div>
-			<div class="card p-4 preset-filled-surface-50-950">
-				<strong>Activity</strong> — what is being done on that land, and over what period.
-			</div>
-			<div class="flex justify-center text-surface-500"><ArrowDown class="size-4" /></div>
-			<div class="card p-4 preset-filled-surface-50-950">
-				<strong>Certification</strong> — an independent body confirming the activity meets a
-				scheme's rules.
-			</div>
-			<div class="flex justify-center text-surface-500"><ArrowDown class="size-4" /></div>
-			<div class="card p-4 preset-filled-surface-50-950">
-				<strong>Credit batch</strong> — credits issued against that certified activity, for one
-				type of credit.
-			</div>
-		</div>
-		<p class="text-surface-600-400">
-			A batch certificate carries links to each supporting document, together with a
-			<strong>fingerprint</strong> (a hash) of its contents. Anyone can fetch a document and check
-			the fingerprint still matches — proving it has not been altered since the credits were issued.
-		</p>
-	</section>
-
-	<!-- The wallet -->
-	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
-		<div class="flex items-center gap-3">
-			<Wallet class="size-6 text-primary-500" />
-			<h2 class="h2">Every batch has its own wallet</h2>
-		</div>
-		<p class="text-surface-600-400">
-			This is the part that surprises most people. When a credit batch certificate is created, it
-			automatically gets <strong>its own wallet</strong> — a real address on the chain. Not a wallet
-			belonging to a person; a wallet belonging to the certificate.
-		</p>
-		<p class="text-surface-600-400">The credits are then placed in that wallet.</p>
-		<div class="card p-6 preset-filled-surface-50-950 space-y-3">
-			<p class="text-sm">
-				<strong>Batch #1</strong> — certificate for 300 credits of soil carbon, from activity
-				"Meadow restoration"
-			</p>
-			<p class="text-sm pl-6 border-l-2 border-primary-500">
-				↳ its wallet holds <strong>300 Carbon Credit tokens</strong>
-			</p>
-			<p class="text-sm pt-2">
-				<strong>Batch #2</strong> — certificate for 700 credits of a different type, same activity
-			</p>
-			<p class="text-sm pl-6 border-l-2 border-primary-500">
-				↳ its own separate wallet holds <strong>700 Carbon Credit tokens</strong>
-			</p>
-		</div>
-		<p class="text-surface-600-400">
-			Two batches, two wallets, two balances that never mix. That separation is what keeps each
-			credit connected to the evidence behind it.
-		</p>
-		<div class="card p-4 preset-tonal-primary flex gap-3">
-			<Info class="size-5 shrink-0 mt-0.5 text-primary-500" />
-			<p class="text-sm">
-				<strong>Who controls the wallet?</strong> Whoever holds the certificate. The wallet has no
-				password or key of its own — it simply asks, every single time, "who owns my certificate
-				right now?" and takes instructions only from that person.
-			</p>
-		</div>
-	</section>
-
-	<!-- Selling -->
-	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
-		<div class="flex items-center gap-3">
-			<ArrowRightLeft class="size-6 text-primary-500" />
-			<h2 class="h2">What happens when a batch is sold</h2>
-		</div>
-		<p class="text-surface-600-400">
-			If Simon owns batch #1 and sells it to Bob, the credits themselves <em>never move</em>. All
-			that changes is who holds the certificate.
-		</p>
-		<div class="grid gap-4 md:grid-cols-2">
-			<div class="card p-6 preset-filled-surface-50-950 space-y-2">
-				<h3 class="h4">Before</h3>
-				<ul class="text-sm text-surface-600-400 space-y-1 list-disc list-inside">
-					<li>Simon holds certificate #1</li>
-					<li>Batch #1's wallet holds 300 credits</li>
-					<li>Simon controls those 300 credits</li>
-				</ul>
-			</div>
-			<div class="card p-6 preset-filled-surface-50-950 space-y-2">
-				<h3 class="h4">After</h3>
-				<ul class="text-sm text-surface-600-400 space-y-1 list-disc list-inside">
-					<li>Bob holds certificate #1</li>
-					<li>Batch #1's wallet still holds the same 300 credits</li>
-					<li>Bob now controls those 300 credits</li>
-				</ul>
-			</div>
-		</div>
-		<p class="text-surface-600-400">
-			One transaction transfers the proof and the quantity together. The buyer receives credits that
-			still point at the activity, the certification body and the scheme that produced them.
-		</p>
-	</section>
-
-	<!-- Withdrawn credits -->
-	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
-		<div class="flex items-center gap-3">
-			<Info class="size-6 text-primary-500" />
-			<h2 class="h2">Credits can also be taken out of a batch</h2>
-		</div>
-		<p class="text-surface-600-400">
-			The holder of a batch can move credits out of its wallet and into an ordinary personal wallet.
-			This is allowed, but it has a consequence worth understanding.
-		</p>
-		<p class="text-surface-600-400">
-			Once credits sit in a personal wallet they are <strong>pooled</strong>. Credits from different
-			batches mix together into a single balance, and at that point the chain can no longer say
-			which batch any individual credit came from — in the same way that coins from two different
-			pockets, once in the same jar, can no longer be told apart.
-		</p>
-		<p class="text-surface-600-400">
-			So credits exist in two states, and the Chain page counts both: <strong>inside a batch</strong
-			>, where full provenance is intact, and <strong>in a wallet</strong>, where only the quantity
-			remains.
-		</p>
-	</section>
+	{/each}
 
 	<!-- Coins vs notes -->
 	<section class="card p-8 preset-filled-surface-100-900 space-y-4">
@@ -316,3 +147,82 @@
 		</p>
 	</section>
 </div>
+
+<style>
+	/* The glossary HTML comes from OBP, so its elements are styled here rather than with
+	   classes: headings, tables and code in design system tokens. */
+	.glossary {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-s);
+		font-family: var(--font-family-default);
+		font-size: var(--font-size-s);
+		line-height: 1.5;
+		color: var(--text-neutral);
+		overflow-wrap: anywhere;
+	}
+	.glossary :global(h3) {
+		margin-top: var(--space-s);
+		font-size: var(--font-size-m);
+		font-weight: 500;
+		color: var(--text-primary);
+	}
+	/* OBP wraps each heading in a link to its own anchor, which has no target here. */
+	.glossary :global(h3 a) {
+		color: inherit;
+		text-decoration: none;
+	}
+	.glossary :global(p a) {
+		color: var(--interaction-primary-default);
+		text-decoration: underline;
+	}
+	.glossary :global(ul) {
+		list-style: disc;
+		padding-left: var(--space-l);
+	}
+	.glossary :global(code) {
+		font-family: var(--font-family-mono);
+		font-size: 0.9em;
+	}
+	.glossary :global(pre) {
+		overflow-x: auto;
+		padding: var(--space-s);
+		background: var(--surface-neutral);
+		border-radius: var(--radius-m);
+		overflow-wrap: normal;
+	}
+	.glossary :global(table) {
+		display: block;
+		overflow-x: auto;
+		border-collapse: collapse;
+		overflow-wrap: normal;
+	}
+	.glossary :global(th),
+	.glossary :global(td) {
+		padding: var(--space-xs);
+		border-bottom: 1px solid var(--border-light);
+		text-align: left;
+		vertical-align: top;
+	}
+	.glossary :global(th) {
+		color: var(--text-primary);
+		font-weight: 500;
+	}
+
+	/* Dark mode: the design system has no dark palette, so fall back to the Skeleton dark
+	   surfaces, as Card does. */
+	:global([data-mode='dark']) .glossary {
+		color: var(--color-surface-300);
+	}
+	:global([data-mode='dark']) .glossary :global(h3),
+	:global([data-mode='dark']) .glossary :global(th) {
+		color: var(--color-primary-200);
+	}
+	:global([data-mode='dark']) .glossary :global(pre) {
+		background: var(--color-surface-800);
+	}
+	:global([data-mode='dark']) .glossary :global(th),
+	:global([data-mode='dark']) .glossary :global(td) {
+		border-color: var(--color-surface-700);
+	}
+</style>

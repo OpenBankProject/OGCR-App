@@ -82,9 +82,8 @@ export async function getRecentChainEvents(
 	accessToken: string,
 	limit = 10
 ): Promise<ChainEvent[]> {
-	// Fetched together because credit batches reference their activity by NFT
-	// token id, and turning that into a link needs the activity mirror to
-	// resolve the id back to a registry activity_id.
+	// Fetched together so the newest tokens across every mirror can be merged
+	// into one list.
 	const [parcels, activities, certifications, batches] = await Promise.all([
 		listEntity(ENTITY_PARCEL_ON_CHAIN, accessToken).catch(() => []),
 		listEntity(ENTITY_ACTIVITY_ON_CHAIN, accessToken).catch(() => []),
@@ -92,27 +91,20 @@ export async function getRecentChainEvents(
 		listEntity(ENTITY_CARBON_CREDIT_BATCH_ON_CHAIN, accessToken).catch(() => [])
 	]);
 
-	const activityIdByToken = new Map<number, string>();
-	for (const a of activities) {
-		const token = toNumber(a.token_id);
-		if (token !== null && a.activity_id) activityIdByToken.set(token, a.activity_id);
-	}
-
 	const events: ChainEvent[] = [];
 
 	for (const b of batches) {
-		const activityId = activityIdByToken.get(toNumber(b.activity_nft_id) ?? -1) ?? null;
 		events.push({
 			kind: 'Credit Batch',
 			tokenId: toNumber(b.token_id),
-			label: b.credit_type || b.batch_key || '',
+			label: b.batch_name || b.unit_type || b.carbon_credit_batch_id || '',
 			blockNumber: toNumber(b.block_number),
 			txHash: b.tx_hash ?? null,
 			ownerAddress: b.owner_address ?? null,
 			// A batch has no page of its own, but it belongs to an activity that
 			// does, which is the more useful destination anyway.
-			href: activityHref(activityId),
-			registryUrl: b.certification_url || b.activity_url || null
+			href: activityHref(b.activity_id),
+			registryUrl: b.certificate_of_compliance_uri || b.activity_url || null
 		});
 	}
 
@@ -120,12 +112,12 @@ export async function getRecentChainEvents(
 		events.push({
 			kind: 'Certification',
 			tokenId: toNumber(c.token_id),
-			label: c.certification_of_compliance_id ?? '',
+			label: c.certificate_of_compliance_id ?? '',
 			blockNumber: toNumber(c.block_number),
 			txHash: c.tx_hash ?? null,
 			ownerAddress: c.owner_address ?? null,
-			href: activityHref(activityIdByToken.get(toNumber(c.activity_nft_id) ?? -1) ?? null),
-			registryUrl: c.certification_url || null
+			href: activityHref(c.activity_id),
+			registryUrl: c.certificate_of_compliance_uri || null
 		});
 	}
 
@@ -161,24 +153,15 @@ export async function getRecentChainEvents(
 	return events.slice(0, limit);
 }
 
-/** The four benefit fields a monitoring verification can carry, and the credit
- * type each one mints as. Taken from the tokenizer's own CreditAmounts(): a
- * batch is minted per field with a positive amount, so these names are the
- * credit types that appear on chain. */
-const CREDIT_BENEFIT_FIELDS: Array<[field: string, creditType: string]> = [
-	['permanent_net_carbon_removal_benefit', 'permanent_net_carbon_removal_benefit'],
-	[
-		'carbon_farming_temporary_net_carbon_removal_benefit',
-		'carbon_farming_temporary_net_carbon_removal_benefit'
-	],
-	[
-		'carbon_farming_net_soil_emission_reduction_benefit',
-		'carbon_farming_net_soil_emission_reduction_benefit'
-	],
-	[
-		'carbon_storage_temporary_net_carbon_removal_benefit',
-		'carbon_storage_temporary_net_carbon_removal_benefit'
-	]
+/** The four benefit fields a monitoring verification can carry, and the suffix
+ * of the carbon_credit_batch_id each one mints as. Taken from the tokenizer's
+ * MonitoringVerification.CreditBatches(): a batch is minted per field with a
+ * positive amount, with id `<activity_monitoring_period_verification_id>:<suffix>`. */
+const CREDIT_BENEFIT_FIELDS: Array<[field: string, suffix: string]> = [
+	['permanent_net_carbon_removal_benefit', 'permanent_removal'],
+	['carbon_farming_temporary_net_carbon_removal_benefit', 'carbon_farming_sequestration'],
+	['carbon_farming_net_soil_emission_reduction_benefit', 'soil_emission_reduction'],
+	['carbon_storage_temporary_net_carbon_removal_benefit', 'carbon_storage_in_product']
 ];
 
 /**
@@ -189,11 +172,13 @@ const CREDIT_BENEFIT_FIELDS: Array<[field: string, creditType: string]> = [
  *
  * - **Parcels** from `parcel_owner_verification` with `status_code` of
  *   `verified`.
- * - **Activities** from `activity_verification` with the same status.
+ * - **Activities** from `activity_verification` with the same status, once
+ *   the activity also has a `certificate_of_compliance`.
  * - **Certificates** have no further gate: a certificate of compliance is
  *   itself the verification, so every one is expected on chain.
  * - **Credit batches** from `activity_monitoring_period_verification` with the
- *   same status, one batch per benefit field carrying a positive amount.
+ *   same status, one batch per benefit field carrying a positive amount, keyed
+ *   `<verification id>:<unit suffix>`.
  */
 export async function getTokenizationBacklog(accessToken: string): Promise<Backlog> {
 	const [
@@ -219,28 +204,23 @@ export async function getTokenizationBacklog(accessToken: string): Promise<Backl
 	const verified = (rows: Record<string, any>[], idField: string) =>
 		rows.filter((r) => r.status_code === 'verified').map((r) => r[idField] as string);
 
-	// A batch is keyed on chain by the activity's NFT token id, not its registry
-	// id, so the expected keys can only be built for activities already
-	// tokenized. That dependency is real: the tokenizer defers a batch until the
-	// ActivityNFT exists, so an untokenized activity blocks its batches too.
-	const activityTokenById = new Map<string, number>();
-	for (const a of activitiesOnChain) {
-		const token = toNumber(a.token_id);
-		if (token !== null && a.activity_id) activityTokenById.set(a.activity_id, token);
-	}
+	// The tokenizer mints an activity once it has a verified verification and a
+	// certificate of compliance.
+	const certifiedActivities = new Set(certificates.map((r) => r.activity_id as string));
+	const readyActivities = verified(activityVerifs, 'activity_id').filter((id) =>
+		certifiedActivities.has(id)
+	);
 
-	const expectedBatchKeys: string[] = [];
+	// A batch is keyed on chain by its carbon_credit_batch_id, which the
+	// tokenizer derives from the verification id and the unit type.
+	const expectedBatchIds: string[] = [];
 	for (const mv of monitoringVerifs) {
 		if (mv.status_code !== 'verified') continue;
-		const activityId = mv.activity_id as string;
-		for (const [field, creditType] of CREDIT_BENEFIT_FIELDS) {
+		const verificationId = mv.activity_monitoring_period_verification_id as string;
+		if (!verificationId) continue;
+		for (const [field, suffix] of CREDIT_BENEFIT_FIELDS) {
 			if ((toNumber(mv[field]) ?? 0) <= 0) continue;
-			const token = activityTokenById.get(activityId);
-			expectedBatchKeys.push(
-				token === undefined
-					? `${activityId}:${creditType} (awaiting ActivityNFT)`
-					: `${token}:${creditType}`
-			);
+			expectedBatchIds.push(`${verificationId}:${suffix}`);
 		}
 	}
 
@@ -253,21 +233,21 @@ export async function getTokenizationBacklog(accessToken: string): Promise<Backl
 		),
 		diffIds(
 			'Activities',
-			'Activities with a verified activity verification',
-			verified(activityVerifs, 'activity_id'),
+			'Activities with a verified activity verification and a certificate of compliance',
+			readyActivities,
 			activitiesOnChain.map((r) => r.activity_id as string)
 		),
 		diffIds(
 			'Certificates',
 			'Every certificate of compliance',
 			certificates.map((r) => r.certificate_of_compliance_id as string),
-			certsOnChain.map((r) => r.certification_of_compliance_id as string)
+			certsOnChain.map((r) => r.certificate_of_compliance_id as string)
 		),
 		diffIds(
 			'Credit batches',
 			'One per positive benefit amount on a verified monitoring period verification',
-			expectedBatchKeys,
-			batchesOnChain.map((r) => r.batch_key as string)
+			expectedBatchIds,
+			batchesOnChain.map((r) => r.carbon_credit_batch_id as string)
 		)
 	]);
 }
