@@ -5,10 +5,9 @@ import {
 	ENTITY_OPERATOR,
 	ENTITY_PARCEL,
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
-	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION,
 	ENTITY_ACTIVITY_VERIFICATION,
 	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION,
-	ENTITY_ACTIVITY_PARCEL_VERIFICATION,
+	ENTITY_PARCEL_ACTIVITY,
 	entityPathV7,
 	unwrapV7List
 } from '$lib/constants/entities';
@@ -36,13 +35,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		// Fetch activity and activity-level verifications in parallel
 		const [
 			activityResponse,
-			activityParcelVerResponse,
+			parcelActivityResponse,
 			activityVerResponse,
 			activityMonitoringVerResponse
 		] = await Promise.all([
 			obp_requests.get(`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`, accessToken),
 			obp_requests.get(
-				`${entityPathV7(ENTITY_ACTIVITY_PARCEL_VERIFICATION)}?${activityIdFilter}`,
+				`${entityPathV7(ENTITY_PARCEL_ACTIVITY)}?${activityIdFilter}`,
 				accessToken
 			),
 			obp_requests.get(
@@ -82,40 +81,27 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION
 		);
 
-		// Get parcel IDs from activity_parcel_verification records
-		const activityParcelVers = unwrapV7List(
-			activityParcelVerResponse,
-			ENTITY_ACTIVITY_PARCEL_VERIFICATION
-		);
+		// The activity's parcels, from the parcel_activity links
+		const parcelLinks = unwrapV7List(parcelActivityResponse, ENTITY_PARCEL_ACTIVITY);
 		const parcelIds = [
-			...new Set<string>(
-				activityParcelVers.map((v: Record<string, unknown>) => v.parcel_id as string)
-			)
+			...new Set<string>(parcelLinks.map((v: Record<string, unknown>) => v.parcel_id as string))
 		];
 
-		// Fetch each parcel and parcel-level verifications
+		// Fetch each parcel and its ownership verifications
 		const parcelPromises = parcelIds.map(async (parcelId: string) => {
-			const [parcelResponse, ownerVerResponse, monitoringVerResponse] = await Promise.all([
+			const [parcelResponse, ownerVerResponse] = await Promise.all([
 				obp_requests.get(`${entityPathV7(ENTITY_PARCEL)}/${parcelId}`, accessToken),
 				obp_requests.get(
 					`${entityPathV7(ENTITY_PARCEL_OWNERSHIP_VERIFICATION)}?parcel_id=${parcelId}`,
-					accessToken
-				),
-				obp_requests.get(
-					`${entityPathV7(ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION)}?parcel_id=${parcelId}`,
 					accessToken
 				)
 			]);
 
 			const parcel = parcelResponse[ENTITY_PARCEL] || parcelResponse;
 			const ownerVerifications = unwrapV7List(ownerVerResponse, ENTITY_PARCEL_OWNERSHIP_VERIFICATION);
-			const monitoringVerifications = unwrapV7List(
-				monitoringVerResponse,
-				ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION
-			);
 
-			// Find activity_parcel_verification records for this parcel
-			const parcelActivityVers = activityParcelVers.filter(
+			// The activity verifications made for this parcel
+			const parcelActivityVers = activityVerifications.filter(
 				(v: Record<string, unknown>) => v.parcel_id === parcelId
 			);
 
@@ -123,8 +109,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				...parcel,
 				parcel_id: parcelId,
 				owner_verifications: ownerVerifications,
-				monitoring_verifications: monitoringVerifications,
-				activity_parcel_verifications: parcelActivityVers
+				activity_verifications: parcelActivityVers
 			};
 		});
 

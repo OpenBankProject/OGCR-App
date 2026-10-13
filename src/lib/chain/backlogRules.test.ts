@@ -4,9 +4,16 @@ const lists: Record<string, any[]> = {};
 
 vi.mock('$lib/obp/requests', () => ({
 	obp_requests: {
+		// The backlog reads the v7.0.0 endpoints, whose list items are wrapped as
+		// `{ "<entity>": record, "metadata": ... }`.
 		get: async (endpoint: string) => {
-			const entity = endpoint.replace(/^\/obp\/dynamic-entity\/(banks\/[^/]+\/)?/, '');
-			return { [`${entity}_list`]: lists[entity] ?? [] };
+			const entity = endpoint.replace(/^\/obp\/v7\.0\.0\/banks\/[^/]+\/dynamic-entities\//, '');
+			return {
+				[`${entity}_list`]: (lists[entity] ?? []).map((record) => ({
+					[entity]: record,
+					metadata: {}
+				}))
+			};
 		}
 	}
 }));
@@ -52,7 +59,9 @@ describe('credit batch backlog', () => {
 			{ activity_id: 'a1', status_code: 'verified' },
 			{ activity_id: 'a2', status_code: 'verified' }
 		];
-		lists['certificate_of_compliance'] = [{ certificate_of_compliance_id: 'c1', activity_id: 'a1' }];
+		lists['certificate_of_compliance'] = [
+			{ certificate_of_compliance_id: 'c1', activity_id: 'a1' }
+		];
 		lists['certification_on_chain'] = [{ certificate_of_compliance_id: 'c1' }];
 
 		const b = await getTokenizationBacklog('token');

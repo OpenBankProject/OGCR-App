@@ -19,10 +19,9 @@ const PAGES: Record<string, EntityPage> = {
 	activity: ACTIVITIES,
 	activity_verification: ACTIVITIES,
 	activity_monitoring_period_verification: ACTIVITIES,
-	activity_parcel_verification: ACTIVITIES,
+	parcel_activity: ACTIVITIES,
 	parcel: ACTIVITIES,
 	parcel_owner_verification: ACTIVITIES,
-	parcel_monitoring_period_verification: ACTIVITIES,
 
 	operator: OPERATORS,
 	user_operator_relationship: OPERATORS,

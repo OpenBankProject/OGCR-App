@@ -14,7 +14,8 @@ import { deriveHeartbeat } from '$lib/chain/heartbeat';
 import { chainMirrorSnapshot, chainMirrorUncheckable } from '$lib/chain/mirrorHealth';
 
 export type SystemStatusData = HealthSummary & {
-	chainMirrorChecked: boolean;
+	/** False when the viewer has no OBP credentials, so the backlog could not be read. */
+	backlogChecked: boolean;
 	backlog: Backlog | null;
 	backlogError: string | null;
 };
@@ -22,26 +23,25 @@ export type SystemStatusData = HealthSummary & {
 export async function buildSystemStatus(accessToken: string | undefined): Promise<SystemStatusData> {
 	const snapshots = { ...healthCheckRegistry.getSnapshots() };
 
-	// The chain mirror cannot be polled in the background like the other checks:
-	// reading its status record needs OBP credentials, which only a request
-	// carries. So it is evaluated here, per request, and only when we have a
-	// token to do it with. Adding an always-unknown entry for logged-out
-	// visitors would drag the whole page's overall status to unknown while
-	// telling them nothing.
+	// The chain mirror's sync status is a public dynamic entity, so it is checked
+	// for every visitor, logged in or not. It is read here, per request, so the
+	// page always shows the mirror's latest run.
+	try {
+		const status = await getChainSyncStatus();
+		const snapshot = chainMirrorSnapshot(deriveHeartbeat(status));
+		snapshots[snapshot.service] = snapshot;
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Unknown error';
+		const snapshot = chainMirrorUncheckable(`Could not read the chain mirror: ${message}`);
+		snapshots[snapshot.service] = snapshot;
+	}
+
+	// The backlog still needs OBP credentials: it compares the chain mirror with
+	// registry records (verifications, certificates) that are not public.
 	let backlog: Backlog | null = null;
 	let backlogError: string | null = null;
 
 	if (accessToken) {
-		try {
-			const status = await getChainSyncStatus(accessToken);
-			const snapshot = chainMirrorSnapshot(deriveHeartbeat(status));
-			snapshots[snapshot.service] = snapshot;
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Unknown error';
-			const snapshot = chainMirrorUncheckable(`Could not read the chain mirror: ${message}`);
-			snapshots[snapshot.service] = snapshot;
-		}
-
 		// Deliberately NOT folded into summarizeHealth. A backlog is a measurement,
 		// not a health state: a snapshot cannot tell a queue being worked through
 		// from one that is stuck, so forcing it into healthy/unhealthy would either
@@ -55,7 +55,7 @@ export async function buildSystemStatus(accessToken: string | undefined): Promis
 
 	return {
 		...summarizeHealth(snapshots),
-		chainMirrorChecked: !!accessToken,
+		backlogChecked: !!accessToken,
 		backlog,
 		backlogError
 	};

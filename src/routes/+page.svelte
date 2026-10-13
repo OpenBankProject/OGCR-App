@@ -15,7 +15,8 @@
 		KeyRound,
 		Globe,
 		MessageSquare,
-		Users
+		Users,
+		FileCode
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -54,6 +55,12 @@
 				icon: Link2,
 				title: 'Chain',
 				description: 'Inspect on-chain state and the sync status.'
+			},
+			{
+				href: '/domain-api',
+				icon: FileCode,
+				title: 'Domain API',
+				description: "The space's endpoints under its own base path, with their OpenAPI spec."
 			},
 			{
 				href: data.portalUrl,

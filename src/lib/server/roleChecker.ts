@@ -5,6 +5,7 @@
 import {
 	ENTITY_ACTIVITY,
 	ENTITY_OPERATOR,
+	ENTITY_PARCEL,
 	ENTITY_USER_OPERATOR_RELATIONSHIP,
 	ENTITY_ROLE_BANK_ID
 } from '$lib/constants/entities';
@@ -27,6 +28,9 @@ export const SITE_MAP: Record<string, PageRoleConfig> = {
 	},
 	'/activities': {
 		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_ACTIVITY}`, bankId: ENTITY_ROLE_BANK_ID }]
+	},
+	'/parcels': {
+		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_PARCEL}`, bankId: ENTITY_ROLE_BANK_ID }]
 	},
 	'/operators': {
 		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_OPERATOR}`, bankId: ENTITY_ROLE_BANK_ID }]

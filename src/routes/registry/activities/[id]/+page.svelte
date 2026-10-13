@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { certificationBodyHref, certificationSchemeHref } from '$lib/registry/certificationLinks';
 	/**
 	 * Public activity detail page, laid out after the "Activity listing page" design
 	 * (DO_NOT_COMMIT/Main.dc.html): a hero, then a main column (image, about, co-benefits,
@@ -87,13 +88,15 @@
 			? {
 					label: 'Certified under',
 					name: certificate.certification_scheme_name,
-					version: certificate.certification_scheme_version
+					version: certificate.certification_scheme_version,
+					href: certificationSchemeHref(certificate.certification_scheme_id)
 				}
 			: activity?.selected_certification_scheme_name
 				? {
 						label: 'Certification scheme selected',
 						name: activity.selected_certification_scheme_name,
-						version: activity.selected_certification_scheme_version
+						version: activity.selected_certification_scheme_version,
+						href: certificationSchemeHref(activity.certification_scheme_id)
 					}
 				: null
 	);
@@ -432,13 +435,18 @@
 							<dd class="ogcr-row__value">
 								{#if scheme}
 									<span class="ogcr-scheme" aria-hidden="true"><ShieldCheck /></span>
-									{scheme.name}{scheme.version ? ` v${scheme.version}` : ''}
+									{@const label = `${scheme.name}${scheme.version ? ` v${scheme.version.replace(/^v/i, '')}` : ''}`}
+									{#if scheme.href}<a href={scheme.href} class="ogcr-link">{label}</a>{:else}{label}{/if}
 								{:else}
 									{DASH}
 								{/if}
 							</dd>
 						</div>
-						{@render row('Certification body', certificate?.certification_body_legal_name)}
+						{@render row(
+							'Certification body',
+							certificate?.certification_body_legal_name,
+							certificationBodyHref(certificate?.certification_body_id) ?? undefined
+						)}
 						{@render row(
 							'Issued · Expires',
 							certificate

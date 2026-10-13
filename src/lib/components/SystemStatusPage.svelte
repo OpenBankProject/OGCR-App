@@ -11,11 +11,11 @@
 	}: {
 		/**
 		 * The health summary, optionally extended with per-request checks the
-		 * background registry cannot make. `chainMirrorChecked` is false when the
-		 * viewer has no OBP credentials, so the chain mirror could not be read.
+		 * background registry cannot make. `backlogChecked` is false when the
+		 * viewer has no OBP credentials, so the tokenization backlog could not be read.
 		 */
 		data: HealthSummary & {
-			chainMirrorChecked?: boolean;
+			backlogChecked?: boolean;
 			backlog?: Backlog | null;
 			backlogError?: string | null;
 		};
@@ -461,21 +461,20 @@
 			</div>
 		{/if}
 
-		{#if data.chainMirrorChecked === false}
-			<!-- The chain mirror needs OBP credentials to check, so a logged-out
-			     visitor gets an explanation rather than a silently missing service. -->
-			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6" data-testid="chain-mirror-not-checked">
+		<p class="text-sm text-gray-500 dark:text-gray-400">
+			Chain detail, what each chain status means, and every token on chain:
+			<a href="/chain" class="underline">the chain page</a>.
+		</p>
+
+		{#if data.backlogChecked === false}
+			<!-- The backlog reads registry records that are not public, so a logged-out
+			     visitor gets an explanation rather than a silently missing section. -->
+			<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6" data-testid="backlog-not-checked">
 				<p class="text-gray-600 dark:text-gray-400">
-					The chain mirror is not listed because checking it needs your OBP credentials.
-					<a href="/login" class="underline">Log in</a> to include it, or open
-					<a href="/chain" class="underline">the chain page</a> for detail.
+					The tokenization backlog is not shown because it reads registry records that need
+					your OBP credentials. <a href="/login" class="underline">Log in</a> to include it.
 				</p>
 			</div>
-		{:else if data.chainMirrorChecked}
-			<p class="text-sm text-gray-500 dark:text-gray-400">
-				Chain detail, what each chain status means, and recent on-chain activity:
-				<a href="/chain" class="underline">the chain page</a>.
-			</p>
 		{/if}
 
 		{#if data.backlog}
