@@ -16,7 +16,7 @@
 		<ArrowLeft class="size-4" /> Go to Chain
 	</a>
 
-	<p class="text-surface-600-400">
+	<p class="note">
 		How OGCR's tokens work, from the OBP glossary. The glossary is generated from the smart
 		contracts' own documentation, so it is always the authority on how the contracts behave.
 	</p>
@@ -27,9 +27,7 @@
 			<div class="glossary">{@html item.html}</div>
 		</Card>
 	{:else}
-		<p class="text-surface-600-400">
-			The glossary could not be loaded from OBP. Try again later.
-		</p>
+		<p class="note">The glossary could not be loaded from OBP. Try again later.</p>
 	{/each}
 
 	<!-- Coins vs notes -->
@@ -149,6 +147,10 @@
 </div>
 
 <style>
+	.note {
+		color: var(--text-secondary);
+	}
+
 	/* The glossary HTML comes from OBP, so its elements are styled here rather than with
 	   classes: headings, tables and code in design system tokens. */
 	.glossary {
@@ -211,6 +213,9 @@
 
 	/* Dark mode: the design system has no dark palette, so fall back to the Skeleton dark
 	   surfaces, as Card does. */
+	:global([data-mode='dark']) .note {
+		color: var(--color-surface-400);
+	}
 	:global([data-mode='dark']) .glossary {
 		color: var(--color-surface-300);
 	}
