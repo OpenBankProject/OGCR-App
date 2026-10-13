@@ -22,7 +22,8 @@ vi.mock('$lib/obp/requests', () => ({
 	}
 }));
 
-const { getChainTokens, getChainSyncStatus, formatUnits, idFromUri } = await import('./onChain');
+const { getChainTokens, getChainSyncStatus, getCreditTotals, formatUnits, idFromUri } =
+	await import('./onChain');
 
 beforeEach(() => {
 	for (const k of Object.keys(lists)) delete lists[k];
@@ -151,6 +152,25 @@ describe('getChainTokens', () => {
 	it('leaves a section empty when its mirror cannot be read', async () => {
 		delete lists['certification_on_chain'];
 		expect((await section('certification')).tokens).toEqual([]);
+	});
+});
+
+describe('getCreditTotals', () => {
+	it('sums issued batch amounts and held balances, in tonnes', async () => {
+		lists['carbon_credit_batch_on_chain'] = [
+			{ amount: '6500000000000000000', credit_decimals: '18' },
+			{ amount: '5500000000000000000', credit_decimals: '18' }
+		];
+		lists['carbon_credit_balance_on_chain'] = [
+			{ balance: '6500000000000000000', decimals: '18' },
+			{ balance: '2000000000000000000', decimals: '18' }
+		];
+		expect(await getCreditTotals()).toEqual({ issued: '12', active: '8.5' });
+	});
+
+	it('is zero with no records, and null for a mirror that cannot be read', async () => {
+		delete lists['carbon_credit_balance_on_chain'];
+		expect(await getCreditTotals()).toEqual({ issued: '0', active: null });
 	});
 });
 

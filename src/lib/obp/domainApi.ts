@@ -3,6 +3,15 @@
  * that Domain API's endpoints, at their published paths.
  */
 
+/**
+ * Where API Explorer shows a Domain API: it lists each publicly discoverable Domain API as a
+ * version of its own, keyed by its base path with `~` for `/` (a base path cannot contain `~`).
+ */
+export function apiExplorerDomainApiLink(apiExplorerUrl: string, basePath: string): string {
+	const base = apiExplorerUrl.endsWith('/') ? apiExplorerUrl : `${apiExplorerUrl}/`;
+	return new URL(`resource-docs/DomainAPI~${basePath.split('/').join('~')}`, base).toString();
+}
+
 /** A GET endpoint anyone may call, at its path under the Domain API's base path. */
 export type PublicGet = {
 	path: string;

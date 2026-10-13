@@ -62,6 +62,22 @@ export interface ChainToken {
 
 export type ChainSectionKey = 'parcel' | 'activity' | 'certification' | 'batch' | 'balance';
 
+/**
+ * Each section's chain mirror entity, and the registry entity it mirrors from. The
+ * mirrors' descriptions say how they are filled; the source's says what the record is.
+ * A balance has no registry counterpart: it exists only on chain.
+ */
+export const CHAIN_SECTION_ENTITIES: Record<
+	ChainSectionKey,
+	{ entity: string; sourceEntity: string | null }
+> = {
+	parcel: { entity: ENTITY_PARCEL_ON_CHAIN, sourceEntity: 'parcel' },
+	activity: { entity: ENTITY_ACTIVITY_ON_CHAIN, sourceEntity: 'activity' },
+	certification: { entity: ENTITY_CERTIFICATION_ON_CHAIN, sourceEntity: 'certificate_of_compliance' },
+	batch: { entity: ENTITY_CARBON_CREDIT_BATCH_ON_CHAIN, sourceEntity: 'carbon_credit_batch' },
+	balance: { entity: ENTITY_CARBON_CREDIT_BALANCE_ON_CHAIN, sourceEntity: null }
+};
+
 /** Every token of one type, newest block first. */
 export interface ChainSection {
 	key: ChainSectionKey;
@@ -375,6 +391,40 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 		section('batch', 'Credit batches', batches, batchTokens),
 		section('balance', 'Credit balances', balances, balanceTokens)
 	];
+}
+
+/** Total credits, in tonnes CO2e: `issued` is what the batches were minted with, `active`
+ *  is what is held anywhere on chain (in batch accounts or wallets), so it drops when
+ *  credits are retired (burned). Null when the mirror cannot be read. */
+export interface CreditTotals {
+	issued: string | null;
+	active: string | null;
+}
+
+/** Sum of a base-unit field across records, as a decimal string. All CarbonCredit
+ *  amounts share the token's decimals, so the first record's decimals apply to all. */
+function sumUnits(records: Record<string, any>[], field: string, decimalsField: string): string {
+	let total = 0n;
+	for (const r of records) {
+		try {
+			total += BigInt(String(r[field] ?? 0));
+		} catch {
+			// A malformed amount is left out rather than failing the whole total.
+		}
+	}
+	return formatUnits(total.toString(), records[0]?.[decimalsField] ?? 18) ?? '0';
+}
+
+/** Issued and active credit totals, read anonymously from the public chain mirrors. */
+export async function getCreditTotals(): Promise<CreditTotals> {
+	const [batches, balances] = await Promise.all([
+		listPublicEntity(ENTITY_CARBON_CREDIT_BATCH_ON_CHAIN).catch(() => null),
+		listPublicEntity(ENTITY_CARBON_CREDIT_BALANCE_ON_CHAIN).catch(() => null)
+	]);
+	return {
+		issued: batches ? sumUnits(batches, 'amount', 'credit_decimals') : null,
+		active: balances ? sumUnits(balances, 'balance', 'decimals') : null
+	};
 }
 
 /** The four benefit fields a monitoring verification can carry, and the suffix
