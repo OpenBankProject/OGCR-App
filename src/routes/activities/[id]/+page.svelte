@@ -396,14 +396,12 @@
 								{/if}
 							</div>
 
-							{#if parcel.activity_parcel_verifications && parcel.activity_parcel_verifications.length > 0}
+							{#if parcel.activity_verifications && parcel.activity_verifications.length > 0}
 								<div class="border-t border-surface-300-700 pt-2 mb-2">
-									<p class="text-xs font-semibold text-surface-600-400 mb-1">Activity Parcel Verifications</p>
+									<p class="text-xs font-semibold text-surface-600-400 mb-1">Activity Verifications</p>
 									<div class="flex flex-wrap gap-1">
-										{#each parcel.activity_parcel_verifications as ver}
-											<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">
-												{ver.status_code}{#if ver.amount !== undefined} ({ver.amount}){/if}
-											</span>
+										{#each parcel.activity_verifications as ver}
+											<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
 										{/each}
 									</div>
 								</div>
@@ -416,20 +414,6 @@
 										<div class="flex flex-wrap gap-1">
 											{#each parcel.owner_verifications as ver}
 												<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
-											{/each}
-										</div>
-									{:else}
-										<p class="text-xs text-surface-600-400">None.</p>
-									{/if}
-								</div>
-								<div>
-									<p class="text-xs font-semibold text-surface-600-400 mb-1">Monitoring Verifications</p>
-									{#if parcel.monitoring_verifications && parcel.monitoring_verifications.length > 0}
-										<div class="flex flex-wrap gap-1">
-											{#each parcel.monitoring_verifications as ver}
-												<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">
-													{ver.status_code}{#if ver.amount !== undefined} ({ver.amount}){/if}
-												</span>
 											{/each}
 										</div>
 									{:else}

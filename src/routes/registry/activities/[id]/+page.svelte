@@ -432,7 +432,7 @@
 							<dd class="ogcr-row__value">
 								{#if scheme}
 									<span class="ogcr-scheme" aria-hidden="true"><ShieldCheck /></span>
-									{scheme.name}{scheme.version ? ` v${scheme.version}` : ''}
+									{scheme.name}{scheme.version ? ` v${scheme.version.replace(/^v/i, '')}` : ''}
 								{:else}
 									{DASH}
 								{/if}

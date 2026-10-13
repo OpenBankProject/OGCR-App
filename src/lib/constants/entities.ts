@@ -20,6 +20,14 @@ export function entityPath(entity: string): string {
 	return `/obp/dynamic-entity${space}/${entity}`;
 }
 
+/** v7.0.0 path of an entity's public (anonymous, read-only) records in the configured
+ *  space, e.g. `/obp/v7.0.0/banks/ogcr/dynamic-entities/public/parcel_on_chain`. Only
+ *  entities with public access have one. List items come back wrapped, as for
+ *  `entityPathV7()`, so read them with `unwrapV7List()`. */
+export function publicEntityPathV7(entity: string): string {
+	return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/dynamic-entities/public/${entity}`;
+}
+
 /**
  * v7.0.0 path of an entity's records in the configured space, e.g.
  * `/obp/v7.0.0/banks/ogcr/dynamic-entities/activity` (`SYS` for system level entities).
@@ -50,9 +58,10 @@ export const ENTITY_COUNTRY = `${ENTITY_PREFIX}country`;
 // stores the `technologies_practices_processes_id` of one of these records.
 export const ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES = `${ENTITY_PREFIX}technologies_practices_processes`;
 export const ENTITY_PARCEL_OWNERSHIP_VERIFICATION = `${ENTITY_PREFIX}parcel_owner_verification`;
-export const ENTITY_ACTIVITY_PARCEL_VERIFICATION = `${ENTITY_PREFIX}activity_parcel_verification`;
+// Junction linking parcels to activities: `parcel_id` + `activity_id`.
+export const ENTITY_PARCEL_ACTIVITY = `${ENTITY_PREFIX}parcel_activity`;
+// Carries the `parcel_id` it verifies as well as the `activity_id`.
 export const ENTITY_ACTIVITY_VERIFICATION = `${ENTITY_PREFIX}activity_verification`;
-export const ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION = `${ENTITY_PREFIX}parcel_monitoring_period_verification`;
 export const ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION = `${ENTITY_PREFIX}activity_monitoring_period_verification`;
 
 // Chain mirrors, written by OGCR-chain-cache. These are deliberately NOT
@@ -77,9 +86,8 @@ export const ENTITY_CONSTANTS = {
 	ENTITY_COUNTRY,
 	ENTITY_TECHNOLOGIES_PRACTICES_PROCESSES,
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
-	ENTITY_ACTIVITY_PARCEL_VERIFICATION,
+	ENTITY_PARCEL_ACTIVITY,
 	ENTITY_ACTIVITY_VERIFICATION,
-	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION,
 	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION,
 	ENTITY_PARCEL_ON_CHAIN,
 	ENTITY_ACTIVITY_ON_CHAIN,
