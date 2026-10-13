@@ -3,14 +3,14 @@
 	import { Link2, RefreshCw, ExternalLink, HelpCircle } from '@lucide/svelte';
 	import ChainHeartbeat from '$lib/components/ChainHeartbeat.svelte';
 	import Timestamp from '$lib/components/Timestamp.svelte';
-	import { formatAge, HEARTBEAT_STATES } from '$lib/chain/heartbeat';
+	import { HEARTBEAT_STATES } from '$lib/chain/heartbeat';
 	import { totalMirrored } from '$lib/chain/heartbeat';
 	import { explorerLinks, shortenHex } from '$lib/chain/explorer';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
-	import type { ChainSectionKey, ChainToken } from '$lib/chain/onChain';
+	import type { ChainSection, ChainSectionKey, ChainToken } from '$lib/chain/onChain';
 
 	let { data }: { data: PageData } = $props();
 
@@ -50,6 +50,18 @@
 			{ key: 'block', header: 'Block', numeric: true, sortable: true },
 			...(balance ? [] : [{ key: 'tx', header: 'Transaction' }])
 		];
+	}
+
+	// Says where each section's rows come from: the blockchain itself, via the mirror
+	// OGCR-chain-cache keeps of it in OBP, not the registry's own records.
+	function chainSubtitle(section: ChainSection): string {
+		return [
+			`Read from the blockchain${section.chainId !== null ? ` (chain id ${section.chainId})` : ''}`,
+			section.contractAddress ? `contract ${section.contractAddress}` : null,
+			'via the OGCR-chain-cache mirror'
+		]
+			.filter(Boolean)
+			.join(', ');
 	}
 
 	onMount(() => {
@@ -158,40 +170,46 @@
 		</div>
 	{/if}
 
-	<ChainHeartbeat heartbeat={data.heartbeat} />
-
-	<div class="card p-6 preset-filled-surface-100-900">
-		<div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
-			<h2 class="h4">Last mirror run</h2>
-			{#if status?.synced_at}
-				<div class="text-sm text-surface-600-400">
-					<Timestamp iso={status.synced_at} />
-					{#if data.heartbeat.ageSeconds !== null}
-						<span class="text-surface-500">· {formatAge(data.heartbeat.ageSeconds)} ago</span>
+	<!-- Sync status and the last mirror run side by side in one compact card: the
+	     tokens below are what the page is for. -->
+	<Card padding="m">
+		<div class="chain-summary">
+			<div class="chain-summary__part">
+				<ChainHeartbeat heartbeat={data.heartbeat} compact href={null} />
+				<p class="chain-summary__text">{data.heartbeat.message}</p>
+				<dl class="chain-facts">
+					<div><dt>Head block</dt><dd>{status?.head_block ?? '—'}</dd></div>
+					<div><dt>Chain</dt><dd>{status?.chain_id ?? '—'}</dd></div>
+					<div><dt>Errors last run</dt><dd>{status?.error_count ?? '—'}</dd></div>
+					<div><dt>Stalled after</dt><dd>{data.heartbeat.staleAfterSeconds}s</dd></div>
+				</dl>
+			</div>
+			<div class="chain-summary__part">
+				<p class="chain-summary__title">
+					Last mirror run
+					{#if status?.synced_at}
+						<span class="chain-summary__text"><Timestamp iso={status.synced_at} /></span>
 					{/if}
-				</div>
-			{/if}
+				</p>
+				<dl class="chain-facts">
+					{#each counts as c (c.label)}
+						<div><dt>{c.label}</dt><dd>{c.value ?? '—'}</dd></div>
+					{/each}
+					<div><dt>Total</dt><dd>{totalMirrored(status)}</dd></div>
+				</dl>
+				{#if status?.mirrored_types}
+					<p class="chain-summary__text">
+						Mirrors that ran: {status.mirrored_types.split(',').join(', ')}.
+					</p>
+				{/if}
+			</div>
 		</div>
-		<p class="text-surface-600-400 text-sm mb-4">
-			Records written by OGCR-chain-cache on its most recent pass.
-			{#if status?.mirrored_types}
-				Mirrors that ran: {status.mirrored_types.split(',').join(', ')}.
-			{/if}
-		</p>
-		<div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-			{#each counts as c}
-				<div class="p-3 rounded bg-surface-200-800">
-					<div class="text-xs text-surface-500">{c.label}</div>
-					<div class="text-2xl font-semibold">{c.value ?? '—'}</div>
-				</div>
-			{/each}
-		</div>
-		<p class="text-xs text-surface-500 mt-3">{totalMirrored(status)} records in total.</p>
-	</div>
+	</Card>
 
 	<!-- Every mirrored token, a section per type in chain-of-records order. Each row
 	     links to the tokens and off-chain records it refers to; a record that is not
-	     public (parcel, audit report) shows its id as plain text. -->
+	     public shows its id as plain text (audit report), except parcels, which link to
+	     the login-only parcel page. -->
 	{#if !explorer.available}
 		<p class="chain-note">
 			Transactions, blocks and addresses are shown as plain values because no block explorer
@@ -203,8 +221,8 @@
 	{#each data.sections as section (section.key)}
 		<Card
 			id="section-{section.key}"
-			title="{section.title} ({section.tokens.length})"
-			subtitle={section.contractAddress ? `Contract ${section.contractAddress}` : undefined}
+			title="{section.title} on chain {section.chainId ?? ''}"
+			subtitle={chainSubtitle(section)}
 			headingLevel={2}
 			padding="l"
 		>
@@ -256,6 +274,51 @@
 </div>
 
 <style>
+	.chain-summary {
+		display: grid;
+		gap: var(--space-m);
+	}
+	@media (min-width: 768px) {
+		.chain-summary {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+	.chain-summary__part {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2xs);
+	}
+	.chain-summary__title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--space-xs);
+		font-size: var(--font-size-s);
+		font-weight: 500;
+		color: var(--text-primary);
+	}
+	.chain-summary__text {
+		font-size: var(--font-size-s);
+		font-weight: 400;
+		color: var(--text-secondary);
+	}
+	.chain-facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2xs) var(--space-m);
+		font-size: var(--font-size-s);
+	}
+	.chain-facts div {
+		display: flex;
+		gap: var(--space-2xs);
+	}
+	.chain-facts dt {
+		color: var(--text-secondary);
+	}
+	.chain-facts dd {
+		color: var(--text-primary);
+		font-weight: 500;
+	}
 	.chain-note {
 		font-size: var(--font-size-s);
 		color: var(--text-secondary);
@@ -303,6 +366,14 @@
 	:global([data-mode='dark']) .chain-record__detail,
 	:global([data-mode='dark']) .chain-links__label {
 		color: var(--color-surface-400);
+	}
+	:global([data-mode='dark']) .chain-summary__text,
+	:global([data-mode='dark']) .chain-facts dt {
+		color: var(--color-surface-400);
+	}
+	:global([data-mode='dark']) .chain-summary__title,
+	:global([data-mode='dark']) .chain-facts dd {
+		color: var(--color-surface-50);
 	}
 	:global([data-mode='dark']) .chain-record__title {
 		color: var(--color-primary-200);

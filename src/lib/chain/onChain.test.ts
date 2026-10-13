@@ -72,12 +72,12 @@ describe('getChainTokens', () => {
 			text: 'Op One',
 			href: '/registry/operators/op_1'
 		});
-		expect(byLabel('Certification scheme')[0].href).toMatch(
-			/\/public\/certification_scheme\/cs_1$/
-		);
-		// p1 has a token on the page; p2 does not, and parcels are not public.
-		expect(byLabel('Parcel token')[0]).toMatchObject({ text: 'p1', href: '#parcel-token-4' });
-		expect(byLabel('Parcel')[0]).toMatchObject({ text: 'p2', href: null });
+		expect(byLabel('Certification scheme')[0].href).toBe('/registry/certification-schemes/cs_1');
+		// Both link to the (login-only) parcel page; only p1 has a token on the page.
+		expect(byLabel('Parcel').map((l) => l.href)).toEqual(['/parcels/p1', '/parcels/p2']);
+		expect(byLabel('Parcel token')).toEqual([
+			{ label: 'Parcel token', text: 'p1', href: '#parcel-token-4', external: false }
+		]);
 	});
 
 	it('links a certification to its certificate page and activity token, audit report as text', async () => {
@@ -98,8 +98,10 @@ describe('getChainTokens', () => {
 		const byLabel = (label: string) => t.links.find((l) => l.label === label)!;
 		expect(byLabel('Certificate').href).toBe('/registry/certificates/coc_1');
 		expect(byLabel('Activity token').href).toBe('#activity-token-2');
-		expect(byLabel('Certification body')).toMatchObject({ text: 'Body', external: true });
-		expect(byLabel('Certification body').href).toMatch(/\/public\/certification_body\/cb_1$/);
+		expect(byLabel('Certification body')).toMatchObject({
+			text: 'Body',
+			href: '/registry/certification-bodies/cb_1'
+		});
 		expect(byLabel('Audit report')).toMatchObject({ text: 'ar_1', href: null });
 	});
 

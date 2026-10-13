@@ -18,11 +18,12 @@ import {
 	ENTITY_ACTIVITY_VERIFICATION,
 	ENTITY_CERTIFICATE_OF_COMPLIANCE,
 	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION,
-	entityPath,
+	entityPathV7,
 	publicEntityPathV7,
 	unwrapV7List
 } from '$lib/constants/entities';
 import type { ChainSyncStatus } from '$lib/chain/heartbeat';
+import { certificationBodyHref, certificationSchemeHref } from '$lib/registry/certificationLinks';
 import { diffIds, summarizeBacklog, type Backlog } from '$lib/chain/backlog';
 
 /** A link from a token to a record it refers to. `href` is null for a record that is
@@ -65,14 +66,16 @@ export type ChainSectionKey = 'parcel' | 'activity' | 'certification' | 'batch' 
 export interface ChainSection {
 	key: ChainSectionKey;
 	title: string;
+	/** The chain the tokens were read from, when the records say. */
+	chainId: number | null;
 	/** The contract the tokens live on, when the records say. */
 	contractAddress: string | null;
 	tokens: ChainToken[];
 }
 
 async function listEntity(entity: string, accessToken: string): Promise<Record<string, any>[]> {
-	const response = await obp_requests.get(entityPath(entity), accessToken);
-	return (response[`${entity}_list`] ?? []) as Record<string, any>[];
+	const response = await obp_requests.get(entityPathV7(entity), accessToken);
+	return unwrapV7List<Record<string, any>>(response, entity);
 }
 
 /** Anonymous read of an entity's public records. The chain mirrors and the sync status
@@ -99,11 +102,6 @@ function toNumber(v: unknown): number | null {
 	const n = typeof v === 'string' ? Number(v) : (v as number);
 	return typeof n === 'number' && Number.isFinite(n) ? n : null;
 }
-
-/** Off-chain entities a token can refer to that have public access, and so a public
- *  OBP record to link to when the app has no page for them. */
-const ENTITY_CERTIFICATION_SCHEME = 'certification_scheme';
-const ENTITY_CERTIFICATION_BODY = 'certification_body';
 
 /** An absolute OBP URL for one public record. */
 function publicEntityUrl(entity: string, id: string): string {
@@ -153,12 +151,6 @@ function pageLink(label: string, text: unknown, href: string | null): ChainLink 
 	return { label, text: String(text), href, external: false };
 }
 
-/** A public OBP record link, named by `text` and falling back to the id. */
-function publicLink(label: string, entity: string, id: string | null, text?: unknown): ChainLink | null {
-	if (!id) return null;
-	return { label, text: String(text || id), href: publicEntityUrl(entity, id), external: true };
-}
-
 /** A record that is not public: its id, unlinked. */
 function textLink(label: string, id: string | null): ChainLink | null {
 	return id ? { label, text: id, href: null, external: false } : null;
@@ -178,6 +170,8 @@ const activityPage = (id: unknown) =>
 	id ? `/registry/activities/${encodeURIComponent(String(id))}` : null;
 const certificatePage = (id: unknown) =>
 	id ? `/registry/certificates/${encodeURIComponent(String(id))}` : null;
+// Parcels are not public: this page needs a login.
+const parcelPage = (id: unknown) => (id ? `/parcels/${encodeURIComponent(String(id))}` : null);
 const operatorPage = (id: unknown) =>
 	id ? `/registry/operators/${encodeURIComponent(String(id))}` : null;
 
@@ -194,8 +188,9 @@ function details(pairs: [string, unknown][]): { label: string; value: string }[]
 /**
  * Every mirrored token, one section per type, read anonymously from the public chain
  * mirrors. Each token links to the tokens it refers to on this page, and to the
- * off-chain records it refers to: an app registry page where there is one, else the
- * public OBP record, else (for a record that is not public) its id as plain text.
+ * off-chain records it refers to: an app page where there is one (public registry pages,
+ * and the login-only parcel page), else (for a record that is not public) its id as
+ * plain text.
  *
  * A mirror that cannot be read leaves its section empty rather than failing the page.
  */
@@ -235,7 +230,7 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 		...base('parcel', ENTITY_PARCEL_ON_CHAIN, r),
 		title: r.parcel_id ?? '',
 		details: [],
-		links: compact([textLink('Parcel', r.parcel_id ?? null)])
+		links: compact([pageLink('Parcel', r.parcel_id, parcelPage(r.parcel_id))])
 	}));
 
 	const activityTokens: ChainToken[] = activities.map((r) => {
@@ -253,12 +248,17 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 			links: compact([
 				pageLink('Activity', r.activity_id, activityPage(r.activity_id)),
 				pageLink('Operator', r.operator_name || r.operator_id, operatorPage(r.operator_id)),
-				publicLink('Certification scheme', ENTITY_CERTIFICATION_SCHEME, r.certification_scheme_id ?? null),
-				...parcelIds.map((id) => {
+				pageLink(
+					'Certification scheme',
+					r.certification_scheme_id,
+					certificationSchemeHref(r.certification_scheme_id)
+				),
+				...parcelIds.flatMap((id) => {
 					const anchor = parcelAnchors.get(id);
-					return anchor
-						? { label: 'Parcel token', text: id, href: `#${anchor}`, external: false }
-						: textLink('Parcel', id);
+					return compact([
+						pageLink('Parcel', id, parcelPage(id)),
+						anchor ? { label: 'Parcel token', text: id, href: `#${anchor}`, external: false } : null
+					]);
 				})
 			])
 		};
@@ -285,17 +285,15 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 				`#${r.activity_nft_id}`
 			),
 			pageLink('Activity', r.activity_name || r.activity_id, activityPage(r.activity_id)),
-			publicLink(
+			pageLink(
 				'Certification scheme',
-				ENTITY_CERTIFICATION_SCHEME,
-				idFromUri(r.certification_scheme_uri),
-				r.certification_scheme_name
+				r.certification_scheme_name || idFromUri(r.certification_scheme_uri),
+				certificationSchemeHref(idFromUri(r.certification_scheme_uri))
 			),
-			publicLink(
+			pageLink(
 				'Certification body',
-				ENTITY_CERTIFICATION_BODY,
-				idFromUri(r.certification_body_uri),
-				r.certification_body_name
+				r.certification_body_name || idFromUri(r.certification_body_uri),
+				certificationBodyHref(idFromUri(r.certification_body_uri))
 			),
 			textLink('Audit report', idFromUri(r.audit_report_uri))
 		])
@@ -326,8 +324,16 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 				pageLink('Activity', r.activity_name || r.activity_id, activityPage(r.activity_id)),
 				pageLink('Operator', operatorId, operatorPage(operatorId)),
 				pageLink('Certificate', certificateId, certificatePage(certificateId)),
-				publicLink('Certification scheme', ENTITY_CERTIFICATION_SCHEME, idFromUri(r.certification_scheme_url)),
-				publicLink('Certification body', ENTITY_CERTIFICATION_BODY, idFromUri(r.certification_body_url))
+				pageLink(
+					'Certification scheme',
+					idFromUri(r.certification_scheme_url),
+					certificationSchemeHref(idFromUri(r.certification_scheme_url))
+				),
+				pageLink(
+					'Certification body',
+					idFromUri(r.certification_body_url),
+					certificationBodyHref(idFromUri(r.certification_body_url))
+				)
 			])
 		};
 	});
@@ -357,6 +363,7 @@ export async function getChainTokens(): Promise<ChainSection[]> {
 	): ChainSection => ({
 		key,
 		title,
+		chainId: toNumber(records.find((r) => r.chain_id != null)?.chain_id),
 		contractAddress: records.find((r) => r.contract_address)?.contract_address ?? null,
 		tokens: [...tokens].sort((a, b) => (b.blockNumber ?? -1) - (a.blockNumber ?? -1))
 	});
