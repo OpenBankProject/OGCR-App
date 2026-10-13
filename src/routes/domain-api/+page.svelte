@@ -43,6 +43,10 @@
 							<a href="{api.url}/openapi.json" class="anchor">openapi.json</a>
 							<a href="{api.url}/openapi.yaml" class="anchor">openapi.yaml</a>
 						</dd>
+						{#if api.apiExplorerUrl}
+							<dt class="text-body-s ogcr-secondary">Try it</dt>
+							<dd><a href={api.apiExplorerUrl} class="anchor">API Explorer</a></dd>
+						{/if}
 					</dl>
 
 					<section class="ogcr-public-gets" aria-label="Public GET endpoints of {api.title}">

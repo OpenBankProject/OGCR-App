@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { publicGets } from './domainApi';
+import { apiExplorerDomainApiLink, publicGets } from './domainApi';
+
+describe('apiExplorerDomainApiLink', () => {
+	it("opens API Explorer on the Domain API's own version", () => {
+		expect(apiExplorerDomainApiLink('https://explorer.example.org', 'crcf/ogcr/v1')).toBe(
+			'https://explorer.example.org/resource-docs/DomainAPI~crcf~ogcr~v1'
+		);
+		expect(apiExplorerDomainApiLink('http://localhost:5173/', 'crcf/ogcr/v1')).toBe(
+			'http://localhost:5173/resource-docs/DomainAPI~crcf~ogcr~v1'
+		);
+	});
+});
 
 const login = [{ DirectLogin: [] }, { OAuth2: [] }];
 

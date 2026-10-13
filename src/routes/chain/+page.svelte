@@ -226,6 +226,30 @@
 			headingLevel={2}
 			padding="l"
 		>
+			{@const about = data.about[section.key] ?? []}
+			{#if about.length > 0}
+				<!-- From the entity definitions: what the record is, then how its chain copy is kept. -->
+				<div class="chain-about">
+					{#each about as a (a.entity)}
+						<p>
+							{#if a.href}
+								<a
+									href={a.href}
+									target="_blank"
+									rel="noopener"
+									class="chain-about__label chain-link"
+									title="{a.entity} definition in API Manager"
+								>
+									{a.entity}<ExternalLink class="size-3" aria-label="(opens in a new tab)" />
+								</a>
+							{:else}
+								<span class="chain-about__label">{a.entity}</span>
+							{/if}
+							{a.text}
+						</p>
+					{/each}
+				</div>
+			{/if}
 			<Table
 				columns={tokenColumns(section.key)}
 				rows={section.tokens.map((t) => ({
@@ -319,6 +343,20 @@
 		color: var(--text-primary);
 		font-weight: 500;
 	}
+	.chain-about {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2xs);
+		font-size: var(--font-size-s);
+		color: var(--text-neutral);
+	}
+	.chain-about__label {
+		font-family: var(--font-family-mono);
+		color: var(--text-secondary);
+	}
+	.chain-about__label::after {
+		content: ':';
+	}
 	.chain-note {
 		font-size: var(--font-size-s);
 		color: var(--text-secondary);
@@ -362,6 +400,10 @@
 
 	/* Dark mode: the design system has no dark palette, so fall back to the Skeleton
 	   dark surfaces, as Card does. */
+	:global([data-mode='dark']) .chain-about {
+		color: var(--color-surface-300);
+	}
+	:global([data-mode='dark']) .chain-about__label,
 	:global([data-mode='dark']) .chain-note,
 	:global([data-mode='dark']) .chain-record__detail,
 	:global([data-mode='dark']) .chain-links__label {

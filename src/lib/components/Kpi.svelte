@@ -15,6 +15,8 @@
 	 * imply a judgement we have no data to make.
 	 *
 	 * `href` turns the label and value into links to the page behind the figure.
+	 * `browseLabel` (an app extension, not in the design system) adds a visible
+	 * "Browse …" link to the same page at the foot of the tile.
 	 */
 	import type { Snippet } from 'svelte';
 
@@ -28,6 +30,7 @@
 		tone = 'positive',
 		accentBar = true,
 		href,
+		browseLabel,
 		class: className = '',
 		...rest
 	}: {
@@ -38,6 +41,7 @@
 		tone?: Tone;
 		accentBar?: boolean;
 		href?: string;
+		browseLabel?: string;
 		class?: string;
 		[key: string]: unknown;
 	} = $props();
@@ -53,7 +57,10 @@
 				<span class="ogcr-kpi__icon" aria-hidden="true">{@render icon()}</span>
 			{/if}
 			{#if href}
-				<a {href} class="ogcr-kpi__label ogcr-kpi__link">{label}</a>
+				<!-- With a browse link, that is the one tab stop for the destination. -->
+				<a {href} class="ogcr-kpi__label ogcr-kpi__link" tabindex={browseLabel ? -1 : undefined}
+					>{label}</a
+				>
 			{:else}
 				<span class="ogcr-kpi__label">{label}</span>
 			{/if}
@@ -66,6 +73,9 @@
 	{/if}
 	{#if secondaryText}
 		<p class="ogcr-kpi__secondary">{secondaryText}</p>
+	{/if}
+	{#if href && browseLabel}
+		<a {href} class="ogcr-kpi__browse">{browseLabel}</a>
 	{/if}
 </article>
 
@@ -157,6 +167,20 @@
 		text-decoration: underline;
 	}
 
+	.ogcr-kpi__browse {
+		margin-top: var(--space-xs);
+		font-family: var(--font-family-default);
+		font-weight: 500;
+		font-size: var(--font-size-m);
+		color: var(--interaction-primary-default);
+		text-decoration: none;
+	}
+	.ogcr-kpi__browse:hover,
+	.ogcr-kpi__browse:focus-visible {
+		color: var(--interaction-primary-hover);
+		text-decoration: underline;
+	}
+
 	.ogcr-kpi__secondary {
 		margin: 0;
 		font-family: var(--font-family-default);
@@ -174,6 +198,9 @@
 	}
 	:global([data-mode='dark']) .ogcr-kpi__value {
 		color: var(--color-primary-200);
+	}
+	:global([data-mode='dark']) .ogcr-kpi__browse {
+		color: var(--color-primary-300);
 	}
 	:global([data-mode='dark']) .ogcr-kpi__label,
 	:global([data-mode='dark']) .ogcr-kpi__secondary {

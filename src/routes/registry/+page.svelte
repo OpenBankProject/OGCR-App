@@ -1,20 +1,38 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Kpi from '$lib/components/Kpi.svelte';
-	import { FolderKanban, BadgeCheck, Coins, Recycle } from '@lucide/svelte';
+	import { FolderKanban, BadgeCheck, Coins, Archive } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	const activityCount = $derived(data.activityCount);
 
-	// Issuance, holding and retirement figures have no source in the DCR schema
-	// yet. The tiles stay in place so the layout is ready for when they do, but
-	// they say so rather than showing a fabricated number.
-	const unitStats = [
-		{ label: 'Issued Units', icon: Coins },
-		{ label: 'Active Units', icon: BadgeCheck },
-		{ label: 'Retired Units', icon: Recycle }
-	];
+	// Issued and Active come from the chain (see the loader). Retired has no public
+	// source yet, so that tile says so rather than showing a fabricated number.
+	const unitStats = $derived([
+		{
+			label: 'Issued Units',
+			icon: Coins,
+			value: data.credits.issued,
+			href: '/chain#section-batch',
+			browseLabel: 'Browse credit batches'
+		},
+		{
+			label: 'Active Units',
+			icon: BadgeCheck,
+			value: data.credits.active,
+			href: '/chain#section-balance',
+			browseLabel: 'Browse credit balances'
+		},
+		{
+			label: 'Retired Units',
+			icon: Archive,
+			value: null,
+			href: undefined,
+			browseLabel: undefined,
+			comingSoon: true
+		}
+	]);
 </script>
 
 <svelte:head>
@@ -35,11 +53,10 @@
 			covers, the practices applied, the operator responsible and the monitoring period over which
 			its results are measured.
 		</p>
-		<p class="text-body mb-8 text-surface-600-400">
+		<p class="text-body text-surface-600-400">
 			Certification is carried out by accredited bodies and recorded against the activity, so a
 			buyer can trace a unit back to the parcel, the practice and the verification behind it.
 		</p>
-		<a href="/registry/activities" class="btn preset-filled-primary-500">Browse Activities</a>
 	</div>
 
 	<section aria-labelledby="registry-summary" class="mt-12">
@@ -48,6 +65,7 @@
 			<Kpi
 				label="Activities"
 				href="/registry/activities"
+				browseLabel="Browse activities"
 				value={activityCount ?? '—'}
 				secondaryText={activityCount === null ? 'Unavailable right now' : undefined}
 				accentBar={false}
@@ -58,7 +76,18 @@
 			</Kpi>
 
 			{#each unitStats as stat (stat.label)}
-				<Kpi label={stat.label} value="—" secondaryText="Coming soon" accentBar={false}>
+				<Kpi
+					label={stat.label}
+					href={stat.href}
+					browseLabel={stat.browseLabel}
+					value={stat.value ?? '—'}
+					secondaryText={stat.comingSoon
+						? 'Coming soon'
+						: stat.value === null
+							? 'Unavailable right now'
+							: 'tCO₂e on chain'}
+					accentBar={false}
+				>
 					{#snippet icon()}
 						<stat.icon />
 					{/snippet}
