@@ -254,7 +254,6 @@
 				<Layers class="size-4" aria-hidden="true" />
 				{overlappingCount}
 				{overlappingCount === 1 ? 'activity overlaps' : 'activities overlap'} another activity's area
-				— possible double counting. Click one to see the overlap.
 			</p>
 		{/if}
 		{#if mapped.length > 0}
