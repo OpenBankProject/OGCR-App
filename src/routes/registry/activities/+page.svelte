@@ -3,6 +3,10 @@
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
 	import Pill from '$lib/components/Pill.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
+	import ToggleGroup from '$lib/components/ToggleGroup.svelte';
+	import RegistryActivitiesMap from '$lib/components/RegistryActivitiesMap.svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import {
 		distinctValues,
 		mintedAtIso,
@@ -11,7 +15,8 @@
 		registryOperatorHref,
 		type RegistryActivity
 	} from '$lib/registry/activities';
-	import { Search } from '@lucide/svelte';
+	import { Search, List, Map as MapIcon, Layers } from '@lucide/svelte';
+	import { findAreaOverlaps } from '$lib/registry/areaOverlaps';
 
 	let { data }: { data: PageData } = $props();
 
@@ -21,6 +26,20 @@
 	let status = $state('all');
 
 	const activities = $derived(data.activities as RegistryActivity[]);
+
+	// The view lives in the URL (?view=map) so it can be linked and survives a reload.
+	// The toggle flips at once; the content follows when the loader has the areas.
+	let view = $derived(data.view);
+	const viewItems = [
+		{ value: 'list', label: 'List', icon: List },
+		{ value: 'map', label: 'Map', icon: MapIcon }
+	];
+	function showView(next: string) {
+		const url = new URL(page.url);
+		if (next === 'map') url.searchParams.set('view', 'map');
+		else url.searchParams.delete('view');
+		goto(url, { noScroll: true, keepFocus: true });
+	}
 
 	// Dropdowns are populated from the values actually present, so they never offer a
 	// filter that would return nothing.
@@ -38,6 +57,40 @@
 			return true;
 		})
 	);
+
+	/**
+	 * Areas that share ground with another activity's: possible double counting, e.g. the
+	 * same field certified under two schemes. Checked across every activity, not just the
+	 * filtered ones, so narrowing the list never hides who else claims the land.
+	 */
+	const overlaps = $derived(findAreaOverlaps(data.areas));
+	const activityNames = $derived(
+		new Map(activities.map((a) => [a.activity_id, a.name?.trim() || 'Unnamed activity']))
+	);
+	const overlapsWith = (activity: RegistryActivity) =>
+		(activity.activity_id && overlaps.get(activity.activity_id)) || [];
+
+	/**
+	 * The filtered activities that have an area to draw, for the map's quick list:
+	 * overlapping ones first, then by name.
+	 */
+	const mapped = $derived(
+		filtered
+			.filter((a) => a.activity_id && data.areas[a.activity_id])
+			.sort(
+				(a, b) =>
+					Number(overlapsWith(b).length > 0) - Number(overlapsWith(a).length > 0) ||
+					(a.name ?? '').localeCompare(b.name ?? '')
+			)
+	);
+	const overlappingCount = $derived(mapped.filter((a) => overlapsWith(a).length > 0).length);
+	const mappedCount = $derived(mapped.length);
+
+	let activitiesMap = $state<ReturnType<typeof RegistryActivitiesMap>>();
+	let focusedId = $state<string | null>(null);
+	function focusOnMap(activityId: string) {
+		if (activitiesMap?.focusActivity(activityId)) focusedId = activityId;
+	}
 
 	const filtersApplied = $derived(
 		search.trim() !== '' || creditType !== 'all' || country !== 'all' || status !== 'all'
@@ -105,7 +158,15 @@
 </svelte:head>
 
 <div class="mx-auto max-w-[1400px] px-6 py-8">
-	<h1 class="text-h1 mb-6">Activities</h1>
+	<div class="ogcr-heading mb-6">
+		<h1 class="text-h1">Activities</h1>
+		<ToggleGroup
+			items={viewItems}
+			bind:value={view}
+			onValueChange={showView}
+			aria-label="Show activities as"
+		/>
+	</div>
 
 	{#if data.error}
 		<div class="mb-6">
@@ -157,114 +218,265 @@
 		{/if}
 	</div>
 
-	<p class="text-body-s mb-4 text-surface-600-400" aria-live="polite">
+	<p class="ogcr-count text-body-s mb-4" aria-live="polite">
 		{filtered.length === data.count
 			? `${data.count} ${data.count === 1 ? 'activity' : 'activities'}`
 			: `${filtered.length} of ${data.count} activities`}
+		{#if data.view === 'map' && !data.areasError}
+			· {mappedCount === filtered.length ? 'all' : mappedCount} on the map{#if mappedCount < filtered.length}
+				({filtered.length - mappedCount} with no recorded area){/if}
+		{/if}
 	</p>
 
-	<Table
-		{columns}
-		{rows}
-		regionLabel="Registry activities"
-		maxHeight="calc(100dvh - 8rem)"
-		stickyFirstColumn
-		emptyMessage={filtersApplied ? 'No activities match these filters' : 'No activities'}
-	>
-		{#snippet cell(row, column)}
-			<!-- Every cell goes to the most relevant detail: the activity's own facts open its
+	{#if data.view === 'map'}
+		{#if data.areasError}
+			<div class="mb-4">
+				<ObpErrorDisplay error={data.areasError} title="Activity areas could not be loaded" />
+			</div>
+		{/if}
+		<div class="ogcr-legend mb-3" aria-label="Map key">
+			<Pill tone="positive" dot>Verified</Pill>
+			<Pill tone="warning" dot>Unverified</Pill>
+		</div>
+		{#if overlappingCount > 0}
+			<p class="ogcr-overlap-note text-body-s mb-2">
+				<Layers class="size-4" aria-hidden="true" />
+				{overlappingCount}
+				{overlappingCount === 1 ? 'activity overlaps' : 'activities overlap'} another activity's area
+				— possible double counting. Click one to see the overlap.
+			</p>
+		{/if}
+		{#if mapped.length > 0}
+			<!-- A quick way in: each name zooms the map to that parcel, with every other area
+			     still drawn, so parcels claimed under more than one scheme show as overlaps. -->
+			<ul class="ogcr-map-list mb-3" aria-label="Zoom the map to an activity">
+				{#each mapped as activity (activity.activity_id)}
+					{@const others = overlapsWith(activity).map((id) => activityNames.get(id) ?? id)}
+					<li>
+						<button
+							type="button"
+							class="ogcr-map-list__item"
+							data-status={activity.verification_status === 'verified' ? 'verified' : 'unverified'}
+							aria-pressed={focusedId === activity.activity_id}
+							class:ogcr-map-list__item--overlap={others.length > 0}
+							title={[
+								activity.activity_type,
+								[activity.city, activity.country_name].filter(Boolean).join(', '),
+								others.length ? `Overlaps ${others.join(', ')}` : ''
+							]
+								.filter(Boolean)
+								.join(' · ')}
+							onclick={() => focusOnMap(activity.activity_id!)}
+						>
+							<span class="ogcr-map-list__dot" aria-hidden="true"></span>
+							{activity.name?.trim() || 'Unnamed activity'}
+							{#if others.length}
+								<Layers class="size-3.5" aria-hidden="true" />
+								<span class="sr-only">(overlaps {others.join(', ')})</span>
+							{/if}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+		<RegistryActivitiesMap
+			bind:this={activitiesMap}
+			activities={filtered}
+			areas={data.areas}
+			class="ogcr-map"
+		/>
+	{:else}
+		<Table
+			{columns}
+			{rows}
+			regionLabel="Registry activities"
+			maxHeight="calc(100dvh - 8rem)"
+			stickyFirstColumn
+			emptyMessage={filtersApplied ? 'No activities match these filters' : 'No activities'}
+		>
+			{#snippet cell(row, column)}
+				<!-- Every cell goes to the most relevant detail: the activity's own facts open its
 			     page, the operator and certificate open theirs, and type and country — which
 			     have no page of their own — narrow the list to their peers. -->
-			{@const activityHref =
-				typeof row.activity_id === 'string' ? registryActivityHref(row.activity_id) : null}
-			{#if column.key === 'name'}
-				{#if activityHref}
-					<a href={activityHref} class="anchor ogcr-cell-strong">{show(row.name)}</a>
-				{:else}
-					<span class="ogcr-cell-strong">{show(row.name)}</span>
-				{/if}
-			{:else if column.key === 'activity_type'}
-				{#if typeof row.activity_type === 'string' && row.activity_type}
-					<button
-						type="button"
-						class="ogcr-cell-filter"
-						title="Show only {row.activity_type} activities"
-						onclick={() => (creditType = row.activity_type as string)}
-					>
-						<Pill tone="neutral">{row.activity_type}</Pill>
-					</button>
-				{:else}
-					{DASH}
-				{/if}
-			{:else if column.key === 'verification_status'}
-				<!-- Text, not colour alone: the label is the signal, the tone reinforces it. -->
-				{@const pill = row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
-				{#if activityHref}
-					<a href={activityHref} title="Activity details">
+				{@const activityHref =
+					typeof row.activity_id === 'string' ? registryActivityHref(row.activity_id) : null}
+				{#if column.key === 'name'}
+					{#if activityHref}
+						<a href={activityHref} class="ogcr-cell-strong anchor">{show(row.name)}</a>
+					{:else}
+						<span class="ogcr-cell-strong">{show(row.name)}</span>
+					{/if}
+				{:else if column.key === 'activity_type'}
+					{#if typeof row.activity_type === 'string' && row.activity_type}
+						<button
+							type="button"
+							class="ogcr-cell-filter"
+							title="Show only {row.activity_type} activities"
+							onclick={() => (creditType = row.activity_type as string)}
+						>
+							<Pill tone="neutral">{row.activity_type}</Pill>
+						</button>
+					{:else}
+						{DASH}
+					{/if}
+				{:else if column.key === 'verification_status'}
+					<!-- Text, not colour alone: the label is the signal, the tone reinforces it. -->
+					{@const pill = row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
+					{#if activityHref}
+						<a href={activityHref} title="Activity details">
+							<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
+								{pill}
+							</Pill>
+						</a>
+					{:else}
 						<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
 							{pill}
 						</Pill>
-					</a>
-				{:else}
-					<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
-						{pill}
-					</Pill>
-				{/if}
-			{:else if column.key === 'certificate'}
-				{#if typeof row.certificate_of_compliance_id === 'string' && row.certificate_of_compliance_id}
-					<a href={registryCertificateHref(row.certificate_of_compliance_id)} class="anchor">
-						View certificate
-					</a>
-				{:else}
-					<span class="ogcr-cell-muted">Not yet certified</span>
-				{/if}
-			{:else if column.key === 'minted'}
-				{#if row.minted && activityHref}
-					<a href={activityHref} class="ogcr-cell-link">{row.minted}</a>
-				{:else if row.minted}
-					{row.minted}
-				{:else}
-					<span class="ogcr-cell-muted">Not minted</span>
-				{/if}
-			{:else if column.key === 'location'}
-				{#if typeof row.country_name === 'string' && row.country_name}
-					<button
-						type="button"
-						class="ogcr-cell-filter ogcr-cell-link"
-						title="Show only activities in {row.country_name}"
-						onclick={() => (country = row.country_name as string)}
-					>
+					{/if}
+				{:else if column.key === 'certificate'}
+					{#if typeof row.certificate_of_compliance_id === 'string' && row.certificate_of_compliance_id}
+						<a href={registryCertificateHref(row.certificate_of_compliance_id)} class="anchor">
+							View certificate
+						</a>
+					{:else}
+						<span class="ogcr-cell-muted">Not yet certified</span>
+					{/if}
+				{:else if column.key === 'minted'}
+					{#if row.minted && activityHref}
+						<a href={activityHref} class="ogcr-cell-link">{row.minted}</a>
+					{:else if row.minted}
+						{row.minted}
+					{:else}
+						<span class="ogcr-cell-muted">Not minted</span>
+					{/if}
+				{:else if column.key === 'location'}
+					{#if typeof row.country_name === 'string' && row.country_name}
+						<button
+							type="button"
+							class="ogcr-cell-filter ogcr-cell-link"
+							title="Show only activities in {row.country_name}"
+							onclick={() => (country = row.country_name as string)}
+						>
+							{show(row.location)}
+						</button>
+					{:else}
 						{show(row.location)}
-					</button>
-				{:else}
-					{show(row.location)}
-				{/if}
-			{:else if column.key === 'operator_legal_name'}
-				{#if typeof row.operator_id === 'string' && row.operator_id}
-					<a href={registryOperatorHref(row.operator_id)} class="anchor">
-						{show(row.operator_legal_name ?? row.operator_id)}
+					{/if}
+				{:else if column.key === 'operator_legal_name'}
+					{#if typeof row.operator_id === 'string' && row.operator_id}
+						<a href={registryOperatorHref(row.operator_id)} class="anchor">
+							{show(row.operator_legal_name ?? row.operator_id)}
+						</a>
+					{:else}
+						{show(row.operator_legal_name)}
+					{/if}
+				{:else if activityHref}
+					<!-- Dates, monitoring period and summary are the activity's own facts. -->
+					<a
+						href={activityHref}
+						class="ogcr-cell-link"
+						class:ogcr-cell-truncate={column.key === 'summary'}
+						title={column.key === 'summary' && typeof row.summary === 'string'
+							? row.summary
+							: undefined}
+					>
+						{show(row[column.key])}
 					</a>
 				{:else}
-					{show(row.operator_legal_name)}
-				{/if}
-			{:else if activityHref}
-				<!-- Dates, monitoring period and summary are the activity's own facts. -->
-				<a
-					href={activityHref}
-					class="ogcr-cell-link"
-					class:ogcr-cell-truncate={column.key === 'summary'}
-					title={column.key === 'summary' && typeof row.summary === 'string' ? row.summary : undefined}
-				>
 					{show(row[column.key])}
-				</a>
-			{:else}
-				{show(row[column.key])}
-			{/if}
-		{/snippet}
-	</Table>
+				{/if}
+			{/snippet}
+		</Table>
+	{/if}
 </div>
 
 <style>
+	.ogcr-heading {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-s);
+	}
+
+	.ogcr-count {
+		color: var(--text-secondary);
+	}
+
+	.ogcr-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	/* Small and capped at a few lines, so the map stays the main thing on the page. */
+	.ogcr-map-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2xs);
+		max-height: 5.5rem;
+		overflow-y: auto;
+		list-style: none;
+		padding: 0;
+	}
+	.ogcr-map-list__item {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2xs);
+		padding: 0 var(--space-xs);
+		background: var(--surface-light);
+		border: 1px solid var(--border-light);
+		border-radius: var(--radius-m);
+		font-family: var(--font-family-default);
+		font-size: var(--font-size-s);
+		line-height: 1.6;
+		color: var(--text-primary);
+		white-space: nowrap;
+		cursor: pointer;
+		transition: border-color var(--motion-fast);
+	}
+	.ogcr-map-list__item:hover {
+		border-color: var(--border-strong);
+	}
+	.ogcr-map-list__item[aria-pressed='true'] {
+		border-color: var(--interaction-primary-default);
+	}
+	.ogcr-map-list__item:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 2px var(--surface-light),
+			0 0 0 4px var(--interaction-primary-default);
+	}
+	/* Overlap is a warning, not an error: it needs a look, it may be legitimate. */
+	.ogcr-map-list__item--overlap {
+		background: var(--surface-warning);
+		border-color: var(--border-warning-strong);
+		color: var(--text-warning);
+	}
+	.ogcr-overlap-note {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2xs);
+		color: var(--text-warning);
+	}
+
+	/* Same colours as the map outlines. */
+	.ogcr-map-list__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--border-warning-strong);
+	}
+	.ogcr-map-list__item[data-status='verified'] .ogcr-map-list__dot {
+		background: var(--border-positive-strong);
+	}
+
+	/* Same window-high box the table scrolls in. */
+	:global(.ogcr-map) {
+		height: calc(100dvh - 8rem);
+		min-height: 24rem;
+	}
+
 	.ogcr-toolbar {
 		display: flex;
 		flex-wrap: wrap;
@@ -362,7 +574,8 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.ogcr-input {
+		.ogcr-input,
+		.ogcr-map-list__item {
 			transition: none;
 		}
 	}
@@ -372,9 +585,20 @@
 		border-color: var(--color-surface-700);
 		color: var(--color-surface-100);
 	}
+	:global([data-mode='dark']) .ogcr-map-list__item {
+		background: var(--color-surface-900);
+		border-color: var(--color-surface-700);
+		color: var(--color-surface-100);
+	}
+	/* Keep the warning edge in dark mode; the pale warning fill would glare. */
+	:global([data-mode='dark']) .ogcr-map-list__item--overlap {
+		border-color: var(--border-warning-strong);
+		color: var(--border-warning-strong);
+	}
 	:global([data-mode='dark']) .ogcr-cell-strong {
 		color: var(--color-surface-50);
 	}
+	:global([data-mode='dark']) .ogcr-count,
 	:global([data-mode='dark']) .ogcr-cell-muted {
 		color: var(--color-surface-400);
 	}

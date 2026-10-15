@@ -193,6 +193,7 @@ the two in step.
 | Message            | §4.9          | not needed — the app's `ObpErrorDisplay` already handles OBP errors (it detects missing-entitlement messages and renders `MissingRoleAlert`), which DS Message would not       |
 | KPI                | §4.11         | **ported** — `src/lib/components/Kpi.svelte`                                                                                                                                   |
 | Table              | §4.14         | **ported** — `src/lib/components/Table.svelte`. Upstream is `@tanstack/react-table`; sorting and the empty state are reimplemented in Svelte, all visual decisions transcribed |
+| Toggle (group)     | §4.21         | **ported** — `src/lib/components/ToggleGroup.svelte`, on `bits-ui`. Single-select group only (`value` is a string); standalone Toggle not yet ported |
 | Select / Combobox  | §4.17 / §4.18 | not yet ported — build on `bits-ui`                                                                                                                                            |
 | Tabs               | §4.23         | not yet ported — build on `bits-ui`                                                                                                                                            |
 | Breadcrumb         | §4.26         | not needed — see note below                                                                                                                                                    |
