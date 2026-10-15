@@ -199,6 +199,12 @@
 		{ name: 'KPI', spec: '§4.11', ported: false, note: '' },
 		{ name: 'Table', spec: '§4.14', ported: false, note: '' },
 		{ name: 'Select / Combobox', spec: '§4.17 / §4.18', ported: false, note: 'build on bits-ui' },
+		{
+			name: 'Toggle (group)',
+			spec: '§4.21',
+			ported: true,
+			note: 'src/lib/components/ToggleGroup.svelte — single-select, on bits-ui'
+		},
 		{ name: 'Tabs', spec: '§4.23', ported: false, note: 'build on bits-ui' },
 		{ name: 'Breadcrumb', spec: '§4.26', ported: false, note: '' },
 		{ name: 'Pagination', spec: '§4.27', ported: false, note: '' },
