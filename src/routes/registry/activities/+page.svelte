@@ -72,10 +72,10 @@
 		(activity.activity_id && overlaps.get(activity.activity_id)) || [];
 
 	/**
-	 * The filtered activities that have an area to draw, for the map's quick list:
-	 * overlapping ones first, then by name.
+	 * The filtered activities that have an area to draw: overlapping ones first, then by
+	 * name, as the map's quick list shows them.
 	 */
-	const mapped = $derived(
+	const withArea = $derived(
 		filtered
 			.filter((a) => a.activity_id && data.areas[a.activity_id])
 			.sort(
@@ -84,8 +84,22 @@
 					(a.name ?? '').localeCompare(b.name ?? '')
 			)
 	);
-	const overlappingCount = $derived(mapped.filter((a) => overlapsWith(a).length > 0).length);
-	const mappedCount = $derived(mapped.length);
+	const overlappingCount = $derived(withArea.filter((a) => overlapsWith(a).length > 0).length);
+	const mappedCount = $derived(withArea.length);
+
+	/** Map view only: overlaps need the areas, which only the map view loads. */
+	let overlap = $state('all');
+	const overlapItems = [
+		{ value: 'all', label: 'All' },
+		{ value: 'overlapping', label: 'Overlapping' },
+		{ value: 'separate', label: 'Not overlapping' }
+	];
+	/** What the quick list and the map show, after the overlap toggle. */
+	const mapped = $derived(
+		overlap === 'all'
+			? withArea
+			: withArea.filter((a) => overlapsWith(a).length > 0 === (overlap === 'overlapping'))
+	);
 
 	let activitiesMap = $state<ReturnType<typeof RegistryActivitiesMap>>();
 	let focusedId = $state<string | null>(null);
@@ -98,7 +112,11 @@
 	}
 
 	const filtersApplied = $derived(
-		search.trim() !== '' || creditType !== 'all' || country !== 'all' || status !== 'all'
+		search.trim() !== '' ||
+			creditType !== 'all' ||
+			country !== 'all' ||
+			status !== 'all' ||
+			overlap !== 'all'
 	);
 
 	function clearFilters() {
@@ -106,6 +124,7 @@
 		creditType = 'all';
 		country = 'all';
 		status = 'all';
+		overlap = 'all';
 	}
 
 	/**
@@ -249,12 +268,20 @@
 				</Button>
 			{/if}
 		</div>
-		{#if overlappingCount > 0}
-			<p class="ogcr-overlap-note text-body-s mb-2">
-				<Layers class="size-4" aria-hidden="true" />
-				{overlappingCount}
-				{overlappingCount === 1 ? 'activity overlaps' : 'activities overlap'} another activity's area
-			</p>
+		{#if overlappingCount > 0 || overlap !== 'all'}
+			<div class="ogcr-overlap-bar mb-2">
+				<p class="ogcr-overlap-note text-body-s">
+					<Layers class="size-4" aria-hidden="true" />
+					{overlappingCount}
+					{overlappingCount === 1 ? 'activity overlaps' : 'activities overlap'} another activity's area
+				</p>
+				<ToggleGroup
+					items={overlapItems}
+					bind:value={overlap}
+					size="s"
+					aria-label="Show activities by overlap"
+				/>
+			</div>
 		{/if}
 		{#if mapped.length > 0}
 			<!-- A quick way in: each name zooms the map to that parcel, with every other area
@@ -291,7 +318,7 @@
 		{/if}
 		<RegistryActivitiesMap
 			bind:this={activitiesMap}
-			activities={filtered}
+			activities={mapped}
 			areas={data.areas}
 			class="ogcr-map"
 		/>
@@ -467,6 +494,12 @@
 		background: var(--surface-warning);
 		border-color: var(--border-warning-strong);
 		color: var(--text-warning);
+	}
+	.ogcr-overlap-bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-s);
 	}
 	.ogcr-overlap-note {
 		display: flex;
