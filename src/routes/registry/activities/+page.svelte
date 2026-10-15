@@ -4,6 +4,7 @@
 	import Pill from '$lib/components/Pill.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import ToggleGroup from '$lib/components/ToggleGroup.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import RegistryActivitiesMap from '$lib/components/RegistryActivitiesMap.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -15,7 +16,7 @@
 		registryOperatorHref,
 		type RegistryActivity
 	} from '$lib/registry/activities';
-	import { Search, List, Map as MapIcon, Layers } from '@lucide/svelte';
+	import { Search, List, Map as MapIcon, Layers, Maximize } from '@lucide/svelte';
 	import { findAreaOverlaps } from '$lib/registry/areaOverlaps';
 
 	let { data }: { data: PageData } = $props();
@@ -90,6 +91,10 @@
 	let focusedId = $state<string | null>(null);
 	function focusOnMap(activityId: string) {
 		if (activitiesMap?.focusActivity(activityId)) focusedId = activityId;
+	}
+	function showAllOnMap() {
+		activitiesMap?.showAll();
+		focusedId = null;
 	}
 
 	const filtersApplied = $derived(
@@ -237,13 +242,18 @@
 		<div class="ogcr-legend mb-3" aria-label="Map key">
 			<Pill tone="positive" dot>Verified</Pill>
 			<Pill tone="warning" dot>Unverified</Pill>
+			{#if mapped.length > 0}
+				<Button variant="outlined" size="s" class="ogcr-legend__action" onclick={showAllOnMap}>
+					{#snippet iconLeft()}<Maximize class="size-4" aria-hidden="true" />{/snippet}
+					Show all activities
+				</Button>
+			{/if}
 		</div>
 		{#if overlappingCount > 0}
 			<p class="ogcr-overlap-note text-body-s mb-2">
 				<Layers class="size-4" aria-hidden="true" />
 				{overlappingCount}
 				{overlappingCount === 1 ? 'activity overlaps' : 'activities overlap'} another activity's area
-				— possible double counting. Click one to see the overlap.
 			</p>
 		{/if}
 		{#if mapped.length > 0}
@@ -406,7 +416,12 @@
 	.ogcr-legend {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
 		gap: var(--space-xs);
+	}
+	/* Sits at the right, above the map it acts on. */
+	.ogcr-legend :global(.ogcr-legend__action) {
+		margin-left: auto;
 	}
 
 	/* Small and capped at a few lines, so the map stays the main thing on the page. */

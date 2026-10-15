@@ -30,6 +30,19 @@
 	let map = $state<import('leaflet').Map | null>(null);
 	/** Each drawn outline by activity id, so the page can zoom to one. Not reactive. */
 	const outlinesById = new Map<string, import('leaflet').GeoJSON>();
+	/** Every drawn outline, for zooming back out to them all. Not reactive. */
+	let allOutlines: import('leaflet').FeatureGroup | null = null;
+
+	/** Frames every drawn area again, as the map first opened. */
+	export function showAll() {
+		map?.closePopup();
+		frameAll();
+	}
+
+	function frameAll() {
+		const bounds = allOutlines?.getBounds();
+		if (map && bounds?.isValid()) map.fitBounds(bounds, { padding: [32, 32], maxZoom: 14 });
+	}
 
 	/** Zooms to one activity's area and opens its popup. Returns false if it has none drawn. */
 	export function focusActivity(activityId: string): boolean {
@@ -109,8 +122,8 @@
 		};
 		m.on('zoomend', syncDots);
 
-		const bounds = outlines.getBounds();
-		if (bounds.isValid()) m.fitBounds(bounds, { padding: [32, 32], maxZoom: 14 });
+		allOutlines = outlines;
+		frameAll();
 		syncDots();
 
 		return () => {
@@ -118,6 +131,7 @@
 			outlines.remove();
 			dots.remove();
 			outlinesById.clear();
+			allOutlines = null;
 		};
 	});
 
