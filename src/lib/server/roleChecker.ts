@@ -29,6 +29,10 @@ export const SITE_MAP: Record<string, PageRoleConfig> = {
 	'/activities': {
 		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_ACTIVITY}`, bankId: ENTITY_ROLE_BANK_ID }]
 	},
+	// Storing a file needs this at the space; a file is only made public with CanCreatePublicFileAtOneBank too.
+	'/files-test': {
+		required: [{ role: 'CanCreateFileAtOneBank', bankId: ENTITY_ROLE_BANK_ID }]
+	},
 	'/parcels': {
 		required: [{ role: `CanGetDynamicEntityRecord_${ENTITY_PARCEL}`, bankId: ENTITY_ROLE_BANK_ID }]
 	},
