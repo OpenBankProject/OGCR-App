@@ -16,7 +16,8 @@
 		Globe,
 		MessageSquare,
 		Users,
-		FileCode
+		FileCode,
+		FileUp
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -61,6 +62,12 @@
 				icon: FileCode,
 				title: 'Domain API',
 				description: "The space's endpoints under its own base path, with their OpenAPI spec."
+			},
+			{
+				href: '/files-test',
+				icon: FileUp,
+				title: 'Files',
+				description: 'Upload a file and test storing, reading and attaching it.'
 			},
 			{
 				href: data.portalUrl,

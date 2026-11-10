@@ -27,6 +27,7 @@
 			operators: 'Operators',
 			schema: 'Schema',
 			'group-entitlements': 'Group entitlements',
+			'files-test': 'File upload test',
 			create: 'Create',
 			user: 'My Account',
 			login: 'Login',
