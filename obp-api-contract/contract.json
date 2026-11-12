@@ -1,0 +1,1090 @@
+{
+ "about": "Every OBP-API call OGCR-App makes: verb, path (OBP placeholders in capitals), the source file and the text that makes the call (needles), and the response fields the code reads. src/lib/obp/obpApiContract.test.ts checks this list against the source and against snapshot.json, which obp-api-contract/snapshot.py writes from an OBP-API's resource docs. calls are versioned (/obp/vX.Y.Z); unversioned_calls are /obp/dynamic-entity and /obp/dynamic-endpoint paths, which no versioned resource doc describes, so snapshot.py leaves them out and the test only checks that they are still in the source. Dynamic entity and registry query records have the fields their definitions give them at run time (entity names can also carry OBP_ENTITY_PREFIX): only the wrapper OBP-API puts around them is listed as a read. path_builders are the functions that build OBP-API paths for the calls; a line that uses one must be a listed call. Not listed: the openapi.json of each Domain API, read from the url OBP-API returns for it, and the OIDC provider endpoints, which are not OBP-API.",
+ "calls": [
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/root",
+   "source": "src/hooks.server.ts",
+   "needles": [
+    "url: `${publicEnv.PUBLIC_OBP_BASE_URL}/obp/v5.1.0/root`,"
+   ],
+   "reads": [],
+   "note": "Health check: only the status code is checked."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/well-known",
+   "source": "src/lib/oauth/providerManager.ts",
+   "needles": [
+    "obp_requests.get('/obp/v5.1.0/well-known')"
+   ],
+   "reads": [
+    "well_known_uris[].provider",
+    "well_known_uris[].url"
+   ],
+   "undocumented_fields": [
+    "well_known_uris[].provider",
+    "well_known_uris[].url"
+   ],
+   "note": "Login finds its OAuth2 providers in well_known_uris; the documented response holds only jwks_uris."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/users/current",
+   "source": "src/routes/login/callback/+server.ts",
+   "needles": [
+    "`${env.PUBLIC_OBP_BASE_URL}/obp/v5.1.0/users/current`"
+   ],
+   "reads": [
+    "user_id",
+    "email",
+    "username",
+    "entitlements.list[].role_name",
+    "entitlements.list[].bank_id"
+   ],
+   "note": "The user is kept in the session; the layout checks Roles against its entitlements."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/entitlement-requests",
+   "source": "src/routes/api/entitlement-requests/+server.ts",
+   "needles": [
+    "'/obp/v6.0.0/entitlement-requests',"
+   ],
+   "reads": [],
+   "note": "The answer is relayed to the page."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/api/glossary",
+   "source": "src/lib/obp/glossary.ts",
+   "needles": [
+    "export const GLOSSARY_PATH = '/obp/v6.0.0/api/glossary';",
+    "fetchFn(`${base}${GLOSSARY_PATH}`)"
+   ],
+   "reads": [
+    "glossary_items[].title",
+    "glossary_items[].description.html"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/app-directory",
+   "source": "src/lib/obp/appDirectory.ts",
+   "needles": [
+    "export const APP_DIRECTORY_PATH = '/obp/v6.0.0/app-directory';",
+    "fetchFn(`${base}${APP_DIRECTORY_PATH}`)"
+   ],
+   "reads": [
+    "app_directory[].name",
+    "app_directory[].value"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "source": "src/lib/obp/entityDescriptions.ts",
+   "needles": [
+    "`${base}/obp/v6.0.0/banks/${bank}/resource-docs/v6.0.0/obp?content=dynamic&tags=${tags}`"
+   ],
+   "reads": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].description_markdown"
+   ],
+   "undocumented_fields": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].description_markdown"
+   ],
+   "note": "OBP-API documents no response schema for resource docs."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "source": "src/routes/schema/+page.server.ts",
+   "needles": [
+    "`/obp/v6.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/resource-docs/v6.0.0/obp?content=dynamic`"
+   ],
+   "reads": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "undocumented_fields": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "note": "OBP-API documents no response schema for resource docs."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "source": "src/routes/group-entitlements/+page.server.ts",
+   "needles": [
+    "`/obp/v6.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/resource-docs/v6.0.0/obp?content=dynamic`",
+    "fetch(`${base}${docsPath}`)"
+   ],
+   "reads": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "undocumented_fields": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "note": "OBP-API documents no response schema for resource docs."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "`/obp/v6.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/resource-docs/v6.0.0/obp?content=dynamic`"
+   ],
+   "reads": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "undocumented_fields": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url",
+    "resource_docs[].roles[].role",
+    "resource_docs[].typed_request_body.properties"
+   ],
+   "note": "OBP-API documents no response schema for resource docs."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/management/groups",
+   "source": "src/routes/group-entitlements/+page.server.ts",
+   "needles": [
+    "'/obp/v6.0.0/management/groups'",
+    "`/obp/v6.0.0/management/groups?bank_id=${encodeURIComponent(ENTITY_ROLE_BANK_ID)}`",
+    ".get(groupsPath, accessToken)"
+   ],
+   "reads": [
+    "groups[].group_id",
+    "groups[].group_name",
+    "groups[].bank_id",
+    "groups[].list_of_roles",
+    "groups[].is_enabled"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/domain-apis",
+   "source": "src/routes/domain-api/+page.server.ts",
+   "needles": [
+    "`/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/domain-apis`"
+   ],
+   "reads": [
+    "domain_apis[].base_path",
+    "domain_apis[].version",
+    "domain_apis[].title",
+    "domain_apis[].description",
+    "domain_apis[].url"
+   ],
+   "note": "Each Domain API's openapi.json is then read from its url, which is not a fixed OBP-API path."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks",
+   "source": "src/lib/obp/currentBank.ts",
+   "needles": [
+    "obp_requests.get('/obp/v6.0.0/banks', accessToken)"
+   ],
+   "reads": [
+    "banks[].bank_id|banks[].id",
+    "banks[].bank_code",
+    "banks[].short_name",
+    "banks[].full_name"
+   ],
+   "undocumented_fields": [
+    "banks[].short_name"
+   ],
+   "note": "Reads bank_id, or id when it is absent. The v6.0.0 docs have no short_name; the bank picker then shows full_name or bank_id."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/my/personal-data-fields",
+   "source": "src/lib/obp/currentBank.ts",
+   "needles": [
+    "obp_requests.get('/obp/v6.0.0/my/personal-data-fields', accessToken)"
+   ],
+   "reads": [
+    "user_attributes[].name",
+    "user_attributes[].value",
+    "user_attributes[].user_attribute_id"
+   ]
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/v6.0.0/my/personal-data-fields/USER_ATTRIBUTE_ID",
+   "source": "src/lib/obp/currentBank.ts",
+   "needles": [
+    "`/obp/v6.0.0/my/personal-data-fields/${encodeURIComponent(attributeId)}`"
+   ],
+   "reads": [],
+   "note": "Only success is checked."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/my/personal-data-fields",
+   "source": "src/lib/obp/currentBank.ts",
+   "needles": [
+    "obp_requests.post('/obp/v6.0.0/my/personal-data-fields', body, accessToken)"
+   ],
+   "reads": [
+    "user_attribute_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/my/files",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "obp_requests.get(filesPath('my', 'files'), accessToken)"
+   ],
+   "reads": [
+    "files[].file_id",
+    "files[].file_name",
+    "files[].media_type",
+    "files[].size_in_bytes",
+    "files[].is_public",
+    "files[].created_at"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "stored = (await obp_requests.post(",
+    "filesPath('files'),"
+   ],
+   "reads": [
+    "file_id",
+    "owner_user_id",
+    "sha256",
+    "is_public"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "obp_requests.get(filesPath('files', stored.file_id), accessToken)"
+   ],
+   "reads": [
+    "file_id",
+    "file_name",
+    "size_in_bytes"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "filesPath('files', stored.file_id, 'content')"
+   ],
+   "reads": [],
+   "note": "The answer is the file itself, compared by SHA-256."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/attachments",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "filesPath('files', stored.file_id, 'attachments')"
+   ],
+   "reads": [
+    "file_attachment_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "obp_requests.get(`${filesPath('files')}${query}`, accessToken)"
+   ],
+   "reads": [
+    "files[].file_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/public-files/FILE_ID/content",
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "filesPath('public-files', stored.file_id, 'content')"
+   ],
+   "reads": [],
+   "note": "Only the status code and the bytes are checked."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "source": "src/routes/files-test/[fileId]/content/+server.ts",
+   "needles": [
+    "`/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/files/${encodeURIComponent(params.fileId)}/content${inline}`"
+   ],
+   "reads": [],
+   "note": "The file and some of its headers are passed through to the browser."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "source": "src/routes/trading/+page.server.ts",
+   "needles": [
+    "obp_requests.get('/obp/v7.0.0/my/accounts', accessToken)"
+   ],
+   "reads": [
+    "accounts[].account_id",
+    "accounts[].bank_id",
+    "accounts[].label",
+    "accounts[].account_type",
+    "accounts[].views[].view_id",
+    "accounts[].views[].short_name"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "source": "src/routes/trading/+page.server.ts",
+   "needles": [
+    ".get(tradingPaths.offers(ctx), accessToken)"
+   ],
+   "reads": [
+    "offers"
+   ],
+   "note": "Only counts the offers."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/offers/+page.server.ts",
+   "needles": [
+    "obp_requests.get(tradingPaths.offers(ctx), accessToken)"
+   ],
+   "reads": [
+    "offers[].offer_details.offer_type",
+    "offers[].offer_details.asset_amount",
+    "offers[].offer_details.asset_code",
+    "offers[].offer_details.price_amount",
+    "offers[].offer_details.price_currency",
+    "offers[].offer_id",
+    "offers[].status"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/offers/create/+page.server.ts",
+   "needles": [
+    "obp_requests.get('/obp/v7.0.0/my/accounts', accessToken)"
+   ],
+   "reads": [
+    "accounts[].account_id",
+    "accounts[].bank_id",
+    "accounts[].label"
+   ],
+   "note": "Lists the settlement accounts at the same bank."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/orders/create/+page.server.ts",
+   "needles": [
+    "obp_requests.get('/obp/v7.0.0/my/accounts', accessToken)"
+   ],
+   "reads": [
+    "accounts[].account_id",
+    "accounts[].bank_id",
+    "accounts[].label"
+   ],
+   "note": "Lists the settlement accounts at the same bank."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/offers/create/+page.server.ts",
+   "needles": [
+    "obp_requests.post(tradingPaths.offers(ctx), body, accessToken)"
+   ],
+   "reads": [
+    "offer_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/offers/[offerId]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(tradingPaths.offer(ctx, params.offerId), accessToken)"
+   ],
+   "reads": [
+    "offer_details.offer_type",
+    "offer_details.asset_amount",
+    "offer_details.asset_code",
+    "offer_details.price_amount",
+    "offer_details.price_currency",
+    "offer_id",
+    "status"
+   ]
+  },
+  {
+   "verb": "DELETE",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/offers/[offerId]/+page.server.ts",
+   "needles": [
+    "obp_requests.delete(",
+    "tradingPaths.offer(ctx, params.offerId),"
+   ],
+   "reads": [],
+   "note": "The answer is shown as JSON."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/orders/create/+page.server.ts",
+   "needles": [
+    "obp_requests.post(tradingPaths.orders(ctx), body, accessToken)"
+   ],
+   "reads": [
+    "order_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/orders/[orderId]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(tradingPaths.order(ctx, params.orderId), accessToken)"
+   ],
+   "reads": [
+    "order_id",
+    "status",
+    "account_id",
+    "side",
+    "quantity",
+    "price"
+   ]
+  },
+  {
+   "verb": "DELETE",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/orders/[orderId]/+page.server.ts",
+   "needles": [
+    "obp_requests.delete(",
+    "tradingPaths.order(ctx, params.orderId),"
+   ],
+   "reads": [],
+   "note": "The answer is shown as JSON."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/matches",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/matches/create/+page.server.ts",
+   "needles": [
+    "obp_requests.post(tradingPaths.matches(ctx), body, accessToken)"
+   ],
+   "reads": [
+    "match_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/trades/TRADE_ID",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/trades/[tradeId]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(tradingPaths.trade(ctx, params.tradeId), accessToken)"
+   ],
+   "reads": [
+    "trade_id",
+    "status",
+    "amount",
+    "price",
+    "buy_order_id",
+    "sell_order_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/settlements",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/settlements/+page.server.ts",
+   "needles": [
+    "obp_requests.post(tradingPaths.settlements(ctx), body, accessToken)"
+   ],
+   "reads": [],
+   "note": "The answer is shown as JSON."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/withdrawals",
+   "source": "src/routes/trading/banks/[bankId]/accounts/[accountId]/views/[viewId]/market/withdrawals/+page.server.ts",
+   "needles": [
+    "obp_requests.post(tradingPaths.withdrawals(ctx), body, accessToken)"
+   ],
+   "reads": [
+    "required_confirmations"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/ENTITY_NAME",
+   "source": "src/lib/chain/onChain.ts",
+   "needles": [
+    "obp_requests.get(entityPathV7(entity), accessToken)"
+   ],
+   "reads": [
+    "ENTITY_NAME_list[].ENTITY_NAME"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "listEntity: the entities the tokenization backlog compares."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME",
+   "source": "src/lib/chain/onChain.ts",
+   "needles": [
+    "obp_requests.get(publicEntityPathV7(entity))"
+   ],
+   "reads": [
+    "ENTITY_NAME_list[].ENTITY_NAME"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "listPublicEntity: the chain mirrors and the sync status, without a token."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME/ENTITY_NAME_ID",
+   "source": "src/lib/chain/onChain.ts",
+   "needles": [
+    "return `${base}${publicEntityPathV7(entity)}/${encodeURIComponent(id)}`;"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "A link on the chain page; the browser opens it."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME/ENTITY_NAME_ID",
+   "source": "src/lib/registry/certification.ts",
+   "needles": [
+    "fetchFn(url(`${publicEntityPathV7(entity)}/${encodeURIComponent(id)}`))"
+   ],
+   "reads": [
+    "ENTITY_NAME"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME",
+   "source": "src/lib/registry/certification.ts",
+   "needles": [
+    "fetchFn(url(`${publicEntityPathV7(entity)}${query}`))"
+   ],
+   "reads": [
+    "ENTITY_NAME_list[].ENTITY_NAME"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Filtered with obp_filter."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "source": "src/routes/activities/+page.server.ts",
+   "needles": [
+    "let activityEndpoint = entityPathV7(ENTITY_ACTIVITY);",
+    "debugGet('Activities', activityEndpoint)"
+   ],
+   "reads": [
+    "activity_list[].activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "With an obp_exists / obp_not_exists join on activity_verification when filtered."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/operator",
+   "source": "src/routes/activities/+page.server.ts",
+   "needles": [
+    "debugGet('Operators', entityPathV7(ENTITY_OPERATOR))"
+   ],
+   "reads": [
+    "operator_list[].operator"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "source": "src/routes/activities/list/+page.server.ts",
+   "needles": [
+    "obp_requests.get(entityPathV7(ENTITY_ACTIVITY), accessToken)"
+   ],
+   "reads": [
+    "activity_list[].activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "source": "src/routes/activities/list/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`"
+   ],
+   "reads": [
+    "activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Read by the page and again by its action; falls back to the whole answer."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`, accessToken)"
+   ],
+   "reads": [
+    "activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_activity",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_PARCEL_ACTIVITY)}?${activityIdFilter}`"
+   ],
+   "reads": [
+    "parcel_activity_list[].parcel_activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_verification",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_ACTIVITY_VERIFICATION)}?${activityIdFilter}`"
+   ],
+   "reads": [
+    "activity_verification_list[].activity_verification"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_monitoring_period_verification",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION)}?${activityIdFilter}`"
+   ],
+   "reads": [
+    "activity_monitoring_period_verification_list[].activity_monitoring_period_verification"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/operator/OPERATOR_ID",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_OPERATOR)}/${operatorId}`"
+   ],
+   "reads": [
+    "operator"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel/PARCEL_ID",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(`${entityPathV7(ENTITY_PARCEL)}/${parcelId}`, accessToken)"
+   ],
+   "reads": [
+    "parcel"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_owner_verification",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_PARCEL_OWNERSHIP_VERIFICATION)}?parcel_id=${parcelId}`"
+   ],
+   "reads": [
+    "parcel_owner_verification_list[].parcel_owner_verification"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_verification",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "entityPathV7(ENTITY_ACTIVITY_VERIFICATION),"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Only success is checked."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_monitoring_period_verification",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "entityPathV7(ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION),"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Only success is checked."
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "source": "src/routes/activities/[id]/+page.server.ts",
+   "needles": [
+    "const response = await obp_requests.put(",
+    "`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`,"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "The answer is relayed to the page."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "source": "src/routes/activities/create/+page.server.ts",
+   "needles": [
+    "entityPathV7(ENTITY_ACTIVITY),"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "The answer is shown as JSON."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel/PARCEL_ID",
+   "source": "src/routes/parcels/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_PARCEL)}/${encodeURIComponent(parcelId)}`"
+   ],
+   "reads": [
+    "parcel"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Falls back to the whole answer."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_owner_verification",
+   "source": "src/routes/parcels/[id]/+page.server.ts",
+   "needles": [
+    "`${entityPathV7(ENTITY_PARCEL_OWNERSHIP_VERIFICATION)}${byParcel}`"
+   ],
+   "reads": [
+    "parcel_owner_verification_list[].parcel_owner_verification"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_activity",
+   "source": "src/routes/parcels/[id]/+page.server.ts",
+   "needles": [
+    "obp_requests.get(`${entityPathV7(ENTITY_PARCEL_ACTIVITY)}${byParcel}`, accessToken)"
+   ],
+   "reads": [
+    "parcel_activity_list[].parcel_activity"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  }
+ ],
+ "unversioned_calls": [
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/operator",
+   "source": "src/lib/marketplace/ownership.ts",
+   "needles": [
+    "const response = await obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken);",
+    "const opResponse = await obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken);"
+   ],
+   "reads": [
+    "operator_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Read when matching operators by email and when resolving relationships."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/user_operator_relationship",
+   "source": "src/lib/marketplace/ownership.ts",
+   "needles": [
+    "const relResponse = await obp_requests.get(",
+    "entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP),"
+   ],
+   "reads": [
+    "user_operator_relationship_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/user_operator_relationship",
+   "source": "src/lib/marketplace/ownership.ts",
+   "needles": [
+    "const response = await obp_requests.post(",
+    "entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP),"
+   ],
+   "reads": [
+    "user_operator_relationship"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Falls back to the whole answer."
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/user_operator_relationship/USER_OPERATOR_RELATIONSHIP_ID",
+   "source": "src/lib/marketplace/ownership.ts",
+   "needles": [
+    "`${entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP)}/${relationshipId}`"
+   ],
+   "reads": [
+    "user_operator_relationship"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Falls back to the whole answer."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/country",
+   "source": "src/lib/reference/countries.ts",
+   "needles": [
+    "obp_requests.get(entityPath(ENTITY_COUNTRY), accessToken)"
+   ],
+   "reads": [
+    "country_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/technologies_practices_processes",
+   "source": "src/lib/reference/practices.ts",
+   "needles": [
+    "obp_requests.get(entityPath(entity), accessToken)"
+   ],
+   "reads": [
+    "technologies_practices_processes_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/operator",
+   "source": "src/routes/operators/+page.server.ts",
+   "needles": [
+    "obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken)"
+   ],
+   "reads": [
+    "operator_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/operator/OPERATOR_ID",
+   "source": "src/routes/operators/[operatorId]/+page.server.ts",
+   "needles": [
+    "`${entityPath(ENTITY_OPERATOR)}/${operatorId}`"
+   ],
+   "reads": [
+    "operator"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Falls back to the whole answer."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/activity",
+   "source": "src/routes/operators/[operatorId]/+page.server.ts",
+   "needles": [
+    "`${entityPath(ENTITY_ACTIVITY)}?${params.toString()}`"
+   ],
+   "reads": [
+    "activity_list"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/operator/OPERATOR_ID",
+   "source": "src/routes/my/operators/[operatorId]/+page.server.ts",
+   "needles": [
+    "`${entityPath(ENTITY_OPERATOR)}/${operatorId}`"
+   ],
+   "reads": [],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Only success is checked."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/dynamic-entity/banks/BANK_ID/operator",
+   "source": "src/routes/my/operators/create/+page.server.ts",
+   "needles": [
+    "entityPath(ENTITY_OPERATOR),"
+   ],
+   "reads": [
+    "operator"
+   ],
+   "undocumented_endpoint": "dynamic entity, defined at run time",
+   "note": "Falls back to the whole answer."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activities-query",
+   "source": "src/lib/registry/activities.ts",
+   "needles": [
+    "'/obp/dynamic-endpoint/dynamic-resource-doc/registry/activities-query';",
+    "const url = `${base}${REGISTRY_ACTIVITIES_PATH}`;"
+   ],
+   "reads": [
+    "activities",
+    "count"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activity-query",
+   "source": "src/lib/registry/activityAreas.ts",
+   "needles": [
+    "fetchFn(`${base}${REGISTRY_ACTIVITY_PATH}`)"
+   ],
+   "reads": [
+    "activities[].activity_id",
+    "activities[].multipolygon_coordinates"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activity-query",
+   "source": "src/lib/registry/activityDetail.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_ACTIVITY_PATH = `${QUERY_PREFIX}/activity-query`;",
+    "fetchFn(`${base}${path}?${params}`)"
+   ],
+   "reads": [
+    "activities"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Filtered by obp_filter[activity_id]."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activity-practices-query",
+   "source": "src/lib/registry/activityDetail.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_ACTIVITY_PRACTICES_PATH = `${QUERY_PREFIX}/activity-practices-query`;",
+    "fetchFn(`${base}${path}?${params}`)"
+   ],
+   "reads": [
+    "practices"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Filtered by obp_filter[activity_id]."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activity-sdgs-query",
+   "source": "src/lib/registry/activityDetail.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_ACTIVITY_SDGS_PATH = `${QUERY_PREFIX}/activity-sdgs-query`;",
+    "fetchFn(`${base}${path}?${params}`)"
+   ],
+   "reads": [
+    "sdgs"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Filtered by obp_filter[activity_id]."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/activity-certificates-query",
+   "source": "src/lib/registry/activityDetail.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_ACTIVITY_CERTIFICATES_PATH = `${QUERY_PREFIX}/activity-certificates-query`;",
+    "fetchFn(`${base}${path}?${params}`)"
+   ],
+   "reads": [
+    "certificates"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Filtered by obp_filter[activity_id]."
+  }
+ ],
+ "path_builders": [
+  {
+   "names": [
+    "entityPath",
+    "entityPathV7",
+    "publicEntityPathV7"
+   ],
+   "source": "src/lib/constants/entities.ts",
+   "needles": [
+    "export function entityPath(entity: string): string {",
+    "return `/obp/dynamic-entity${space}/${entity}`;",
+    "export function publicEntityPathV7(entity: string): string {",
+    "return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/dynamic-entities/public/${entity}`;",
+    "export function entityPathV7(entity: string): string {",
+    "return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/dynamic-entities/${entity}`;"
+   ]
+  },
+  {
+   "names": [
+    "tradingPaths"
+   ],
+   "source": "src/lib/obp/trading.ts",
+   "needles": [
+    "`/obp/v7.0.0/banks/${encodeURIComponent(bankId)}/accounts/${encodeURIComponent(accountId)}/views/${encodeURIComponent(viewId)}`;"
+   ]
+  },
+  {
+   "names": [
+    "filesPath"
+   ],
+   "source": "src/routes/files-test/+page.server.ts",
+   "needles": [
+    "function filesPath(...segments: string[]): string {",
+    "return `/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}${rest}`;"
+   ]
+  }
+ ]
+}
