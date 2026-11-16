@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const SOURCE_ROOTS = ['src', 'scripts'];
-const SKIP_DIRS = new Set(['node_modules', '.svelte-kit', 'build', 'dist', 'test-results', 'docs']);
+// Only these are skipped, at any depth: a directory of the app called docs, build or dist is app code.
+const SKIP_DIRS = new Set(['node_modules', '.svelte-kit']);
 const EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs', '.svelte'];
 /** obp/vX.Y.Z in a path, with or without a leading slash, followed by anything but more of the version. */
 const OLD_VERSION = /obp\/(v(?:[1-4])\.\d+\.\d+|v5\.0\.0)(?![\d.])/g;

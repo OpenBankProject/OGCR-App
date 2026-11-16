@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const CONTRACT_DIR = join(REPO_ROOT, 'obp-api-contract');
-const SKIP_DIRS = new Set(['node_modules', '.svelte-kit', 'build', 'dist']);
+const SKIP_DIRS = new Set(['node_modules', '.svelte-kit']);
 const EXTENSIONS = ['.ts', '.js', '.svelte'];
 /** A string that names an OBP-API path: a version, a computed version, or a dynamic route. */
 const OBP_PATH = /\/obp\/(v\d|\$\{|dynamic-entity|dynamic-endpoint)/;
