@@ -14,8 +14,13 @@ const SKIP_DIRS = new Set(['node_modules', '.svelte-kit']);
 const EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs', '.svelte'];
 /** obp/vX.Y.Z in a path, with or without a leading slash, followed by anything but more of the version. */
 const OLD_VERSION = /obp\/(v(?:[1-4])\.\d+\.\d+|v5\.0\.0)(?![\d.])/g;
-/** A string literal that is only a version, as in `const API_VERSION = 'v4.0.0'`, used to build paths. */
-const OLD_VERSION_LITERAL = /['"`](v(?:[1-4])\.\d+\.\d+|v5\.0\.0)['"`]/g;
+/**
+ * A string literal that is only a version, as in `const API_VERSION = 'v4.0.0'`, or a piece of a
+ * path that starts with one ('/v4.0.0/banks'), used to build paths.
+ */
+const OLD_VERSION_LITERAL = /['"`]\/?(v(?:[1-4])\.\d+\.\d+|v5\.0\.0)(?=['"`\/])/g;
+/** A version computed from a variable, which this test cannot read: obp/v${major}.0.0. */
+const COMPUTED_VERSION = /obp\/v\$\{/g;
 
 /**
  * file (repo-relative) + path fragment -> why it is still below v5.1.0. Empty: every OBP-API
@@ -40,7 +45,9 @@ function oldVersionsIn(line: string): string[] {
 	// A version-only literal in a comment documents something; it builds no path.
 	const comment = /^\s*(\/\/|\/?\*)/.test(line);
 	const literals = comment ? [] : [...line.matchAll(OLD_VERSION_LITERAL)];
-	return [...line.matchAll(OLD_VERSION), ...literals].map((match) => match[0]);
+	return [...line.matchAll(OLD_VERSION), ...literals, ...line.matchAll(COMPUTED_VERSION)].map(
+		(match) => match[0]
+	);
 }
 
 function callsBelowV510(): string[] {
@@ -81,6 +88,9 @@ describe('OBP-API version used by the app', () => {
 		expect(flagged('api POST obp/v5.0.0/banks')).toBe(true);
 		expect(flagged('`${base}obp/v3.1.0/banks`')).toBe(true);
 		expect(flagged("const API_VERSION = 'v4.0.0';")).toBe(true);
+		expect(flagged("'/obp' + '/v4.0.0/banks'")).toBe(true);
+		expect(flagged('`/obp/v${major}.0.0/banks`')).toBe(true);
+		expect(flagged("'/obp' + '/v6.0.0/banks'")).toBe(false);
 		expect(flagged('`/obp/v5.1.0/x`')).toBe(false);
 		expect(flagged('`/obp/v6.0.0/root` and `/obp/v7.0.0/my/accounts`')).toBe(false);
 		expect(flagged('`/obp/dynamic-entity/x`')).toBe(false);

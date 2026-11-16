@@ -15,9 +15,14 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '../../..');
 const CONTRACT_DIR = join(REPO_ROOT, 'obp-api-contract');
 const SKIP_DIRS = new Set(['node_modules', '.svelte-kit']);
-const EXTENSIONS = ['.ts', '.js', '.svelte'];
-/** A string that names an OBP-API path: a version, a computed version, or a dynamic route. */
-const OBP_PATH = /\/obp\/(v\d|\$\{|dynamic-entity|dynamic-endpoint)/;
+const EXTENSIONS = ['.ts', '.js', '.mjs', '.cjs', '.svelte'];
+/**
+ * A string that names an OBP-API path: a version, a computed version, or a dynamic route, with or
+ * without the leading slash, or a piece of a path put together from several strings
+ * ('/obp/' + version, '/obp' + '/v6.0.0/banks', '/v6.0.0/banks').
+ */
+const OBP_PATH =
+	/(?<![\w.-])\/?obp\/(v\d|v\$\{|\$\{|dynamic-entity|dynamic-endpoint)|\/obp\/?['"`]|['"`]obp\/?['"`]|['"`]\/v\d+\.\d+\.\d+\//;
 
 interface Call {
 	verb: string;
@@ -36,10 +41,17 @@ interface PathBuilder {
 	needles: string[];
 }
 
+interface PathParam {
+	source: string;
+	name: string;
+	reason: string;
+}
+
 interface Contract {
 	calls: Call[];
 	unversioned_calls: Call[];
 	path_builders: PathBuilder[];
+	request_path_params: PathParam[];
 }
 
 interface Endpoint {
@@ -93,20 +105,68 @@ const BUILDER_USE = new RegExp(
 		.join('|')})\\s*[(.]`
 );
 
+/** The app sources without tests: [file relative to the repo, text without imports]. */
+function appSources(): [string, string][] {
+	return sourceFiles(join(REPO_ROOT, 'src')).map((file) => [
+		relative(REPO_ROOT, file).split('\\').join('/'),
+		withoutImports(readFileSync(file, 'utf8'))
+	]);
+}
+
 /**
  * Lines of app source that build an OBP-API path or use a path builder, skipping comments
  * and tests: [file relative to the repo, line number, line].
  */
 function obpPathLines(): [string, number, string][] {
 	const out: [string, number, string][] = [];
-	for (const file of sourceFiles(join(REPO_ROOT, 'src'))) {
-		const rel = relative(REPO_ROOT, file).split('\\').join('/');
-		withoutImports(readFileSync(file, 'utf8'))
-			.split('\n')
-			.forEach((line, i) => {
-				if (/^\s*(\/\/|\/?\*)/.test(line)) return;
-				if (OBP_PATH.test(line) || BUILDER_USE.test(line)) out.push([rel, i + 1, line]);
-			});
+	for (const [rel, text] of appSources()) {
+		text.split('\n').forEach((line, i) => {
+			if (/^\s*(\/\/|\/?\*)/.test(line)) return;
+			if (OBP_PATH.test(line) || BUILDER_USE.test(line)) out.push([rel, i + 1, line]);
+		});
+	}
+	return out;
+}
+
+/** What `name` is set to, in `text` or in any app source: `const name = <value>;`. */
+function definitions(name: string, own: string, all: [string, string][]): string[] {
+	const pattern = new RegExp(
+		`(?:const|let|var)\\s+${escape(name)}\\s*(?::[^=\\n]+)?=\\s*([^;]*?);`,
+		'gs'
+	);
+	const own_defs = [...own.matchAll(pattern)].map((m) => m[1]);
+	if (own_defs.length > 0) return own_defs;
+	return all.flatMap(([, text]) => [...text.matchAll(pattern)].map((m) => m[1]));
+}
+
+/** Whether `name` is set to an OBP-API path, or to a template that starts from another such name. */
+function isObpPath(name: string, own: string, all: [string, string][], depth = 2): boolean {
+	return definitions(name, own, all).some(
+		(d) =>
+			OBP_PATH.test(d) ||
+			BUILDER_USE.test(d) ||
+			(depth > 0 &&
+				[...d.matchAll(/\$\{([A-Za-z_$][\w$]*)\}/g)].some((m) =>
+					isObpPath(m[1], own, all, depth - 1)
+				))
+	);
+}
+
+/**
+ * The first argument of each request to OBP-API in `text`: `obp_requests.get(<arg>` and a
+ * `fetch(` or `fetchFn(` on the OBP-API base URL (`${base}<arg>`): [line number, argument].
+ * Strings are returned as they start; anything else is the identifier or call it starts with.
+ */
+function requestArguments(text: string): [number, string][] {
+	const out: [number, string][] = [];
+	const patterns = [
+		/obp_requests\s*\.\s*(?:get|post|put|delete)\s*\(\s*(['"`]|[A-Za-z_$][\w$]*)/g,
+		/\bfetch(?:Fn)?\s*\(\s*`\$\{(?:base|env\.PUBLIC_OBP_BASE_URL|publicEnv\.PUBLIC_OBP_BASE_URL)\}\$\{([A-Za-z_$][\w$]*)\}/g
+	];
+	for (const pattern of patterns) {
+		for (const m of text.matchAll(pattern)) {
+			out.push([text.slice(0, m.index).split('\n').length, m[1]]);
+		}
 	}
 	return out;
 }
@@ -153,6 +213,42 @@ describe('OBP-API contract', () => {
 			)
 			.map(([file, n, line]) => `${file}:${n} ${line.trim()}`);
 		expect(unlisted).toEqual([]);
+	});
+
+	it('traces the path of every request to OBP-API', () => {
+		// A request whose path is an identifier must name a path builder, or something set to an OBP-API
+		// path (a string the coverage scan above reads), or be a path parameter listed in
+		// request_path_params; a path from anywhere else would reach OBP-API unrecorded.
+		const sources = appSources();
+		const builders = new Set(contract.path_builders.flatMap((b) => b.names));
+		const unresolved: string[] = [];
+		let requests = 0;
+		for (const [file, text] of sources) {
+			const lines = text.split('\n');
+			for (const [n, arg] of requestArguments(text)) {
+				requests++;
+				const where = `${file}:${n} ${arg}`;
+				if (/^['"`]$/.test(arg)) {
+					const written = `${lines[n - 1]}\n${lines[n] ?? ''}`;
+					if (!OBP_PATH.test(written) && !BUILDER_USE.test(written)) unresolved.push(where);
+				} else if (builders.has(arg)) {
+					continue;
+				} else if (contract.request_path_params.some((p) => p.source === file && p.name === arg)) {
+					continue;
+				} else if (!isObpPath(arg, text, sources)) {
+					unresolved.push(where);
+				}
+			}
+		}
+		expect(requests).toBeGreaterThan(40);
+		expect(unresolved).toEqual([]);
+		for (const p of contract.request_path_params) {
+			const text = sources.find(([file]) => file === p.source)?.[1] ?? '';
+			expect(
+				requestArguments(text).some(([, arg]) => arg === p.name),
+				`${p.source}: ${p.name} is not a request path any more`
+			).toBe(true);
+		}
 	});
 
 	it('has a snapshot taken for this contract', () => {
@@ -216,6 +312,23 @@ describe('OBP-API contract', () => {
 		expect(undocumentedReads(either, new Set())).toEqual(either);
 	});
 
+	it('finds the path each request to OBP-API uses', () => {
+		const code = [
+			"await obp_requests.get(GLOSSARY_PATH, token);",
+			"await obp_requests.post(",
+			"\ttradingPaths.offers(ctx),",
+			"await obp_requests.put('/obp/v6.0.0/x', body, token);",
+			"await fetchFn(`${base}${APP_DIRECTORY_PATH}`);",
+			"await fetch(`${base}/obp/v6.0.0/x`);"
+		].join('\n');
+		expect(requestArguments(code)).toEqual([
+			[1, 'GLOSSARY_PATH'],
+			[2, 'tradingPaths'],
+			[4, "'"],
+			[5, 'APP_DIRECTORY_PATH']
+		]);
+	});
+
 	it('recognises the lines that build an OBP-API path', () => {
 		// The coverage scan itself: paths and builder calls are found, other app links are not.
 		const builds = (line: string) => OBP_PATH.test(line) || BUILDER_USE.test(line);
@@ -224,6 +337,11 @@ describe('OBP-API contract', () => {
 		expect(builds('`/obp/dynamic-entity${space}/${entity}`')).toBe(true);
 		expect(builds('obp_requests.get(entityPathV7(ENTITY_ACTIVITY), accessToken)')).toBe(true);
 		expect(builds('obp_requests.get(tradingPaths.offers(ctx), accessToken)')).toBe(true);
+		expect(builds("obp_requests.get('/obp' + '/v4.0.0/banks', accessToken)")).toBe(true);
+		expect(builds("obp_requests.get('/obp/' + version + '/banks', accessToken)")).toBe(true);
+		expect(builds("obp_requests.get('obp/v7.0.0/banks', accessToken)")).toBe(true);
+		expect(builds('obp_requests.get(`/obp/v${major}.0.0/banks`, accessToken)')).toBe(true);
+		expect(builds("get('/v4.0.0/banks')")).toBe(true);
 		expect(builds('<a href="/my/operators">')).toBe(false);
 		expect(builds('const unwrapped = unwrapV7List(response, ENTITY_ACTIVITY);')).toBe(false);
 		expect(withoutImports("import { entityPath } from '$lib/constants/entities';\nx")).toBe('\nx');
