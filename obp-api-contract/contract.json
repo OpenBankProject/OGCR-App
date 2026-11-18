@@ -820,6 +820,47 @@
     "parcel_activity_list[].parcel_activity"
    ],
    "undocumented_endpoint": "dynamic entity, defined at run time"
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/root",
+   "source": "src/lib/server/setup.ts",
+   "needles": [
+    "`${base}/obp/v5.1.0/root`",
+    "`HTTP ${response.status} from ${base}/obp/v5.1.0/root.`"
+   ],
+   "reads": [
+    "version",
+    "git_commit"
+   ],
+   "note": "/setup checks that OBP-API answers, and shows its version."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/banks/BANK_ID",
+   "source": "src/lib/server/setup.ts",
+   "needles": [
+    "`${base}/obp/v5.1.0/banks/${encodeURIComponent(ENTITY_SPACE_ID)}`"
+   ],
+   "reads": [],
+   "note": "/setup checks that the space's bank exists; only the status is read."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "source": "src/lib/server/setup.ts",
+   "needles": [
+    "`/obp/v6.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/resource-docs/v6.0.0/obp?content=dynamic`"
+   ],
+   "reads": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url"
+   ],
+   "undocumented_fields": [
+    "resource_docs[].request_verb",
+    "resource_docs[].specified_url"
+   ],
+   "note": "OBP-API documents no response schema for resource docs. /setup reads which Dynamic Entities the space has."
   }
  ],
  "unversioned_calls": [

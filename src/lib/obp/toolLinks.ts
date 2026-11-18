@@ -5,6 +5,7 @@ import {
 	MCP_URL,
 	PORTAL_URL,
 	PORTAL_AUTHENTICATION_PATH,
+	PORTAL_REGISTER_PATH,
 	getAppDirectory
 } from '$lib/obp/appDirectory';
 
@@ -15,6 +16,7 @@ export interface ToolLinks {
 	mcpUrl: string | null;
 	portalUrl: string | null;
 	authenticationUrl: string | null;
+	registerUrl: string | null;
 }
 
 /** API Explorer opened on this deployment's dynamic endpoints, scoped to the bank
@@ -38,6 +40,7 @@ export async function getToolLinks(fetchFn: typeof fetch): Promise<ToolLinks> {
 		portalUrl: portalUrl ?? null,
 		authenticationUrl: portalUrl
 			? `${portalUrl.replace(/\/$/, '')}${PORTAL_AUTHENTICATION_PATH}`
-			: null
+			: null,
+		registerUrl: portalUrl ? `${portalUrl.replace(/\/$/, '')}${PORTAL_REGISTER_PATH}` : null
 	};
 }

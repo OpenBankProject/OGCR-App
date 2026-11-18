@@ -6,7 +6,7 @@
 export interface BuiltInEntity {
 	name: string;
 	description: string;
-	/** Title of the Glossary Item that explains it, opened in the Portal's Glossary. */
+	/** Title of the Glossary Item that explains it, opened in API Explorer II's Glossary. */
 	glossaryTitle: string;
 	/** A page of this app that shows it, if there is one. */
 	page?: { href: string; label: string };
@@ -63,7 +63,11 @@ export const BUILT_IN_ENTITIES: BuiltInEntity[] = [
 	}
 ];
 
-/** The Glossary Item's page in the Portal, e.g. https://portal.example.com/api-explorer/glossary/Consumer. */
-export function portalGlossaryHref(portalUrl: string, title: string): string {
-	return `${portalUrl.replace(/\/$/, '')}/api-explorer/glossary/${encodeURIComponent(title)}`;
+/**
+ * The Glossary Item in API Explorer II's Glossary, e.g.
+ * https://apiexplorer.example.com/glossary#Consumer. API Explorer II anchors each item by its
+ * exact title.
+ */
+export function glossaryHref(apiExplorerUrl: string, title: string): string {
+	return `${new URL(apiExplorerUrl).origin}/glossary#${encodeURIComponent(title)}`;
 }
