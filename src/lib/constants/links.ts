@@ -6,3 +6,9 @@ export const PRODUCT_SITE_URL = 'https://ogcr-dcr-product.tesobe.com';
  * links to its repository. The home page's Source Code card links here.
  */
 export const SOURCE_CODE_URL = `${PRODUCT_SITE_URL}/#components`;
+
+/**
+ * How to install the OGCR platform yourself, on the product site, so it can be read even
+ * when this deployment is down. The Evaluators page links here.
+ */
+export const DEPLOY_URL = `${PRODUCT_SITE_URL}/#deploy`;

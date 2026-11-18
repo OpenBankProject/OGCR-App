@@ -4,6 +4,7 @@
 	import { LOOKUP_MAX_COLUMNS_EXCLUSIVE, type EntityCategory } from '$lib/obp/dynamicSummary';
 	import { apiManagerEntityHref, entityPage } from '$lib/obp/entityPages';
 	import { ExternalLink } from '@lucide/svelte';
+	import { BUILT_IN_ENTITIES, portalGlossaryHref } from '$lib/obp/builtInEntities';
 
 	let { data }: { data: PageData } = $props();
 
@@ -70,9 +71,8 @@
 				endpoints and guarded by <span class="ogcr-summary__n">{total(summary.roles)}</span> roles.
 			</p>
 			<p class="text-body-s mt-2 text-surface-600-400">
-				Endpoints: {summary.endpoints.entity} for entities, {summary.endpoints.resourceDoc} for
-				resource docs. Roles: {summary.roles.entity} for entities, {summary.roles.resourceDoc} for
-				resource docs.
+				Endpoints: {summary.endpoints.entity} for entities, {summary.endpoints.resourceDoc} for resource
+				docs. Roles: {summary.roles.entity} for entities, {summary.roles.resourceDoc} for resource docs.
 			</p>
 		</section>
 
@@ -98,7 +98,11 @@
 												<span class="ogcr-entity__links">
 													{#if data.apiManagerUrl}
 														<a
-															href={apiManagerEntityHref(data.apiManagerUrl, data.space, entity.name)}
+															href={apiManagerEntityHref(
+																data.apiManagerUrl,
+																data.space,
+																entity.name
+															)}
 															class="anchor"
 															target="_blank"
 															rel="noopener"
@@ -128,6 +132,49 @@
 			</div>
 		</section>
 	{/if}
+
+	<!-- Static, so shown even when the resource docs could not be loaded. -->
+	<section aria-labelledby="built-in" class="mt-10">
+		<div class="ogcr-panel">
+			<h2 id="built-in" class="ogcr-panel__title">
+				Built-in OBP entities ({BUILT_IN_ENTITIES.length})
+			</h2>
+			<p class="ogcr-panel__description text-surface-600-400">
+				OBP-API's own records that the registry relies on. They are not Dynamic Entities, so they
+				are not counted above.
+			</p>
+			<ul class="ogcr-panel__list">
+				{#each BUILT_IN_ENTITIES as entity (entity.name)}
+					<li>
+						<div class="ogcr-entity">
+							<code>{entity.name}</code>
+							<p class="ogcr-builtin__description">{entity.description}</p>
+							{#if data.portalUrl || entity.page}
+								<span class="ogcr-entity__links">
+									{#if data.portalUrl}
+										<a
+											href={portalGlossaryHref(data.portalUrl, entity.glossaryTitle)}
+											class="anchor"
+											target="_blank"
+											rel="noopener"
+										>
+											Glossary<ExternalLink
+												class="ml-0.5 inline size-3"
+												aria-label="(opens in a new tab)"
+											/>
+										</a>
+									{/if}
+									{#if entity.page}
+										<a href={entity.page.href} class="anchor">Used in {entity.page.label}</a>
+									{/if}
+								</span>
+							{/if}
+						</div>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	</section>
 </div>
 
 <style>
@@ -186,6 +233,10 @@
 		margin-top: 2px;
 		font-size: 12px;
 	}
+	.ogcr-builtin__description {
+		margin-top: 2px;
+		color: var(--text-secondary);
+	}
 	.ogcr-entity__columns {
 		flex-shrink: 0;
 		white-space: nowrap;
@@ -204,6 +255,9 @@
 	:global([data-mode='dark']) .ogcr-panel {
 		background: var(--color-surface-900);
 		border-color: var(--color-surface-700);
+	}
+	:global([data-mode='dark']) .ogcr-builtin__description {
+		color: var(--color-surface-400);
 	}
 	:global([data-mode='dark']) .ogcr-panel__title {
 		color: var(--color-surface-400);

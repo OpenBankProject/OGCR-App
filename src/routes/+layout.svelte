@@ -33,6 +33,7 @@
 			login: 'Login',
 			logout: 'Logout',
 			design: 'Design System',
+			evaluators: 'Evaluators',
 			registry: 'Registry',
 			simple: 'Simple view',
 			certificates: 'Certificates',

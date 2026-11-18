@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/public';
 import { ENTITY_ROLE_BANK_ID } from '$lib/constants/entities';
 import { summarizeResourceDocs, type DynamicSummary } from '$lib/obp/dynamicSummary';
-import { API_MANAGER_URL, getAppDirectory } from '$lib/obp/appDirectory';
+import { API_MANAGER_URL, PORTAL_URL, getAppDirectory } from '$lib/obp/appDirectory';
 
 /**
  * Public, like the resource docs it reads. The bank-level resource docs list this
@@ -33,6 +33,8 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		space: ENTITY_ROLE_BANK_ID,
 		summary,
 		error,
-		apiManagerUrl: (await directory)[API_MANAGER_URL] ?? null
+		apiManagerUrl: (await directory)[API_MANAGER_URL] ?? null,
+		// The Portal shows the Glossary Items that explain the built-in OBP entities.
+		portalUrl: (await directory)[PORTAL_URL] ?? null
 	};
 };
