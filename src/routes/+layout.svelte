@@ -6,8 +6,6 @@
 	import { Home, ChevronRight } from '@lucide/svelte';
 
 	import LightSwitch from '$lib/components/LightSwitch.svelte';
-	import Button from '$lib/components/Button.svelte';
-	import { SOURCE_CODE_URL } from '$lib/constants/links';
 	import PageRoleCheck from '$lib/components/PageRoleCheck.svelte';
 
 	let { data, children } = $props();
@@ -84,7 +82,6 @@
 		</div>
 
 		<div class="flex items-center gap-4">
-			<Button variant="outlined" size="s" href={SOURCE_CODE_URL}>Source Code</Button>
 			<LightSwitch />
 			{#if isAuthenticated}
 				<a href="/user" class="hover:text-tertiary-400">{data.username}</a>

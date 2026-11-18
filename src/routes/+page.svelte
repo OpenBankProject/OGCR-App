@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Card from '$lib/components/Card.svelte';
+	import { PRODUCT_SITE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
 	import {
 		Leaf,
 		Building2,
@@ -17,7 +18,9 @@
 		MessageSquare,
 		Users,
 		FileCode,
-		FileUp
+		FileUp,
+		Network,
+		CodeXml
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -180,11 +183,28 @@
 <section aria-labelledby="design" class="mt-16 flex w-full justify-center px-8 pb-12">
 	<div class="w-full max-w-5xl">
 		<h2 id="design" class="mb-6 text-center h3">Design</h2>
-		<!-- One card, centred at the width of one column of the grids above. -->
-		<nav aria-labelledby="design" class="mx-auto grid max-w-sm grid-cols-1">
+		<nav aria-labelledby="design" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			<Card href="/design" title="Design System" subtitle="Browse OGCR components and tokens.">
 				{#snippet leading()}
 					<Palette class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+			<Card
+				href={PRODUCT_SITE_URL}
+				title="Architecture"
+				subtitle="How the registry is built, and what each part does."
+			>
+				{#snippet leading()}
+					<Network class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+			<Card
+				href={SOURCE_CODE_URL}
+				title="Source Code"
+				subtitle="Every part of the registry, with a link to its repository."
+			>
+				{#snippet leading()}
+					<CodeXml class="size-6" aria-hidden="true" />
 				{/snippet}
 			</Card>
 		</nav>
