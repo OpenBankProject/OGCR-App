@@ -1,5 +1,8 @@
+/** The OGCR DCR product site: what the registry is and how it is built. The home page's Architecture card links here. */
+export const PRODUCT_SITE_URL = 'https://ogcr-dcr-product.tesobe.com';
+
 /**
- * The registry's source code: the list of every repository on the OGCR DCR product site.
- * The header's Source Code button links here.
+ * The registry's source code: the Components section of the product site, where each part
+ * links to its repository. The home page's Source Code card links here.
  */
-export const SOURCE_CODE_URL = 'https://ogcr-dcr-product.tesobe.com/#source';
+export const SOURCE_CODE_URL = `${PRODUCT_SITE_URL}/#components`;
