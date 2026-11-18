@@ -279,6 +279,10 @@
 <div class="container mx-auto px-4 py-8 max-w-5xl">
 	<div class="mb-8">
 		<h1 class="text-4xl font-bold mb-2 h1">System Status</h1>
+		<p class="text-body ogcr-status-secondary">
+			Whether the services are running now. For whether each thing this app needs is in place, see
+			<a href="/setup" class="anchor">Setup</a>.
+		</p>
 	</div>
 
 	{#if refreshError}
@@ -611,3 +615,13 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.ogcr-status-secondary {
+		color: var(--text-secondary);
+	}
+	/* See Card.svelte — the design system ships no dark palette. */
+	:global([data-mode='dark']) .ogcr-status-secondary {
+		color: var(--color-surface-400);
+	}
+</style>
