@@ -1,4 +1,5 @@
 <script lang="ts">
+	// Map styles: follow the OGCR Design System's Map component; see "Map styles" in design_system_integration.md.
 	import { onMount } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 

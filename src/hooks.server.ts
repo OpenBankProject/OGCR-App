@@ -6,6 +6,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { sveltekitSessionHandle } from 'svelte-kit-sessions';
 import RedisStore from 'svelte-kit-connect-redis';
 
+import { hasClientFor } from '$lib/oauth/clientConfig';
 import { oauth2ProviderManager } from '$lib/oauth/providerManager';
 import { SessionOAuthHelper } from '$lib/oauth/sessionHelper';
 import { redisService } from '$lib/redis/services/RedisService';
@@ -105,11 +106,14 @@ function initHealthChecks() {
 		}
 	};
 
-	// Register every known provider — including ones that failed to initialize —
-	// so /status shows the full OIDC picture, not only the working providers.
+	// Register every provider this app has a client for — including ones that
+	// failed to initialize — so /status shows the full OIDC picture, not only the
+	// working providers. A provider with no client here (say OBP-API lists Google
+	// but GOOGLE_OAUTH_CLIENT_ID is unset) is not used, so it is not checked.
 	// The providerStatus callback reads live manager state, so a provider that
 	// comes up (or dies) after boot flips on the status page without a restart.
 	for (const p of oauth2ProviderManager.getAllProviders()) {
+		if (!hasClientFor(p.provider)) continue;
 		const { clientId, clientSecret } = credentialsFor(p.provider);
 		healthCheckRegistry.register(
 			new OIDCHealthCheckService({

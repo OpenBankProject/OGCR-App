@@ -6,6 +6,9 @@
 	 * makes. Small parcels vanish at country zoom, so while zoomed out each area also
 	 * gets a dot at its centre; the dots go once the outlines are big enough to click.
 	 * Clicking either opens a popup that links to the activity.
+	 *
+	 * Map styles: follow the OGCR Design System's Map component; see "Map styles" in
+	 * design_system_integration.md.
 	 */
 	import { onMount } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
