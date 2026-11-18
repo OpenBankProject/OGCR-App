@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import Card from '$lib/components/Card.svelte';
 	import Button from '$lib/components/Button.svelte';
-	import { PRODUCT_SITE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
+	import { ARCHITECTURE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
 	import {
 		Leaf,
 		Building2,
@@ -197,7 +197,7 @@
 				{/snippet}
 			</Card>
 			<Card
-				href={PRODUCT_SITE_URL}
+				href={ARCHITECTURE_URL}
 				title="Architecture"
 				subtitle="How the registry is built, and what each part does."
 			>
