@@ -1,0 +1,861 @@
+{
+ "about": "Written by obp-api-contract/snapshot.py; do not edit by hand.",
+ "obp_api": {
+  "https://k8s.openbankproject.com": {
+   "version": "v7.0.0",
+   "git_commit": "474d4bcc554f1d8e9516e12d85be121d92410aa5"
+  }
+ },
+ "taken_at": "2026-11-12T23:24:14Z",
+ "endpoints": [
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/root",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv5.1.0-root",
+   "documented_path": "/obp/v5.1.0/root",
+   "fields": [
+    "connector",
+    "energy_source",
+    "energy_source.organisation",
+    "energy_source.organisation_website",
+    "git_commit",
+    "hosted_at",
+    "hosted_at.organisation",
+    "hosted_at.organisation_website",
+    "hosted_by",
+    "hosted_by.email",
+    "hosted_by.organisation",
+    "hosted_by.organisation_website",
+    "hosted_by.phone",
+    "hostname",
+    "local_identity_provider",
+    "resource_docs_requires_role",
+    "version",
+    "version_status"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/well-known",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv5.1.0-getOAuth2ServerWellKnown",
+   "documented_path": "/obp/v5.1.0/well-known",
+   "fields": [
+    "jwks_uris",
+    "jwks_uris[]",
+    "jwks_uris[].jwks_uri"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v5.1.0/users/current",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv3.0.0-getCurrentUser",
+   "documented_path": "/obp/v5.1.0/users/current",
+   "fields": [
+    "email",
+    "entitlements",
+    "entitlements.list",
+    "entitlements.list[]",
+    "entitlements.list[].bank_id",
+    "entitlements.list[].entitlement_id",
+    "entitlements.list[].role_name",
+    "provider",
+    "provider_id",
+    "user_id",
+    "username",
+    "views",
+    "views.list",
+    "views.list[]",
+    "views.list[].account_id",
+    "views.list[].bank_id",
+    "views.list[].view_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/entitlement-requests",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv3.0.0-addEntitlementRequest",
+   "documented_path": "/obp/v6.0.0/entitlement-requests",
+   "fields": [
+    "bank_id",
+    "created",
+    "entitlement_request_id",
+    "role_name",
+    "user",
+    "user.email",
+    "user.entitlements",
+    "user.entitlements.list",
+    "user.entitlements.list[]",
+    "user.entitlements.list[].bank_id",
+    "user.entitlements.list[].entitlement_id",
+    "user.entitlements.list[].role_name",
+    "user.provider",
+    "user.provider_id",
+    "user.user_id",
+    "user.username"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/api/glossary",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv3.0.0-getApiGlossary",
+   "documented_path": "/obp/v6.0.0/api/glossary",
+   "fields": [
+    "glossary_items",
+    "glossary_items[]",
+    "glossary_items[].description",
+    "glossary_items[].description.html",
+    "glossary_items[].description.markdown",
+    "glossary_items[].title"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/app-directory",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getAppDirectory",
+   "documented_path": "/obp/v6.0.0/app-directory",
+   "fields": [
+    "app_directory",
+    "app_directory[]",
+    "app_directory[].name",
+    "app_directory[].value"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv1.4.0-getBankLevelDynamicResourceDocsObp",
+   "documented_path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/API_VERSION/obp",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv1.4.0-getBankLevelDynamicResourceDocsObp",
+   "documented_path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/API_VERSION/obp",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv1.4.0-getBankLevelDynamicResourceDocsObp",
+   "documented_path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/API_VERSION/obp",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/v6.0.0/obp",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv1.4.0-getBankLevelDynamicResourceDocsObp",
+   "documented_path": "/obp/v6.0.0/banks/BANK_ID/resource-docs/API_VERSION/obp",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/management/groups",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getGroups",
+   "documented_path": "/obp/v6.0.0/management/groups",
+   "fields": [
+    "groups",
+    "groups[]",
+    "groups[].bank_id",
+    "groups[].group_description",
+    "groups[].group_id",
+    "groups[].group_name",
+    "groups[].is_enabled",
+    "groups[].list_of_roles",
+    "groups[].list_of_roles[]"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/domain-apis",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getPubliclyDiscoverableDomainApis",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/domain-apis",
+   "fields": [
+    "domain_apis",
+    "domain_apis[]",
+    "domain_apis[].bank_id",
+    "domain_apis[].base_path",
+    "domain_apis[].description",
+    "domain_apis[].openapi_url",
+    "domain_apis[].title",
+    "domain_apis[].url",
+    "domain_apis[].version"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/banks",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getBanks",
+   "documented_path": "/obp/v6.0.0/banks",
+   "fields": [
+    "banks",
+    "banks[]",
+    "banks[].attributes",
+    "banks[].attributes[]",
+    "banks[].attributes[].name",
+    "banks[].attributes[].value",
+    "banks[].bank_code",
+    "banks[].bank_id",
+    "banks[].bank_routings",
+    "banks[].bank_routings[]",
+    "banks[].bank_routings[].address",
+    "banks[].bank_routings[].scheme",
+    "banks[].full_name",
+    "banks[].logo",
+    "banks[].website"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/my/personal-data-fields",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getPersonalDataFields",
+   "documented_path": "/obp/v6.0.0/my/personal-data-fields",
+   "fields": [
+    "user_attributes",
+    "user_attributes[]",
+    "user_attributes[].insert_date",
+    "user_attributes[].is_personal",
+    "user_attributes[].name",
+    "user_attributes[].type",
+    "user_attributes[].user_attribute_id",
+    "user_attributes[].value"
+   ]
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/v6.0.0/my/personal-data-fields/USER_ATTRIBUTE_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-updatePersonalDataField",
+   "documented_path": "/obp/v6.0.0/my/personal-data-fields/USER_ATTRIBUTE_ID",
+   "fields": [
+    "insert_date",
+    "is_personal",
+    "name",
+    "type",
+    "user_attribute_id",
+    "value"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/my/personal-data-fields",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-createPersonalDataField",
+   "documented_path": "/obp/v6.0.0/my/personal-data-fields",
+   "fields": [
+    "insert_date",
+    "is_personal",
+    "name",
+    "type",
+    "user_attribute_id",
+    "value"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/my/files",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getMyFiles",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/my/files",
+   "fields": [
+    "files",
+    "files[]",
+    "files[].bank_id",
+    "files[].created_at",
+    "files[].file_id",
+    "files[].file_name",
+    "files[].is_personal",
+    "files[].is_public",
+    "files[].media_type",
+    "files[].on_behalf_of_user_id",
+    "files[].owner_user_id",
+    "files[].scan_status",
+    "files[].scan_status_reason",
+    "files[].sha256",
+    "files[].size_in_bytes",
+    "files[].user_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-createFile",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "fields": [
+    "bank_id",
+    "created_at",
+    "file_id",
+    "file_name",
+    "is_personal",
+    "is_public",
+    "media_type",
+    "on_behalf_of_user_id",
+    "owner_user_id",
+    "scan_status",
+    "scan_status_reason",
+    "sha256",
+    "size_in_bytes",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getFile",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID",
+   "fields": [
+    "bank_id",
+    "created_at",
+    "file_id",
+    "file_name",
+    "is_personal",
+    "is_public",
+    "media_type",
+    "on_behalf_of_user_id",
+    "owner_user_id",
+    "scan_status",
+    "scan_status_reason",
+    "sha256",
+    "size_in_bytes",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getFileContent",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "fields": []
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/attachments",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-createFileAttachment",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/attachments",
+   "fields": [
+    "bank_id",
+    "created_at",
+    "file_attachment_id",
+    "file_id",
+    "on_behalf_of_user_id",
+    "record_id",
+    "record_type",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getFilesAttachedToRecord",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files",
+   "fields": [
+    "files",
+    "files[]",
+    "files[].bank_id",
+    "files[].created_at",
+    "files[].file_id",
+    "files[].file_name",
+    "files[].is_personal",
+    "files[].is_public",
+    "files[].media_type",
+    "files[].on_behalf_of_user_id",
+    "files[].owner_user_id",
+    "files[].scan_status",
+    "files[].scan_status_reason",
+    "files[].sha256",
+    "files[].size_in_bytes",
+    "files[].user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/public-files/FILE_ID/content",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getPublicFileContent",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/public-files/FILE_ID/content",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getFileContent",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
+   "fields": []
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-corePrivateAccountsAllBanks",
+   "documented_path": "/obp/v7.0.0/my/accounts",
+   "fields": [
+    "accounts",
+    "accounts[]",
+    "accounts[].account_id",
+    "accounts[].account_routings",
+    "accounts[].account_routings[]",
+    "accounts[].account_routings[].address",
+    "accounts[].account_routings[].scheme",
+    "accounts[].account_type",
+    "accounts[].bank_id",
+    "accounts[].label",
+    "accounts[].views",
+    "accounts[].views[]",
+    "accounts[].views[].description",
+    "accounts[].views[].is_public",
+    "accounts[].views[].short_name",
+    "accounts[].views[].view_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getTradingOffers",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "fields": [
+    "offers",
+    "offers[]",
+    "offers[].account_info",
+    "offers[].account_info.account_id",
+    "offers[].account_info.bank_id",
+    "offers[].account_info.view_id",
+    "offers[].created_at",
+    "offers[].executions",
+    "offers[].executions[]",
+    "offers[].offer_details",
+    "offers[].offer_details.asset_amount",
+    "offers[].offer_details.asset_code",
+    "offers[].offer_details.offer_type",
+    "offers[].offer_details.price_amount",
+    "offers[].offer_details.price_currency",
+    "offers[].offer_details.settlement_account_id",
+    "offers[].offer_id",
+    "offers[].status",
+    "offers[].updated_at",
+    "offers[].user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getTradingOffers",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "fields": [
+    "offers",
+    "offers[]",
+    "offers[].account_info",
+    "offers[].account_info.account_id",
+    "offers[].account_info.bank_id",
+    "offers[].account_info.view_id",
+    "offers[].created_at",
+    "offers[].executions",
+    "offers[].executions[]",
+    "offers[].offer_details",
+    "offers[].offer_details.asset_amount",
+    "offers[].offer_details.asset_code",
+    "offers[].offer_details.offer_type",
+    "offers[].offer_details.price_amount",
+    "offers[].offer_details.price_currency",
+    "offers[].offer_details.settlement_account_id",
+    "offers[].offer_id",
+    "offers[].status",
+    "offers[].updated_at",
+    "offers[].user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-corePrivateAccountsAllBanks",
+   "documented_path": "/obp/v7.0.0/my/accounts",
+   "fields": [
+    "accounts",
+    "accounts[]",
+    "accounts[].account_id",
+    "accounts[].account_routings",
+    "accounts[].account_routings[]",
+    "accounts[].account_routings[].address",
+    "accounts[].account_routings[].scheme",
+    "accounts[].account_type",
+    "accounts[].bank_id",
+    "accounts[].label",
+    "accounts[].views",
+    "accounts[].views[]",
+    "accounts[].views[].description",
+    "accounts[].views[].is_public",
+    "accounts[].views[].short_name",
+    "accounts[].views[].view_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/my/accounts",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-corePrivateAccountsAllBanks",
+   "documented_path": "/obp/v7.0.0/my/accounts",
+   "fields": [
+    "accounts",
+    "accounts[]",
+    "accounts[].account_id",
+    "accounts[].account_routings",
+    "accounts[].account_routings[]",
+    "accounts[].account_routings[].address",
+    "accounts[].account_routings[].scheme",
+    "accounts[].account_type",
+    "accounts[].bank_id",
+    "accounts[].label",
+    "accounts[].views",
+    "accounts[].views[]",
+    "accounts[].views[].description",
+    "accounts[].views[].is_public",
+    "accounts[].views[].short_name",
+    "accounts[].views[].view_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-createTradingOffer",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers",
+   "fields": [
+    "account_info",
+    "account_info.account_id",
+    "account_info.bank_id",
+    "account_info.view_id",
+    "created_at",
+    "executions",
+    "executions[]",
+    "offer_details",
+    "offer_details.asset_amount",
+    "offer_details.asset_code",
+    "offer_details.offer_type",
+    "offer_details.price_amount",
+    "offer_details.price_currency",
+    "offer_details.settlement_account_id",
+    "offer_id",
+    "status",
+    "updated_at",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getTradingOffer",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "fields": [
+    "account_info",
+    "account_info.account_id",
+    "account_info.bank_id",
+    "account_info.view_id",
+    "created_at",
+    "executions",
+    "executions[]",
+    "offer_details",
+    "offer_details.asset_amount",
+    "offer_details.asset_code",
+    "offer_details.offer_type",
+    "offer_details.price_amount",
+    "offer_details.price_currency",
+    "offer_details.settlement_account_id",
+    "offer_id",
+    "status",
+    "updated_at",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "DELETE",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-cancelTradingOffer",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/trading/offers/OFFER_ID",
+   "fields": [
+    "offer_id",
+    "status"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-createMarketOrder",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders",
+   "fields": [
+    "account_id",
+    "created_at",
+    "order_id",
+    "price",
+    "quantity",
+    "side",
+    "status",
+    "updated_at",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getMarketOrder",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "fields": [
+    "account_id",
+    "created_at",
+    "order_id",
+    "price",
+    "quantity",
+    "side",
+    "status",
+    "updated_at",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "DELETE",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-cancelMarketOrder",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/orders/ORDER_ID",
+   "fields": [
+    "account_id",
+    "created_at",
+    "order_id",
+    "price",
+    "quantity",
+    "side",
+    "status",
+    "updated_at",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/matches",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-createMarketMatch",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/matches",
+   "fields": [
+    "amount",
+    "counter_order_id",
+    "created_at",
+    "match_id",
+    "order_id",
+    "price",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/trades/TRADE_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-getMarketTrade",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/trades/TRADE_ID",
+   "fields": [
+    "amount",
+    "buy_order_id",
+    "created_at",
+    "price",
+    "sell_order_id",
+    "status",
+    "trade_id",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/settlements",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-requestSettlement",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/settlements",
+   "fields": [
+    "created_at",
+    "settlement_id",
+    "status",
+    "step",
+    "trade_id",
+    "user_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/withdrawals",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv7.0.0-requestWithdrawal",
+   "documented_path": "/obp/v7.0.0/banks/BANK_ID/accounts/ACCOUNT_ID/views/VIEW_ID/market/withdrawals",
+   "fields": [
+    "account_id",
+    "address",
+    "amount",
+    "created_at",
+    "required_confirmations",
+    "status",
+    "user_id",
+    "withdrawal_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/ENTITY_NAME",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME/ENTITY_NAME_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME/ENTITY_NAME_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/public/ENTITY_NAME",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/operator",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_activity",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_monitoring_period_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/operator/OPERATOR_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel/PARCEL_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_owner_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity_monitoring_period_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "PUT",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity/ACTIVITY_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/activity",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel/PARCEL_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_owner_verification",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/dynamic-entities/parcel_activity",
+   "docs_from": "https://k8s.openbankproject.com",
+   "missing": true
+  }
+ ]
+}
