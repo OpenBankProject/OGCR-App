@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Card from '$lib/components/Card.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import { DEPLOY_URL, SOURCE_CODE_URL } from '$lib/constants/links';
 	import {
 		Library,
@@ -13,7 +14,8 @@
 		Bot,
 		Leaf,
 		Network,
-		Ship
+		Ship,
+		MessageSquare
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -87,6 +89,10 @@
 	);
 </script>
 
+{#snippet opeyIcon()}
+	<MessageSquare class="size-4" aria-hidden="true" />
+{/snippet}
+
 <svelte:head>
 	<title>Evaluators - OGCR DCR</title>
 </svelte:head>
@@ -97,6 +103,13 @@
 		For anyone evaluating the OGCR Digital Carbon Registry: what to look at, how it is built, and
 		how to install it yourself.
 	</p>
+
+	<!-- The Portal's home page hosts the Opey agent chat. Hidden when OBP-API gives no Portal address. -->
+	{#if data.portalUrl}
+		<div class="mb-10">
+			<Button href={data.portalUrl} iconLeft={opeyIcon}>Ask the Opey Agent</Button>
+		</div>
+	{/if}
 
 	<section aria-labelledby="look" class="mb-12">
 		<h2 id="look" class="text-h2 mb-2">What to look at</h2>

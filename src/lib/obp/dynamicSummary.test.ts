@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { categorize, summarizeResourceDocs } from './dynamicSummary';
+import { categorize, listResourceDocs, summarizeResourceDocs } from './dynamicSummary';
 
 function entityDocs(name: string, fields: string[], bank = 'ogcr') {
 	const base = `/obp/dynamic-entity/banks/${bank}/${name}`;
@@ -105,5 +105,28 @@ describe('summarizeResourceDocs', () => {
 			}
 		]);
 		expect(system.entities.main).toEqual([{ name: 'parcel', columns: 4 }]);
+	});
+});
+
+describe('listResourceDocs', () => {
+	it('lists the Dynamic Resource Docs by path, with their Roles', () => {
+		const docs = listResourceDocs([
+			{ request_verb: 'POST', specified_url: '/obp/dynamic-entity/banks/ogcr/activity' },
+			{
+				request_verb: 'GET',
+				specified_url: '/obp/dynamic-endpoint/banks/ogcr/dynamic-resource-doc/registry/private',
+				roles: [{ role: 'CanReadPrivate' }]
+			},
+			{
+				request_verb: 'GET',
+				specified_url:
+					'/obp/dynamic-endpoint/banks/ogcr/dynamic-resource-doc/registry/activities-query',
+				roles: []
+			}
+		]);
+		expect(docs).toEqual([
+			{ verb: 'GET', path: '/registry/activities-query', roles: [] },
+			{ verb: 'GET', path: '/registry/private', roles: ['CanReadPrivate'] }
+		]);
 	});
 });

@@ -94,3 +94,24 @@ export function summarizeResourceDocs(docs: ResourceDoc[]): DynamicSummary {
 		roles: { entity: roles.entity.size, resourceDoc: roles.resourceDoc.size }
 	};
 }
+
+/** One Dynamic Resource Doc: its verb, its path inside the space, and the Roles it needs. */
+export interface ResourceDocSummary {
+	verb: string;
+	/** The path after `/dynamic-resource-doc`, e.g. `/registry/activities-query`. */
+	path: string;
+	/** Empty when the endpoint needs no Role. */
+	roles: string[];
+}
+
+/** The space's Dynamic Resource Docs, sorted by path. */
+export function listResourceDocs(docs: ResourceDoc[]): ResourceDocSummary[] {
+	return docs
+		.filter((doc) => (doc.specified_url ?? '').includes('/dynamic-endpoint/'))
+		.map((doc) => ({
+			verb: doc.request_verb ?? '',
+			path: (doc.specified_url ?? '').replace(/^.*\/dynamic-resource-doc/, ''),
+			roles: (doc.roles ?? []).map(({ role }) => role ?? '').filter(Boolean)
+		}))
+		.sort((one, other) => one.path.localeCompare(other.path));
+}
