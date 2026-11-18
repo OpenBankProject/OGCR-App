@@ -18,6 +18,9 @@ export const PORTAL_URL = 'public_obp_portal_url';
 /** The Portal's guide to authenticating against OBP (OAuth2 / OpenID Connect). */
 export const PORTAL_AUTHENTICATION_PATH = '/developers/oauth2-oidc';
 
+/** The Portal's page where a person creates an account. */
+export const PORTAL_REGISTER_PATH = '/register';
+
 /** name -> URL, for the entries that hold an http(s) URL. */
 export type AppDirectory = Record<string, string>;
 

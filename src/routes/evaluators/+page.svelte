@@ -15,10 +15,15 @@
 		Leaf,
 		Network,
 		Ship,
-		MessageSquare
+		MessageSquare,
+		UserPlus,
+		LogIn
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
+
+	// The layout passes the logged-in person's email; none means nobody is logged in.
+	const loggedIn = $derived(!!data.email);
 
 	// What to look at, roughly in the order an evaluator meets the registry: the public
 	// pages, the data model and access rules, the API, the chain, then running it yourself.
@@ -89,6 +94,14 @@
 	);
 </script>
 
+{#snippet registerIcon()}
+	<UserPlus class="size-4" aria-hidden="true" />
+{/snippet}
+
+{#snippet loginIcon()}
+	<LogIn class="size-4" aria-hidden="true" />
+{/snippet}
+
 {#snippet opeyIcon()}
 	<MessageSquare class="size-4" aria-hidden="true" />
 {/snippet}
@@ -101,21 +114,28 @@
 	<h1 class="text-h1 mb-2">Evaluators</h1>
 	<p class="text-body ogcr-secondary mb-10">
 		For anyone evaluating the OGCR Digital Carbon Registry: what to look at, how it is built, and
-		how to install it yourself.
+		how to install it.
 	</p>
 
-	<!-- The Portal's home page hosts the Opey agent chat. Hidden when OBP-API gives no Portal address. -->
-	{#if data.portalUrl}
-		<div class="mb-10">
+	<!-- The Portal's home page hosts the Opey agent chat, and its /register page creates an
+	     account. Each Portal button is hidden when OBP-API gives no Portal address; Register and
+	     Log in are hidden for someone already logged in. -->
+	<div class="mb-10 flex flex-wrap gap-3">
+		{#if data.portalUrl}
 			<Button href={data.portalUrl} iconLeft={opeyIcon}>Ask the Opey Agent</Button>
-		</div>
-	{/if}
+		{/if}
+		{#if !loggedIn}
+			{#if data.registerUrl}
+				<Button variant="outlined" href={data.registerUrl} iconLeft={registerIcon}>Register</Button>
+			{/if}
+			<Button variant="outlined" href="/login" iconLeft={loginIcon}>Log in using Google</Button>
+		{/if}
+	</div>
 
 	<section aria-labelledby="look" class="mb-12">
 		<h2 id="look" class="text-h2 mb-2">What to look at</h2>
 		<p class="text-body ogcr-secondary mb-6">
-			A suggested route through this sandbox. Each part is live, and works with the same API you
-			would use.
+			A suggested route through this sandbox. Each part is live, using test data.
 		</p>
 		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->
 		<nav aria-labelledby="look" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
