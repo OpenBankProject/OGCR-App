@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import Card from '$lib/components/Card.svelte';
-	import { PRODUCT_SITE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
+	import Button from '$lib/components/Button.svelte';
+	import { ARCHITECTURE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
 	import {
 		Leaf,
 		Building2,
@@ -20,7 +21,8 @@
 		FileCode,
 		FileUp,
 		Network,
-		CodeXml
+		CodeXml,
+		ClipboardCheck
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -135,6 +137,10 @@
 	);
 </script>
 
+{#snippet evaluatorsIcon()}
+	<ClipboardCheck class="size-4" aria-hidden="true" />
+{/snippet}
+
 <svelte:head>
 	<title>OGCR DCR</title>
 </svelte:head>
@@ -146,6 +152,7 @@
 			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
 			<h1 class="mb-6 h1">OGCR DCR</h1>
 			<p class="mb-4 h3">Explore and Create</p>
+			<Button variant="outlined" href="/evaluators" iconLeft={evaluatorsIcon}>Evaluators</Button>
 		</div>
 
 		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->
@@ -190,7 +197,7 @@
 				{/snippet}
 			</Card>
 			<Card
-				href={PRODUCT_SITE_URL}
+				href={ARCHITECTURE_URL}
 				title="Architecture"
 				subtitle="How the registry is built, and what each part does."
 			>
