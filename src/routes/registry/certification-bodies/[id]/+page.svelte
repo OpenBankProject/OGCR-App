@@ -4,6 +4,7 @@
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import { certificationSchemeHref } from '$lib/registry/certificationLinks';
+	import { CERTIFICATE_STATUS_LABELS, certificateStatus } from '$lib/registry/registryStatus';
 	import { Award } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -27,6 +28,15 @@
 		{ key: 'issue_date', header: 'Issued', sortable: true },
 		{ key: 'expiry_date', header: 'Expires', sortable: true }
 	];
+
+	/** Certificates with their status as the registry shows it, never the raw stored value. */
+	const certificates = $derived(
+		data.certificates.map((certificate) => ({
+			...certificate,
+			certification_status:
+				CERTIFICATE_STATUS_LABELS[certificateStatus(str(certificate.certification_status))]
+		}))
+	);
 </script>
 
 <svelte:head>
@@ -60,7 +70,7 @@
 		<h2 class="text-h3">Certificates issued by this body</h2>
 		<Table
 			columns={certificateColumns}
-			rows={data.certificates}
+			rows={certificates}
 			regionLabel="Certificates issued by {name}"
 			emptyMessage="No certificates"
 		>

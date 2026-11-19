@@ -31,6 +31,7 @@
 		verificationStatus,
 		type ActivityDetail
 	} from '$lib/registry/activityDetail';
+	import { activityStatus, certificateStatus } from '$lib/registry/registryStatus';
 	import { explorerLinks } from '$lib/chain/explorer';
 	import {
 		CircleCheck,
@@ -50,24 +51,42 @@
 	const certificate = $derived(data.certificate);
 	const explorer = $derived(explorerLinks(data.explorerBase));
 
-	const status = $derived(verificationStatus(activity?.verifications));
+	// A passed verification makes the activity Verified only with a certified certificate
+	// or an on-chain mint, and never while its certificate is suspended.
+	const status = $derived.by(() => {
+		const verification = verificationStatus(activity?.verifications);
+		if (verification !== 'verified') return verification;
+		return activityStatus({
+			verified: true,
+			certificateStatus: certificate ? certificateStatus(certificate.certification_status) : null,
+			mintedAt: activity?.minted_at
+		});
+	});
 	const statusLabel = $derived(
 		status === 'verified'
 			? 'Verified'
-			: status === 'in_progress'
-				? 'Verification in progress'
-				: status === 'failed'
-					? 'Verification failed'
-					: 'Not yet verified'
+			: status === 'certificate_suspended'
+				? 'Certificate suspended'
+				: status === 'awaiting_certificate'
+					? 'Awaiting certificate'
+					: status === 'in_progress'
+						? 'Verification in progress'
+						: status === 'failed'
+							? 'Verification failed'
+							: 'Not yet verified'
 	);
 	const statusTone = $derived(
 		status === 'verified'
 			? 'positive'
-			: status === 'failed'
+			: status === 'certificate_suspended'
 				? 'negative'
-				: status === 'in_progress'
+				: status === 'awaiting_certificate'
 					? 'progress'
-					: 'neutral'
+					: status === 'failed'
+						? 'negative'
+						: status === 'in_progress'
+							? 'progress'
+							: 'neutral'
 	);
 
 	// "Sicily, Italy" from city + country; country alone when there is no city.
@@ -151,9 +170,9 @@
 	<Pill tone={statusTone}>
 		{#if status === 'verified'}
 			<CircleCheck class="size-4" aria-hidden="true" />
-		{:else if status === 'in_progress'}
+		{:else if status === 'in_progress' || status === 'awaiting_certificate'}
 			<Clock class="size-4" aria-hidden="true" />
-		{:else if status === 'failed'}
+		{:else if status === 'failed' || status === 'certificate_suspended'}
 			<CircleX class="size-4" aria-hidden="true" />
 		{/if}
 		{statusLabel}
@@ -436,7 +455,8 @@
 								{#if scheme}
 									<span class="ogcr-scheme" aria-hidden="true"><ShieldCheck /></span>
 									{@const label = `${scheme.name}${scheme.version ? ` v${scheme.version.replace(/^v/i, '')}` : ''}`}
-									{#if scheme.href}<a href={scheme.href} class="ogcr-link">{label}</a>{:else}{label}{/if}
+									{#if scheme.href}<a href={scheme.href} class="ogcr-link">{label}</a
+										>{:else}{label}{/if}
 								{:else}
 									{DASH}
 								{/if}

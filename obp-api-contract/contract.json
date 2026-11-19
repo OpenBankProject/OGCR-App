@@ -339,10 +339,21 @@
    "path": "/obp/v7.0.0/banks/BANK_ID/files/FILE_ID/content",
    "source": "src/routes/files-test/[fileId]/content/+server.ts",
    "needles": [
-    "`/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/files/${encodeURIComponent(params.fileId)}/content${inline}`"
+    "`/obp/v7.0.0/banks/${encodeURIComponent(ENTITY_ROLE_BANK_ID)}/${collection}/${encodeURIComponent(params.fileId)}/content${inline}`",
+    "contentPath('files')"
    ],
    "reads": [],
-   "note": "The file and some of its headers are passed through to the browser."
+   "note": "Tried first for a logged-in user. The file and some of its headers are passed through to the browser."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v7.0.0/banks/BANK_ID/public-files/FILE_ID/content",
+   "source": "src/routes/files-test/[fileId]/content/+server.ts",
+   "needles": [
+    "contentPath('public-files')"
+   ],
+   "reads": [],
+   "note": "Anonymous, for a public file, or when the role-guarded endpoint refuses. The file and some of its headers are passed through to the browser."
   },
   {
    "verb": "GET",

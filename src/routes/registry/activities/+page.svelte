@@ -18,6 +18,11 @@
 	} from '$lib/registry/activities';
 	import { Search, List, Map as MapIcon, Layers, Maximize } from '@lucide/svelte';
 	import { findAreaOverlaps } from '$lib/registry/areaOverlaps';
+	import {
+		ACTIVITY_STATUS_LABELS,
+		ACTIVITY_STATUS_TONES,
+		type ActivityStatus
+	} from '$lib/registry/registryStatus';
 
 	let { data }: { data: PageData } = $props();
 
@@ -53,8 +58,7 @@
 			if (term && !(a.name ?? '').toLowerCase().includes(term)) return false;
 			if (creditType !== 'all' && a.activity_type !== creditType) return false;
 			if (country !== 'all' && a.country_name !== country) return false;
-			// Matches the internal Activities page's verified / unverified split.
-			if (status !== 'all' && a.verification_status !== status) return false;
+			if (status !== 'all' && a.activity_status !== status) return false;
 			return true;
 		})
 	);
@@ -140,7 +144,7 @@
 	const columns: TableColumn[] = [
 		{ key: 'name', header: 'Activity name', sortable: true },
 		{ key: 'activity_type', header: 'Type', sortable: true },
-		{ key: 'verification_status', header: 'Activity status', sortable: true },
+		{ key: 'activity_status', header: 'Activity status', sortable: true },
 		{ key: 'certificate', header: 'Certificate' },
 		{ key: 'minted', header: 'Minted', sortable: true },
 		{ key: 'location', header: 'Location', sortable: true },
@@ -231,6 +235,8 @@
 			<select bind:value={status} class="ogcr-input">
 				<option value="all">All statuses</option>
 				<option value="verified">Verified</option>
+				<option value="certificate_suspended">Certificate suspended</option>
+				<option value="awaiting_certificate">Awaiting certificate</option>
 				<option value="unverified">Unverified</option>
 			</select>
 		</label>
@@ -260,6 +266,8 @@
 		{/if}
 		<div class="ogcr-legend mb-3" aria-label="Map key">
 			<Pill tone="positive" dot>Verified</Pill>
+			<Pill tone="negative" dot>Certificate suspended</Pill>
+			<Pill tone="progress" dot>Awaiting certificate</Pill>
 			<Pill tone="warning" dot>Unverified</Pill>
 			{#if mapped.length > 0}
 				<Button variant="outlined" size="s" class="ogcr-legend__action" onclick={showAllOnMap}>
@@ -293,7 +301,7 @@
 						<button
 							type="button"
 							class="ogcr-map-list__item"
-							data-status={activity.verification_status === 'verified' ? 'verified' : 'unverified'}
+							data-status={activity.activity_status}
 							aria-pressed={focusedId === activity.activity_id}
 							class:ogcr-map-list__item--overlap={others.length > 0}
 							title={[
@@ -356,18 +364,18 @@
 					{:else}
 						{DASH}
 					{/if}
-				{:else if column.key === 'verification_status'}
+				{:else if column.key === 'activity_status'}
 					<!-- Text, not colour alone: the label is the signal, the tone reinforces it. -->
-					{@const pill = row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
+					{@const activityStatus = row.activity_status as ActivityStatus}
 					{#if activityHref}
 						<a href={activityHref} title="Activity details">
-							<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
-								{pill}
+							<Pill tone={ACTIVITY_STATUS_TONES[activityStatus]} dot>
+								{ACTIVITY_STATUS_LABELS[activityStatus]}
 							</Pill>
 						</a>
 					{:else}
-						<Pill tone={row.verification_status === 'verified' ? 'positive' : 'warning'} dot>
-							{pill}
+						<Pill tone={ACTIVITY_STATUS_TONES[activityStatus]} dot>
+							{ACTIVITY_STATUS_LABELS[activityStatus]}
 						</Pill>
 					{/if}
 				{:else if column.key === 'certificate'}
@@ -517,6 +525,12 @@
 	}
 	.ogcr-map-list__item[data-status='verified'] .ogcr-map-list__dot {
 		background: var(--border-positive-strong);
+	}
+	.ogcr-map-list__item[data-status='certificate_suspended'] .ogcr-map-list__dot {
+		background: var(--border-negative-strong);
+	}
+	.ogcr-map-list__item[data-status='awaiting_certificate'] .ogcr-map-list__dot {
+		background: var(--text-progress);
 	}
 
 	/* Same window-high box the table scrolls in. */

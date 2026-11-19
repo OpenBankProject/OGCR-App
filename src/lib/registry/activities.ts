@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/public';
+import { activityStatus, certificateStatus, type ActivityStatus } from './registryStatus';
 
 /**
  * The public registry read model.
@@ -50,6 +51,9 @@ export interface RegistryActivity {
 	minted_at: number | null;
 	/** From activity_on_chain: the token's metadata URI, often an inline `data:` URI. */
 	token_uri: string | null;
+	/** Not from the endpoint: worked out here from the verification, certificate and
+	 *  mint, so every registry page labels an activity the same way. */
+	activity_status: ActivityStatus;
 }
 
 export interface RegistryActivitiesResult {
@@ -80,8 +84,20 @@ export async function getRegistryActivities(
 				error: `Registry returned HTTP ${response.status} from ${REGISTRY_ACTIVITIES_PATH}`
 			};
 		}
-		const body = (await response.json()) as { activities?: RegistryActivity[]; count?: number };
-		const activities = body.activities ?? [];
+		const body = (await response.json()) as {
+			activities?: Omit<RegistryActivity, 'activity_status'>[];
+			count?: number;
+		};
+		const activities: RegistryActivity[] = (body.activities ?? []).map((row) => ({
+			...row,
+			activity_status: activityStatus({
+				verified: row.verification_status === 'verified',
+				certificateStatus: row.certificate_of_compliance_id
+					? certificateStatus(row.certification_status)
+					: null,
+				mintedAt: row.minted_at
+			})
+		}));
 		return { activities, count: body.count ?? activities.length, error: null };
 	} catch (error) {
 		return {

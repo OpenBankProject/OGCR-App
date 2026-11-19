@@ -4,6 +4,7 @@
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import { registryActivityHref, type RegistryActivity } from '$lib/registry/activities';
+	import { ACTIVITY_STATUS_LABELS } from '$lib/registry/registryStatus';
 	import { Building2 } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -14,13 +15,14 @@
 		{ key: 'name', header: 'Activity name', sortable: true },
 		{ key: 'activity_type', header: 'Type', sortable: true },
 		{ key: 'location', header: 'Location', sortable: true },
-		{ key: 'verification_status', header: 'Activity status', sortable: true }
+		{ key: 'activity_status', header: 'Activity status', sortable: true }
 	];
 
 	const rows = $derived(
 		activities.map((a) => ({
 			...a,
-			location: [a.city, a.country_name].filter(Boolean).join(', ')
+			location: [a.city, a.country_name].filter(Boolean).join(', '),
+			activity_status: ACTIVITY_STATUS_LABELS[a.activity_status]
 		}))
 	);
 
@@ -57,12 +59,14 @@
 		/>
 
 		<h2 class="text-h3 mt-8 mb-4">Activities operated</h2>
-		<Table {columns} {rows} regionLabel="Activities operated by {data.legalName ?? 'this operator'}">
+		<Table
+			{columns}
+			{rows}
+			regionLabel="Activities operated by {data.legalName ?? 'this operator'}"
+		>
 			{#snippet cell(row, column)}
 				{#if column.key === 'name' && typeof row.activity_id === 'string'}
 					<a href={registryActivityHref(row.activity_id)} class="anchor">{show(row.name)}</a>
-				{:else if column.key === 'verification_status'}
-					{row.verification_status === 'verified' ? 'Verified' : 'Unverified'}
 				{:else}
 					{show(row[column.key])}
 				{/if}

@@ -13,6 +13,7 @@
 	import { onMount } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 	import { registryActivityHref, type RegistryActivity } from '$lib/registry/activities';
+	import { ACTIVITY_STATUS_LABELS } from '$lib/registry/registryStatus';
 
 	let {
 		activities,
@@ -94,8 +95,7 @@
 		for (const activity of activities) {
 			const area = activity.activity_id ? areas[activity.activity_id] : undefined;
 			if (!area) continue;
-			const colour =
-				activity.verification_status === 'verified' ? colours.verified : colours.unverified;
+			const colour = colours[activity.activity_status];
 			const popup = popupHtml(activity);
 
 			const outline = L.geoJSON(area, {
@@ -144,6 +144,8 @@
 		const token = (name: string) => style.getPropertyValue(name).trim();
 		return {
 			verified: token('--border-positive-strong'),
+			certificate_suspended: token('--border-negative-strong'),
+			awaiting_certificate: token('--text-progress'),
 			unverified: token('--border-warning-strong'),
 			halo: token('--surface-light')
 		};
@@ -154,7 +156,7 @@
 		const title = activity.activity_id
 			? `<a href="${escapeHtml(registryActivityHref(activity.activity_id))}">${name}</a>`
 			: name;
-		const status = activity.verification_status === 'verified' ? 'Verified' : 'Unverified';
+		const status = ACTIVITY_STATUS_LABELS[activity.activity_status];
 		const details = [
 			activity.activity_type,
 			[activity.city, activity.country_name].filter(Boolean).join(', '),
