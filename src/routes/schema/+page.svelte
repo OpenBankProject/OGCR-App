@@ -4,7 +4,11 @@
 	import { LOOKUP_MAX_COLUMNS_EXCLUSIVE, type EntityCategory } from '$lib/obp/dynamicSummary';
 	import { apiManagerEntityHref, entityPage } from '$lib/obp/entityPages';
 	import { ExternalLink } from '@lucide/svelte';
-	import { BUILT_IN_ENTITIES, glossaryHref } from '$lib/obp/builtInEntities';
+	import {
+		BUILT_IN_ENTITY_COUNT,
+		BUILT_IN_ENTITY_GROUPS,
+		glossaryHref
+	} from '$lib/obp/builtInEntities';
 
 	let { data }: { data: PageData } = $props();
 
@@ -80,42 +84,54 @@
 
 	<!-- Static, so shown even when the resource docs could not be loaded. -->
 	<section aria-labelledby="static-entities" class="mb-10">
-		<h2 id="static-entities" class="text-h2 mb-2">Static Entities ({BUILT_IN_ENTITIES.length})</h2>
+		<h2 id="static-entities" class="text-h2 mb-2">Static Entities ({BUILT_IN_ENTITY_COUNT})</h2>
 		<p class="text-body mb-4 text-surface-600-400">
-			OBP-API's own records that the registry relies on. They are built into OBP-API, not defined in
-			the space.
+			OBP-API's own records that the registry relies on (summary). They are built into OBP-API, not
+			defined in the space.
 		</p>
-		<div class="ogcr-panel">
-			<ul class="ogcr-panel__list">
-				{#each BUILT_IN_ENTITIES as entity (entity.name)}
-					<li>
-						<div class="ogcr-entity">
-							<code>{entity.name}</code>
-							<p class="ogcr-builtin__description">{entity.description}</p>
-							{#if data.apiExplorerUrl || entity.page}
-								<span class="ogcr-entity__links">
-									{#if data.apiExplorerUrl}
-										<a
-											href={glossaryHref(data.apiExplorerUrl, entity.glossaryTitle)}
-											class="anchor"
-											target="_blank"
-											rel="noopener"
-										>
-											Glossary<ExternalLink
-												class="ml-0.5 inline size-3"
-												aria-label="(opens in a new tab)"
-											/>
-										</a>
+		<!-- The three groups sit side by side on wide screens. -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+			{#each BUILT_IN_ENTITY_GROUPS as group (group.title)}
+				<div class="ogcr-panel">
+					<h3 class="ogcr-panel__title">{group.title} ({group.entities.length})</h3>
+					<p class="ogcr-panel__description text-surface-600-400">{group.description}</p>
+					<ul class="ogcr-panel__list">
+						{#each group.entities as entity (entity.name)}
+							<li>
+								<div class="ogcr-entity">
+									<code>{entity.name}</code>
+									<p class="ogcr-builtin__description">{entity.description}</p>
+									{#if data.apiExplorerUrl || entity.page}
+										<span class="ogcr-entity__links">
+											{#if data.apiExplorerUrl}
+												<!-- Just "Glossary" for one Item; name each Item when there are more. -->
+												{#each entity.glossaryTitles as glossaryTitle (glossaryTitle)}
+													<a
+														href={glossaryHref(data.apiExplorerUrl, glossaryTitle)}
+														class="anchor"
+														target="_blank"
+														rel="noopener"
+													>
+														{entity.glossaryTitles.length === 1
+															? 'Glossary'
+															: `Glossary: ${glossaryTitle}`}<ExternalLink
+															class="ml-0.5 inline size-3"
+															aria-label="(opens in a new tab)"
+														/>
+													</a>
+												{/each}
+											{/if}
+											{#if entity.page}
+												<a href={entity.page.href} class="anchor">Used in {entity.page.label}</a>
+											{/if}
+										</span>
 									{/if}
-									{#if entity.page}
-										<a href={entity.page.href} class="anchor">Used in {entity.page.label}</a>
-									{/if}
-								</span>
-							{/if}
-						</div>
-					</li>
-				{/each}
-			</ul>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/each}
 		</div>
 	</section>
 
