@@ -73,3 +73,11 @@ pinned to which upstream commit, and which components have been ported to Svelte
 | [open_questions.md](./open_questions.md)                       | Unresolved design and product questions                                 |
 | [release_notes.md](./release_notes.md)                         | Notable and breaking changes, with upgrade steps                        |
 | [CLAUDE.md](./CLAUDE.md)                                       | Notes on discovering OBP dynamic entity endpoints                       |
+
+## Funding
+
+The OGCR Project has received funding from the European Union's Horizon Europe programme under grant agreement [101218854](https://cordis.europa.eu/project/id/101218854).
+
+## Licence
+
+Copyright (C) 2026 TESOBE GmbH. Licensed under the GNU Affero General Public License v3; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
