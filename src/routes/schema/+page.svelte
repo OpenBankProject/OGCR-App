@@ -86,8 +86,8 @@
 	<section aria-labelledby="static-entities" class="mb-10">
 		<h2 id="static-entities" class="text-h2 mb-2">Static Entities ({BUILT_IN_ENTITY_COUNT})</h2>
 		<p class="text-body mb-4 text-surface-600-400">
-			OBP-API's own records that the registry relies on. They are built into OBP-API, not defined in
-			the space.
+			OBP-API's own records that the registry relies on (summary). They are built into OBP-API, not
+			defined in the space.
 		</p>
 		<!-- The three groups sit side by side on wide screens. -->
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -104,17 +104,22 @@
 									{#if data.apiExplorerUrl || entity.page}
 										<span class="ogcr-entity__links">
 											{#if data.apiExplorerUrl}
-												<a
-													href={glossaryHref(data.apiExplorerUrl, entity.glossaryTitle)}
-													class="anchor"
-													target="_blank"
-													rel="noopener"
-												>
-													Glossary<ExternalLink
-														class="ml-0.5 inline size-3"
-														aria-label="(opens in a new tab)"
-													/>
-												</a>
+												<!-- Just "Glossary" for one Item; name each Item when there are more. -->
+												{#each entity.glossaryTitles as glossaryTitle (glossaryTitle)}
+													<a
+														href={glossaryHref(data.apiExplorerUrl, glossaryTitle)}
+														class="anchor"
+														target="_blank"
+														rel="noopener"
+													>
+														{entity.glossaryTitles.length === 1
+															? 'Glossary'
+															: `Glossary: ${glossaryTitle}`}<ExternalLink
+															class="ml-0.5 inline size-3"
+															aria-label="(opens in a new tab)"
+														/>
+													</a>
+												{/each}
 											{/if}
 											{#if entity.page}
 												<a href={entity.page.href} class="anchor">Used in {entity.page.label}</a>

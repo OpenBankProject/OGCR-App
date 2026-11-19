@@ -6,8 +6,8 @@
 export interface BuiltInEntity {
 	name: string;
 	description: string;
-	/** Title of the Glossary Item that explains it, opened in API Explorer II's Glossary. */
-	glossaryTitle: string;
+	/** Titles of the Glossary Items that explain it, opened in API Explorer II's Glossary. */
+	glossaryTitles: string[];
 	/** A page of this app that shows it, if there is one. */
 	page?: { href: string; label: string };
 }
@@ -23,49 +23,49 @@ const USERS_AND_ACCESS: BuiltInEntity[] = [
 		name: 'Space',
 		description:
 			"The registry's own space (a Bank in OBP). Its Dynamic Entities, Role Groups and Roles all belong to it.",
-		glossaryTitle: 'Space'
+		glossaryTitles: ['Space']
 	},
 	{
 		name: 'User',
 		description:
 			'A person with an account. Users are linked to operators through user_operator_relationship.',
-		glossaryTitle: 'User'
+		glossaryTitles: ['User']
 	},
 	{
 		name: 'Entitlement',
 		description:
 			'A Role granted to a User, in the space or system wide. Each operation on each entity needs one.',
-		glossaryTitle: 'API.Entitlements and Scopes'
+		glossaryTitles: ['API.Entitlements and Scopes']
 	},
 	{
 		name: 'Role Group',
 		description:
 			'A named set of Roles granted to Users together, such as everything an operator needs.',
-		glossaryTitle: 'Groups',
+		glossaryTitles: ['Groups'],
 		page: { href: '/group-entitlements', label: 'Group entitlements' }
 	},
 	{
 		name: 'Consumer',
 		description:
 			'An app registered to call the API, with its own credentials. OGCR-App, the Operator and Certification Platforms and the chain cache are each a Consumer.',
-		glossaryTitle: 'Consumer'
+		glossaryTitles: ['Consumer']
 	},
 	{
 		name: 'Scope',
 		description:
 			'A Role granted to a Consumer. It applies when a Platform App, such as the chain cache, calls the API as itself.',
-		glossaryTitle: 'API.Entitlements and Scopes'
+		glossaryTitles: ['API.Entitlements and Scopes']
 	},
 	{
 		name: 'Organisation',
 		description: 'A team that owns Consumers, so more than one person can manage an app.',
-		glossaryTitle: 'Organisation'
+		glossaryTitles: ['Organisation']
 	},
 	{
 		name: 'Metric',
 		description:
 			'A record of each API call: which app and person called which endpoint, when, and how long it took.',
-		glossaryTitle: 'API Metrics'
+		glossaryTitles: ['API Metrics']
 	}
 ];
 
@@ -74,36 +74,36 @@ const ACCOUNTS_AND_PAYMENTS: BuiltInEntity[] = [
 		name: 'Asset',
 		description:
 			'A unit that amounts are held in, such as EUR or a token. Its code is the currency of an account, a transaction or a product fee.',
-		glossaryTitle: 'Asset'
+		glossaryTitles: ['Asset']
 	},
 	{
 		name: 'Product',
 		description:
 			'A kind of account the space offers, with its fees and rules. Each Account is opened on a Product.',
-		glossaryTitle: 'Product'
+		glossaryTitles: ['Product']
 	},
 	{
 		name: 'Account',
 		description:
 			'Holds a balance in one Asset, in the space. Its Views decide who may see it and pay from it.',
-		glossaryTitle: 'Account'
+		glossaryTitles: ['Account']
 	},
 	{
 		name: 'View',
 		description:
-			'What a User or Consumer may see and do on an Account, such as see its balance or make payments.',
-		glossaryTitle: 'View.view_id'
+			'What a User or Consumer may see and do on an Account, such as see its balance or make payments. An Account Access record gives a User a View on an Account, and a User needs one to use the Account at all.',
+		glossaryTitles: ['View', 'Account Access']
 	},
 	{
 		name: 'Transaction',
 		description: 'An amount moved into or out of an Account.',
-		glossaryTitle: 'Transaction'
+		glossaryTitles: ['Transaction']
 	},
 	{
 		name: 'Transaction Request',
 		description:
 			'A request to pay from an Account. Once it is approved, and any challenge is answered, OBP-API makes the Transaction.',
-		glossaryTitle: 'Transaction Requests'
+		glossaryTitles: ['Transaction Requests']
 	}
 ];
 
@@ -112,19 +112,19 @@ const API_DOCUMENTATION: BuiltInEntity[] = [
 		name: 'Resource Doc',
 		description:
 			'The description of one endpoint: its path, Roles, example bodies and errors. API Explorer II and the OpenAPI documents are built from them.',
-		glossaryTitle: 'Resource Doc'
+		glossaryTitles: ['Resource Doc']
 	},
 	{
 		name: 'Dynamic Resource Doc',
 		description:
 			"An endpoint defined in the space while OBP-API is running, such as a Dynamic Query. The space's own are listed below.",
-		glossaryTitle: 'Dynamic Resource Doc'
+		glossaryTitles: ['Dynamic Resource Doc']
 	},
 	{
 		name: 'Glossary Item',
 		description:
 			'An explanation of an OBP term. The Glossary links on this page open them in API Explorer II.',
-		glossaryTitle: 'Glossary'
+		glossaryTitles: ['Glossary']
 	}
 ];
 
@@ -135,14 +135,14 @@ export const BUILT_IN_ENTITY_GROUPS: BuiltInEntityGroup[] = [
 		entities: USERS_AND_ACCESS
 	},
 	{
-		title: 'Accounts and payments',
-		description: 'Balances, and the payments that move them.',
-		entities: ACCOUNTS_AND_PAYMENTS
-	},
-	{
 		title: 'API documentation',
 		description: 'How the endpoints and terms are described.',
 		entities: API_DOCUMENTATION
+	},
+	{
+		title: 'Accounts and payments',
+		description: 'Balances, and the payments that move them.',
+		entities: ACCOUNTS_AND_PAYMENTS
 	}
 ];
 
