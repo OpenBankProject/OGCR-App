@@ -11,6 +11,12 @@
 		registryOperatorHref,
 		type RegistryActivity
 	} from '$lib/registry/activities';
+	import {
+		ACTIVITY_STATUS_LABELS,
+		ACTIVITY_STATUS_TONES,
+		CERTIFICATE_STATUS_LABELS,
+		certificateStatus
+	} from '$lib/registry/registryStatus';
 	import { Sprout } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -42,16 +48,16 @@
 					{ label: 'Type', value: activity.activity_type, pill: { tone: 'neutral' } },
 					{
 						label: 'Activity status',
-						value: activity.verification_status === 'verified' ? 'Verified' : 'Unverified',
+						value: ACTIVITY_STATUS_LABELS[activity.activity_status],
 						pill: {
-							tone: activity.verification_status === 'verified' ? 'positive' : 'warning',
+							tone: ACTIVITY_STATUS_TONES[activity.activity_status],
 							dot: true
 						}
 					},
 					{
 						label: 'Certificate',
 						value: activity.certificate_of_compliance_id
-							? (activity.certification_status ?? activity.certificate_of_compliance_id)
+							? CERTIFICATE_STATUS_LABELS[certificateStatus(activity.certification_status)]
 							: 'Not yet certified',
 						href: activity.certificate_of_compliance_id
 							? registryCertificateHref(activity.certificate_of_compliance_id)

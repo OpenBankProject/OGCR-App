@@ -4,13 +4,14 @@
 	import Table, { type TableColumn } from '$lib/components/Table.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import { certificationBodyHref } from '$lib/registry/certificationLinks';
+	import { CERTIFICATE_STATUS_LABELS, certificateStatus } from '$lib/registry/registryStatus';
 	import { ShieldCheck } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	const str = (v: unknown) => (typeof v === 'string' && v !== '' ? v : null);
 	const scheme = $derived(data.scheme);
-	const name = $derived(str(scheme?.name) ?? 'Certification scheme');
+	const name = $derived(str(scheme?.legal_name) ?? 'Certification scheme');
 
 	const certificateColumns: TableColumn[] = [
 		{ key: 'certificate_of_compliance_id', header: 'Certificate', sortable: true },
@@ -19,6 +20,15 @@
 		{ key: 'issue_date', header: 'Issued', sortable: true },
 		{ key: 'expiry_date', header: 'Expires', sortable: true }
 	];
+
+	/** Certificates with their status as the registry shows it, never the raw stored value. */
+	const certificates = $derived(
+		data.certificates.map((certificate) => ({
+			...certificate,
+			certification_status:
+				CERTIFICATE_STATUS_LABELS[certificateStatus(str(certificate.certification_status))]
+		}))
+	);
 	const activityColumns: TableColumn[] = [
 		{ key: 'name', header: 'Activity', sortable: true },
 		{ key: 'activity_type', header: 'Type', sortable: true },
@@ -44,7 +54,7 @@
 		<FieldList
 			fields={[
 				{ label: 'Scheme ID', value: data.schemeId },
-				{ label: 'Name', value: str(scheme.name) },
+				{ label: 'Name', value: str(scheme.legal_name) },
 				{ label: 'Version', value: str(scheme.scheme_version_number) },
 				{ label: 'Commission decision', value: str(scheme.commission_decision_reference) },
 				{ label: 'Certification methodology', value: str(scheme.certification_methodology) }
@@ -54,7 +64,7 @@
 		<h2 class="text-h3">Certificates issued under this scheme</h2>
 		<Table
 			columns={certificateColumns}
-			rows={data.certificates}
+			rows={certificates}
 			regionLabel="Certificates issued under {name}"
 			emptyMessage="No certificates"
 		>

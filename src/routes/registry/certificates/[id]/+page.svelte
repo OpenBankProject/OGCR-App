@@ -3,11 +3,17 @@
 	import FieldList, { type Field } from '$lib/components/FieldList.svelte';
 	import ObpErrorDisplay from '$lib/components/ObpErrorDisplay.svelte';
 	import { registryActivityHref, registryOperatorHref } from '$lib/registry/activities';
+	import {
+		CERTIFICATE_STATUS_LABELS,
+		CERTIFICATE_STATUS_TONES,
+		certificateStatus
+	} from '$lib/registry/registryStatus';
 	import { ShieldCheck } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	const activity = $derived(data.activity);
+	const status = $derived(certificateStatus(activity?.certification_status));
 
 	// Only the certificate's own v1 fields, plus the activity it certifies. The
 	// minimum-fields matrix defines no document or URL on certificate_of_compliance,
@@ -18,8 +24,8 @@
 					{ label: 'Certificate ID', value: activity.certificate_of_compliance_id },
 					{
 						label: 'Certification status',
-						value: activity.certification_status,
-						pill: { tone: 'progress' }
+						value: CERTIFICATE_STATUS_LABELS[status],
+						pill: { tone: CERTIFICATE_STATUS_TONES[status] }
 					},
 					{ label: 'Issue date', value: activity.certificate_issue_date },
 					{ label: 'Expiry date', value: activity.certificate_expiry_date },

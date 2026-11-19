@@ -142,13 +142,14 @@ export async function getActivityDetail(fetchFn: typeof fetch, activityId: strin
 			activityId
 		),
 		readForActivity<ActivitySdg>(fetchFn, REGISTRY_ACTIVITY_SDGS_PATH, 'sdgs', activityId),
-		// The certificate shown is the latest by issue date.
+		// All of the activity's certificates: an activity has only a few. The latest is
+		// picked here, because OBP refuses to sort a Query by a field that is not indexed,
+		// and issue_date is not.
 		readForActivity<ActivityCertificate>(
 			fetchFn,
 			REGISTRY_ACTIVITY_CERTIFICATES_PATH,
 			'certificates',
-			activityId,
-			{ obp_sort_by: 'issue_date', obp_sort_direction: 'desc', obp_limit: '1' }
+			activityId
 		)
 	]);
 	return {
@@ -158,9 +159,17 @@ export async function getActivityDetail(fetchFn: typeof fetch, activityId: strin
 		practicesError: practices.error,
 		sdgs: sdgs.rows,
 		sdgsError: sdgs.error,
-		certificate: certificates.rows[0] ?? null,
+		certificate: latestCertificate(certificates.rows),
 		certificateError: certificates.error
 	};
+}
+
+/** The certificate with the latest issue date; one with no issue date comes last. */
+export function latestCertificate(certificates: ActivityCertificate[]): ActivityCertificate | null {
+	return (
+		[...certificates].sort((a, b) => (b.issue_date ?? '').localeCompare(a.issue_date ?? ''))[0] ??
+		null
+	);
 }
 
 export type VerificationStatus = 'verified' | 'in_progress' | 'failed';
