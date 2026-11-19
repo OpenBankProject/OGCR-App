@@ -121,8 +121,8 @@
 				</p>
 				<!-- Its own line, so the copyright reads as this app's, not the whole OGCR Project's. -->
 				<p class="ogcr-funding__copyright">
-					OGCR-App: Copyright (C) 2026 <a href="https://www.tesobe.com">TESOBE GmbH</a>, licensed
-					under the <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPLv3</a>.
+					OGCR-App: &copy; 2026 <a href="https://www.tesobe.com">TESOBE GmbH</a>, licensed under the
+					<a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPLv3</a>.
 				</p>
 			</div>
 		</footer>
