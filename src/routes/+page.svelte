@@ -22,7 +22,9 @@
 		FileUp,
 		Network,
 		CodeXml,
-		ClipboardCheck
+		ClipboardCheck,
+		Sprout,
+		LockKeyhole
 	} from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
@@ -141,6 +143,14 @@
 	<ClipboardCheck class="size-4" aria-hidden="true" />
 {/snippet}
 
+{#snippet publicGardenIcon()}
+	<Sprout class="size-4" aria-hidden="true" />
+{/snippet}
+
+{#snippet privateGardenIcon()}
+	<LockKeyhole class="size-4" aria-hidden="true" />
+{/snippet}
+
 <svelte:head>
 	<title>OGCR DCR</title>
 </svelte:head>
@@ -152,7 +162,16 @@
 			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
 			<h1 class="mb-6 h1">OGCR DCR</h1>
 			<p class="mb-4 h3">Explore and Create</p>
-			<Button variant="outlined" href="/evaluators" iconLeft={evaluatorsIcon}>Evaluators</Button>
+			<!-- The full Carbon Garden asks you to log in first. -->
+			<div class="flex flex-wrap justify-center gap-[var(--space-s)]">
+				<Button variant="outlined" href="/evaluators" iconLeft={evaluatorsIcon}>Evaluators</Button>
+				<Button variant="outlined" href="/registry/carbon-garden" iconLeft={publicGardenIcon}
+					>Carbon Garden</Button
+				>
+				<Button variant="outlined" href="/carbon-garden" iconLeft={privateGardenIcon}
+					>Carbon Garden (logged in)</Button
+				>
+			</div>
 		</div>
 
 		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->

@@ -35,6 +35,7 @@
 			design: 'Design System',
 			evaluators: 'Evaluators',
 			registry: 'Registry',
+			'carbon-garden': 'Carbon Garden',
 			simple: 'Simple view',
 			certificates: 'Certificates',
 			trading: 'Trading',

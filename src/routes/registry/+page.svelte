@@ -49,13 +49,19 @@
 		<h1 class="text-h1 mb-4">OGCR — Open Geospatial Carbon Registry</h1>
 		<p class="text-body mb-4 text-surface-600-400">
 			The OGCR registry lists carbon removal and carbon farming activities certified under the EU
-			Carbon Removals and Carbon Farming framework (CRCF). Each activity records the land it
-			covers, the practices applied, the operator responsible and the monitoring period over which
-			its results are measured.
+			Carbon Removals and Carbon Farming framework (CRCF). Each activity records the land it covers,
+			the practices applied, the operator responsible and the monitoring period over which its
+			results are measured.
 		</p>
 		<p class="text-body text-surface-600-400">
 			Certification is carried out by accredited bodies and recorded against the activity, so a
 			buyer can trace a unit back to the parcel, the practice and the verification behind it.
+		</p>
+		<p class="text-body mt-4">
+			<a href="/registry/carbon-garden" class="anchor">See the Carbon Garden</a>: every activity on
+			a map of Europe, storing carbon over time.{#if data.userId}
+				Logged in, you can also see <a href="/carbon-garden" class="anchor">the full version</a>,
+				with parcels and plans.{/if}
 		</p>
 	</div>
 
