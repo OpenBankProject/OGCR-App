@@ -3,3 +3,5 @@ build
 coverage
 .svelte-kit
 node_modules
+# Map outline data: one long line on purpose
+src/lib/carbonGarden/europe.json
