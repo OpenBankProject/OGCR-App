@@ -1101,6 +1101,48 @@
    ],
    "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
    "note": "Filtered by obp_filter[activity_id]."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PATH = `${QUERY_PREFIX}/carbon-garden-query`;"
+   ],
+   "reads": [
+    "activities"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with the user's access token on /carbon-garden."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-parcels-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PARCELS_PATH = `${QUERY_PREFIX}/carbon-garden-parcels-query`;"
+   ],
+   "reads": [
+    "parcels"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with the user's access token on /carbon-garden, to draw each activity on its parcels."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-public-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PUBLIC_PATH = `${QUERY_PREFIX}/carbon-garden-public-query`;"
+   ],
+   "reads": [
+    "activities"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with no token on /registry/carbon-garden."
   }
  ],
  "path_builders": [
