@@ -17,6 +17,8 @@ services:
       - APP_CALLBACK_URL=${APP_CALLBACK_URL:-http://localhost:3000/login/callback}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # Passed through only when set on the host, so the app's own default applies otherwise
+      - INSTALLATION_USAGE
     depends_on:
       - redis
     networks:

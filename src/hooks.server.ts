@@ -12,6 +12,7 @@ import { SessionOAuthHelper } from '$lib/oauth/sessionHelper';
 import { redisService } from '$lib/redis/services/RedisService';
 import { healthCheckRegistry, OIDCHealthCheckService } from '$lib/health-check';
 import { RedisHealthCheckService } from '$lib/server/health-check/RedisHealthCheckService';
+import { livenessHandle } from '$lib/server/liveness';
 import { env as publicEnv } from '$env/dynamic/public';
 import { env } from '$env/dynamic/private';
 import { building } from '$app/environment';
@@ -201,8 +202,9 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-// Init SvelteKitSessions
+// Init SvelteKitSessions. The liveness probes come first, so they answer without a session or a login.
 export const handle: Handle = sequence(
+	livenessHandle,
 	sveltekitSessionHandle({
 		name: 'ogcr-app-connect.sid',
 		secret: sessionSecret,
