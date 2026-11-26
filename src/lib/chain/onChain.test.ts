@@ -22,7 +22,7 @@ vi.mock('$lib/obp/requests', () => ({
 	}
 }));
 
-const { getChainTokens, getChainSyncStatus, getCreditTotals, formatUnits, idFromUri } =
+const { getChainTokens, getChainSyncStatus, getCreditTotals, formatUnits, idFromUri, getCertificationToken } =
 	await import('./onChain');
 
 beforeEach(() => {
@@ -203,5 +203,44 @@ describe('getChainSyncStatus', () => {
 		];
 		const s = await getChainSyncStatus();
 		expect(s?.synced_at).toBe('2026-09-09T05:30:43Z');
+	});
+});
+
+describe('getCertificationToken', () => {
+	const token = (id: string, activity: string, tokenId: string, block: string) => ({
+		certificate_of_compliance_id: id,
+		activity_id: activity,
+		token_id: tokenId,
+		block_number: block,
+		contract_address: '0x1Bf2e9DC09eD2A26c53e0f863794662766888Db5'
+	});
+
+	it('is null while the certificate is not on chain', async () => {
+		lists['certification_on_chain'] = [token('coc_other', 'act_other', '3', '5')];
+		expect(await getCertificationToken('act_sr12345', 'coc_sr12345')).toBeNull();
+	});
+
+	it("finds the shown certificate's token", async () => {
+		lists['certification_on_chain'] = [
+			token('coc_sr12345', 'act_sr12345', '12', '11079'),
+			token('coc_newer', 'act_sr12345', '13', '11100')
+		];
+		expect(await getCertificationToken('act_sr12345', 'coc_sr12345')).toEqual({
+			contractAddress: '0x1Bf2e9DC09eD2A26c53e0f863794662766888Db5',
+			tokenId: 12
+		});
+	});
+
+	it("does not link an older certificate's token to a certificate not minted yet", async () => {
+		lists['certification_on_chain'] = [token('coc_old', 'act_sr12345', '7', '100')];
+		expect(await getCertificationToken('act_sr12345', 'coc_not_minted')).toBeNull();
+	});
+
+	it("without a certificate id, uses the activity's latest certification token", async () => {
+		lists['certification_on_chain'] = [
+			token('coc_old', 'act_sr12345', '7', '100'),
+			token('coc_new', 'act_sr12345', '12', '200')
+		];
+		expect((await getCertificationToken('act_sr12345', null))?.tokenId).toBe(12);
 	});
 });

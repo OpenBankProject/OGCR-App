@@ -120,7 +120,12 @@
 				: null
 	);
 
-	const activityTxUrl = $derived(explorer.tx(activity?.tx_hash));
+	// The Activity NFT itself, not the transaction that minted it
+	const activityTokenUrl = $derived(explorer.token(activity?.contract_address, activity?.token_id));
+	// The Certificate of Compliance's token, once it is minted
+	const certificateTokenUrl = $derived(
+		explorer.token(data.certificationToken?.contractAddress, data.certificationToken?.tokenId)
+	);
 
 	// Images that fail to load are dropped, as if there were none: a broken image is
 	// worse than no image. Svelte replays an error that fires before hydration.
@@ -484,16 +489,31 @@
 
 					<hr class="ogcr-divider" />
 					<h3 class="ogcr-label">On-chain records</h3>
-					<!-- Stub: certificate_of_compliance has no on-chain token field yet. -->
-					<Button variant="outlined" fullWidth disabled>
-						{#snippet iconLeft()}<Box />{/snippet}
-						Certificate of Compliance — not on chain yet
-					</Button>
-					{#if activityTxUrl}
+					{#if certificateTokenUrl}
 						<Button
 							variant="outlined"
 							fullWidth
-							href={activityTxUrl}
+							href={certificateTokenUrl}
+							target="_blank"
+							rel="noopener"
+						>
+							{#snippet iconLeft()}<Box />{/snippet}
+							{#snippet iconRight()}<ExternalLink />{/snippet}
+							Certificate of Compliance
+						</Button>
+					{:else}
+						<Button variant="outlined" fullWidth disabled>
+							{#snippet iconLeft()}<Box />{/snippet}
+							Certificate of Compliance — {data.certificationToken
+								? 'minted, no explorer configured'
+								: 'not on chain yet'}
+						</Button>
+					{/if}
+					{#if activityTokenUrl}
+						<Button
+							variant="outlined"
+							fullWidth
+							href={activityTokenUrl}
 							target="_blank"
 							rel="noopener"
 						>

@@ -41,3 +41,6 @@ npm-debug.log*
 
 # Build info
 .svelte-kit
+
+# Zed editor settings, which open_dev_env writes for each project
+.zed/

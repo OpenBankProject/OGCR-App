@@ -7,7 +7,9 @@
  * via configuration rather than assumed.
  *
  * Blockscout and Etherscan both use /tx/<hash>, /block/<number> and
- * /address/<address>, so one shape covers the realistic options.
+ * /address/<address>, so one shape covers the realistic options. A single NFT
+ * is at Blockscout's /token/<contract>/instance/<token id>: the OGCR chain's
+ * explorer is Blockscout.
  */
 
 /** Configured explorer base, or null when none is available. */
@@ -26,6 +28,8 @@ export interface ExplorerLinks {
 	tx(hash: string | null | undefined): string | null;
 	block(blockNumber: number | null | undefined): string | null;
 	address(addr: string | null | undefined): string | null;
+	/** One token of an NFT contract, such as an Activity NFT. */
+	token(contract: string | null | undefined, tokenId: string | number | null | undefined): string | null;
 }
 
 export function explorerLinks(raw: string | undefined | null): ExplorerLinks {
@@ -35,14 +39,19 @@ export function explorerLinks(raw: string | undefined | null): ExplorerLinks {
 			available: false,
 			tx: () => null,
 			block: () => null,
-			address: () => null
+			address: () => null,
+			token: () => null
 		};
 	}
 	return {
 		available: true,
 		tx: (hash) => (hash ? `${base}/tx/${encodeURIComponent(hash)}` : null),
 		block: (n) => (n === null || n === undefined ? null : `${base}/block/${n}`),
-		address: (addr) => (addr ? `${base}/address/${encodeURIComponent(addr)}` : null)
+		address: (addr) => (addr ? `${base}/address/${encodeURIComponent(addr)}` : null),
+		token: (contract, tokenId) =>
+			contract && tokenId !== null && tokenId !== undefined && tokenId !== ''
+				? `${base}/token/${encodeURIComponent(contract)}/instance/${encodeURIComponent(String(tokenId))}`
+				: null
 	};
 }
 

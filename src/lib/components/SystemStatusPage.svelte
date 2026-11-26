@@ -201,7 +201,7 @@
 
 	function formatTimestamp(isoString: string): string {
 		const date = new Date(isoString);
-		return date.toLocaleString();
+		return date.toLocaleString(undefined, { hourCycle: 'h23' });
 	}
 
 	function formatResponseTime(ms?: number): string {
@@ -221,7 +221,7 @@
 			countdown = refreshInterval;
 		} catch (error) {
 			const msg = error instanceof Error ? error.message : String(error);
-			refreshError = `Refresh failed at ${new Date().toLocaleTimeString()}: ${msg}`;
+			refreshError = `Refresh failed at ${new Date().toLocaleTimeString(undefined, { hourCycle: 'h23' })}: ${msg}`;
 			console.error('Failed to refresh status:', error);
 		}
 		await runOpeyBrowserCheck();

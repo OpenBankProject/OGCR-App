@@ -114,6 +114,38 @@ export async function getChainSyncStatus(): Promise<ChainSyncStatus | null> {
 	);
 }
 
+/** A Certificate of Compliance's token on chain: the contract and the token id. */
+export interface CertificationToken {
+	contractAddress: string;
+	tokenId: number;
+}
+
+/**
+ * The CertificationNFT for an activity's certificate, read anonymously from the public
+ * chain mirror, or null while it is not on chain. When the page shows a certificate, only
+ * its own token counts: an older certificate's token is not this one's. Without a
+ * certificate id, the activity's latest certification token. A re-certification mints a
+ * new token, so the latest block wins.
+ */
+export async function getCertificationToken(
+	activityId: string,
+	certificateId: string | null | undefined
+): Promise<CertificationToken | null> {
+	const rows = (await listPublicEntity(ENTITY_CERTIFICATION_ON_CHAIN)).filter(
+		(r) => r.contract_address && toNumber(r.token_id) !== null
+	);
+	const latest = (candidates: Record<string, any>[]) =>
+		candidates.reduce<Record<string, any> | null>(
+			(best, r) =>
+				!best || (toNumber(r.block_number) ?? 0) > (toNumber(best.block_number) ?? 0) ? r : best,
+			null
+		);
+	const found = certificateId
+		? latest(rows.filter((r) => r.certificate_of_compliance_id === certificateId))
+		: latest(rows.filter((r) => r.activity_id === activityId));
+	return found ? { contractAddress: found.contract_address, tokenId: toNumber(found.token_id)! } : null;
+}
+
 function toNumber(v: unknown): number | null {
 	const n = typeof v === 'string' ? Number(v) : (v as number);
 	return typeof n === 'number' && Number.isFinite(n) ? n : null;

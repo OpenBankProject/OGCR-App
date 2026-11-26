@@ -27,6 +27,11 @@ describe('formatLocal', () => {
 		expect(formatLocal('2026-09-09T06:52:38Z')).toContain('2026');
 	});
 
+	it('uses the 24-hour clock even in a 12-hour locale', () => {
+		const out = formatLocal('2026-11-26T14:09:50Z')!;
+		expect(out).not.toMatch(/AM|PM/i);
+	});
+
 	it('returns null for unusable input', () => {
 		expect(formatLocal('nope')).toBeNull();
 	});

@@ -6,6 +6,7 @@
 	import { Home, ChevronRight } from '@lucide/svelte';
 
 	import LightSwitch from '$lib/components/LightSwitch.svelte';
+	import Pill from '$lib/components/Pill.svelte';
 	import PageRoleCheck from '$lib/components/PageRoleCheck.svelte';
 
 	let { data, children } = $props();
@@ -84,6 +85,10 @@
 		</div>
 
 		<div class="flex items-center gap-4">
+			<!-- What this installation is for (INSTALLATION_USAGE), e.g. that it shows synthetic test data -->
+			{#if data.installationUsage}
+				<Pill tone="warning">{data.installationUsage}</Pill>
+			{/if}
 			<LightSwitch />
 			{#if isAuthenticated}
 				<a href="/user" class="hover:text-tertiary-400">{data.username}</a>
