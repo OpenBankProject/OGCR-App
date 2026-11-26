@@ -1,5 +1,6 @@
 {
  "about": "Every OBP-API call OGCR-App makes: verb, path (OBP placeholders in capitals), the source file and the text that makes the call (needles), and the response fields the code reads. src/lib/obp/obpApiContract.test.ts checks this list against the source and against snapshot.json, which obp-api-contract/snapshot.py writes from an OBP-API's resource docs. calls are versioned (/obp/vX.Y.Z); unversioned_calls are /obp/dynamic-entity and /obp/dynamic-endpoint paths, which no versioned resource doc describes, so snapshot.py leaves them out and the test only checks that they are still in the source. Dynamic entity and registry query records have the fields their definitions give them at run time (entity names can also carry OBP_ENTITY_PREFIX): only the wrapper OBP-API puts around them is listed as a read. path_builders are the functions that build OBP-API paths for the calls; a line that uses one must be a listed call. request_path_params are the path parameters of wrapper functions that make a request, which the test cannot trace to a path. Not listed: the openapi.json of each Domain API, read from the url OBP-API returns for it, and the OIDC provider endpoints, which are not OBP-API.",
+ "version_policy": "Each call writes the OBP-API version it needs in its own path. One configured version cannot serve them all, because an endpoint exists only in the versions OBP-API documents it for. The contract test checks every call against the endpoint documented for the version it names and fails on any version below v5.1.0. To move a call to a newer version, change its path and run snapshot.py again.",
  "calls": [
   {
    "verb": "GET",
@@ -1100,6 +1101,48 @@
    ],
    "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
    "note": "Filtered by obp_filter[activity_id]."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PATH = `${QUERY_PREFIX}/carbon-garden-query`;"
+   ],
+   "reads": [
+    "activities"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with the user's access token on /carbon-garden."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-parcels-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PARCELS_PATH = `${QUERY_PREFIX}/carbon-garden-parcels-query`;"
+   ],
+   "reads": [
+    "parcels"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with the user's access token on /carbon-garden, to draw each activity on its parcels."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/dynamic-endpoint/dynamic-resource-doc/registry/carbon-garden-public-query",
+   "source": "src/lib/registry/carbonGarden.ts",
+   "needles": [
+    "const QUERY_PREFIX = '/obp/dynamic-endpoint/dynamic-resource-doc/registry';",
+    "export const REGISTRY_CARBON_GARDEN_PUBLIC_PATH = `${QUERY_PREFIX}/carbon-garden-public-query`;"
+   ],
+   "reads": [
+    "activities"
+   ],
+   "undocumented_endpoint": "dynamic resource doc (registry query), defined at run time",
+   "note": "Read with no token on /registry/carbon-garden."
   }
  ],
  "path_builders": [
