@@ -18,7 +18,9 @@ const OPTIONS: Intl.DateTimeFormatOptions = {
 	year: 'numeric',
 	hour: '2-digit',
 	minute: '2-digit',
-	second: '2-digit'
+	second: '2-digit',
+	// Always the 24-hour clock, whatever the reader's locale would choose.
+	hourCycle: 'h23'
 };
 
 function parse(iso: string | null | undefined): Date | null {

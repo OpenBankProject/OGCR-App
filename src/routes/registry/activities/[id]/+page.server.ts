@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/public';
 import { normalizeExplorerBase } from '$lib/chain/explorer';
+import { getCertificationToken } from '$lib/chain/onChain';
 import { getRegistryActivities } from '$lib/registry/activities';
 import {
 	getActivityDetail,
@@ -48,6 +49,12 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		error = row ? null : (list.error ?? detail.activityError);
 	}
 
+	// The certificate's token on chain, from the public chain mirror; a mirror that cannot
+	// be read leaves the certificate shown as not on chain yet, rather than failing the page.
+	const certificationToken = activity
+		? await getCertificationToken(params.id, certificate?.certificate_of_compliance_id).catch(() => null)
+		: null;
+
 	return {
 		activityId: params.id,
 		activity,
@@ -57,7 +64,8 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		practices: detail.practices,
 		sdgs: detail.sdgs,
 		certificate,
-		/** Block explorer for the activity's mint transaction, when one is configured. */
+		certificationToken,
+		/** Block explorer for the activity's and the certificate's tokens, when one is configured. */
 		explorerBase: normalizeExplorerBase(env.PUBLIC_CHAIN_EXPLORER_URL)
 	};
 };

@@ -25,6 +25,7 @@ describe('explorerLinks', () => {
 		expect(l.tx('0xabc')).toBeNull();
 		expect(l.block(12)).toBeNull();
 		expect(l.address('0xdef')).toBeNull();
+		expect(l.token('0xabc', 1)).toBeNull();
 	});
 
 	it('builds explorer paths when configured', () => {
@@ -33,6 +34,10 @@ describe('explorerLinks', () => {
 		expect(l.tx('0xabc')).toBe('https://blockscout.example/tx/0xabc');
 		expect(l.block(12)).toBe('https://blockscout.example/block/12');
 		expect(l.address('0xdef')).toBe('https://blockscout.example/address/0xdef');
+		expect(l.token('0x44fEe614D36E1deA164f9407abD7d6264eFf5c12', 11)).toBe(
+			'https://blockscout.example/token/0x44fEe614D36E1deA164f9407abD7d6264eFf5c12/instance/11'
+		);
+		expect(l.token('0xabc', '0')).toBe('https://blockscout.example/token/0xabc/instance/0');
 	});
 
 	it('returns null for missing values even when configured', () => {
@@ -40,6 +45,8 @@ describe('explorerLinks', () => {
 		expect(l.tx(null)).toBeNull();
 		expect(l.block(null)).toBeNull();
 		expect(l.block(undefined)).toBeNull();
+		expect(l.token(null, 11)).toBeNull();
+		expect(l.token('0xabc', null)).toBeNull();
 	});
 
 	it('links block zero, which is a real block', () => {
