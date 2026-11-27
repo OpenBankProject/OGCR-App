@@ -153,7 +153,17 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
-	const obpAccessToken = tokens.accessToken();
+	let idToken: string | undefined;
+	try {
+		idToken = tokens.idToken();
+	} catch {
+		// ID token not present for all providers/flows
+		idToken = undefined;
+	}
+
+	// Google access tokens are opaque and can't be validated by OBP;
+	// the id_token is the JWT that OBP verifies against Google's JWKS.
+	const obpAccessToken = provider === 'google' && idToken ? idToken : tokens.accessToken();
 
 	logger.debug(`PUBLIC_OBP_BASE_URL from env: ${env.PUBLIC_OBP_BASE_URL}`);
 	const currentUserUrl = `${env.PUBLIC_OBP_BASE_URL}/obp/v5.1.0/users/current`;
@@ -172,10 +182,24 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 		event.cookies.delete('ogcr_oauth_state', { path: '/' });
 
+		// Surface OBP's own error (e.g. "OBP-10018: Too Many Requests. ...") rather than a
+		// generic message, so the reason is visible without digging through server logs.
+		// OBP error bodies are `{ "code": <http status>, "message": "OBP-xxxxx: ..." }`.
+		let obpMessage = errorText.trim();
+		try {
+			const parsed = JSON.parse(errorText);
+			if (parsed && typeof parsed.message === 'string') obpMessage = parsed.message;
+		} catch {
+			// Not JSON — keep the raw body text.
+		}
+		const userMessage =
+			`OBP API returned HTTP ${currentUserResponse.status} for GET ${currentUserUrl}` +
+			(obpMessage ? `: ${obpMessage}` : '');
+
 		return new Response(null, {
 			status: 302,
 			headers: {
-				Location: `/login?error=${encodeURIComponent('Failed to retrieve user information. Please try again or contact your administrator.')}`
+				Location: `/login?error=${encodeURIComponent(userMessage)}`
 			}
 		});
 	}

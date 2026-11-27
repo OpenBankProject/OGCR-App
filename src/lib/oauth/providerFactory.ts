@@ -30,9 +30,9 @@ class KeyCloakStrategy implements OAuth2ProviderStrategy {
 
 	async initialize(config: WellKnownUri): Promise<OAuth2ClientWithConfig> {
 		const client = new OAuth2ClientWithConfig(
-			env.KEYCLOAK_OAUTH_CLIENT_ID,
-			env.KEYCLOAK_OAUTH_CLIENT_SECRET,
-			env.APP_CALLBACK_URL,
+			env.KEYCLOAK_OAUTH_CLIENT_ID ?? '',
+			env.KEYCLOAK_OAUTH_CLIENT_SECRET ?? '',
+			env.APP_CALLBACK_URL ?? '',
 			'keycloak'
 		);
 
@@ -62,10 +62,39 @@ class OBPOIDCStrategy implements OAuth2ProviderStrategy {
 		});
 
 		const client = new OAuth2ClientWithConfig(
-			env.OBP_OAUTH_CLIENT_ID,
-			env.OBP_OAUTH_CLIENT_SECRET,
-			env.APP_CALLBACK_URL,
+			env.OBP_OAUTH_CLIENT_ID ?? '',
+			env.OBP_OAUTH_CLIENT_SECRET ?? '',
+			env.APP_CALLBACK_URL ?? '',
 			'obp-oidc'
+		);
+
+		await client.initOIDCConfig(config.url);
+
+		return client;
+	}
+}
+
+class GoogleStrategy implements OAuth2ProviderStrategy {
+	providerName = 'google';
+
+	supports(provider: string): boolean {
+		return provider === this.providerName;
+	}
+
+	getProviderName(): string {
+		return this.providerName;
+	}
+
+	async initialize(config: WellKnownUri): Promise<OAuth2ClientWithConfig> {
+		if (!env.GOOGLE_OAUTH_CLIENT_ID || !env.GOOGLE_OAUTH_CLIENT_SECRET) {
+			throw new Error('GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET must be set');
+		}
+
+		const client = new OAuth2ClientWithConfig(
+			env.GOOGLE_OAUTH_CLIENT_ID,
+			env.GOOGLE_OAUTH_CLIENT_SECRET,
+			env.APP_CALLBACK_URL ?? '',
+			'google'
 		);
 
 		await client.initOIDCConfig(config.url);
@@ -82,7 +111,7 @@ export class OAuth2ProviderFactory {
 		// Register any available strategies
 		this.registerStrategy(new KeyCloakStrategy());
 		this.registerStrategy(new OBPOIDCStrategy());
-		// Add more as needed i.e. this.registerStrategy(new GoogleStrategy());
+		this.registerStrategy(new GoogleStrategy());
 	}
 
 	registerStrategy(strategy: OAuth2ProviderStrategy): void {

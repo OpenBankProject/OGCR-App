@@ -5,12 +5,15 @@ import {
 	ENTITY_OPERATOR,
 	ENTITY_PARCEL,
 	ENTITY_PARCEL_OWNERSHIP_VERIFICATION,
-	ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION,
 	ENTITY_ACTIVITY_VERIFICATION,
 	ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION,
-	ENTITY_ACTIVITY_PARCEL_VERIFICATION
+	ENTITY_PARCEL_ACTIVITY,
+	entityPathV7,
+	unwrapV7List
 } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
+import { getCountries, type CountryRecord } from '$lib/reference/countries';
+import { getPractices, type PracticeRecord } from '$lib/reference/practices';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const session = locals.session;
@@ -32,21 +35,21 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		// Fetch activity and activity-level verifications in parallel
 		const [
 			activityResponse,
-			activityParcelVerResponse,
+			parcelActivityResponse,
 			activityVerResponse,
 			activityMonitoringVerResponse
 		] = await Promise.all([
-			obp_requests.get(`/obp/dynamic-entity/${ENTITY_ACTIVITY}/${activityId}`, accessToken),
+			obp_requests.get(`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`, accessToken),
 			obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY_PARCEL_VERIFICATION}?${activityIdFilter}`,
+				`${entityPathV7(ENTITY_PARCEL_ACTIVITY)}?${activityIdFilter}`,
 				accessToken
 			),
 			obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY_VERIFICATION}?${activityIdFilter}`,
+				`${entityPathV7(ENTITY_ACTIVITY_VERIFICATION)}?${activityIdFilter}`,
 				accessToken
 			),
 			obp_requests.get(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION}?${activityIdFilter}`,
+				`${entityPathV7(ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION)}?${activityIdFilter}`,
 				accessToken
 			)
 		]);
@@ -61,7 +64,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		if (operatorId) {
 			try {
 				const operatorResponse = await obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_OPERATOR}/${operatorId}`,
+					`${entityPathV7(ENTITY_OPERATOR)}/${operatorId}`,
 					accessToken
 				);
 				const operator = operatorResponse[ENTITY_OPERATOR] || operatorResponse;
@@ -72,39 +75,33 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		}
 
 		// Activity-level verifications
-		const activityVerifications = activityVerResponse[`${ENTITY_ACTIVITY_VERIFICATION}_list`] || [];
-		const activityMonitoringVerifications =
-			activityMonitoringVerResponse[`${ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION}_list`] || [];
+		const activityVerifications = unwrapV7List(activityVerResponse, ENTITY_ACTIVITY_VERIFICATION);
+		const activityMonitoringVerifications = unwrapV7List(
+			activityMonitoringVerResponse,
+			ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION
+		);
 
-		// Get parcel IDs from activity_parcel_verification records
-		const activityParcelVers =
-			activityParcelVerResponse[`${ENTITY_ACTIVITY_PARCEL_VERIFICATION}_list`] || [];
+		// The activity's parcels, from the parcel_activity links
+		const parcelLinks = unwrapV7List(parcelActivityResponse, ENTITY_PARCEL_ACTIVITY);
 		const parcelIds = [
-			...new Set(activityParcelVers.map((v: Record<string, unknown>) => v.parcel_id as string))
+			...new Set<string>(parcelLinks.map((v: Record<string, unknown>) => v.parcel_id as string))
 		];
 
-		// Fetch each parcel and parcel-level verifications
+		// Fetch each parcel and its ownership verifications
 		const parcelPromises = parcelIds.map(async (parcelId: string) => {
-			const [parcelResponse, ownerVerResponse, monitoringVerResponse] = await Promise.all([
-				obp_requests.get(`/obp/dynamic-entity/${ENTITY_PARCEL}/${parcelId}`, accessToken),
+			const [parcelResponse, ownerVerResponse] = await Promise.all([
+				obp_requests.get(`${entityPathV7(ENTITY_PARCEL)}/${parcelId}`, accessToken),
 				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}?parcel_id=${parcelId}`,
-					accessToken
-				),
-				obp_requests.get(
-					`/obp/dynamic-entity/${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}?parcel_id=${parcelId}`,
+					`${entityPathV7(ENTITY_PARCEL_OWNERSHIP_VERIFICATION)}?parcel_id=${parcelId}`,
 					accessToken
 				)
 			]);
 
 			const parcel = parcelResponse[ENTITY_PARCEL] || parcelResponse;
-			const ownerVerifications =
-				ownerVerResponse[`${ENTITY_PARCEL_OWNERSHIP_VERIFICATION}_list`] || [];
-			const monitoringVerifications =
-				monitoringVerResponse[`${ENTITY_PARCEL_MONITORING_PERIOD_VERIFICATION}_list`] || [];
+			const ownerVerifications = unwrapV7List(ownerVerResponse, ENTITY_PARCEL_OWNERSHIP_VERIFICATION);
 
-			// Find activity_parcel_verification records for this parcel
-			const parcelActivityVers = activityParcelVers.filter(
+			// The activity verifications made for this parcel
+			const parcelActivityVers = activityVerifications.filter(
 				(v: Record<string, unknown>) => v.parcel_id === parcelId
 			);
 
@@ -112,16 +109,32 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				...parcel,
 				parcel_id: parcelId,
 				owner_verifications: ownerVerifications,
-				monitoring_verifications: monitoringVerifications,
-				activity_parcel_verifications: parcelActivityVers
+				activity_verifications: parcelActivityVers
 			};
 		});
 
 		const parcels = await Promise.all(parcelPromises);
 
+		// Reference lists for the country and practice pickers in the edit form.
+		// Tolerant: a fetch failure leaves those fields as free text.
+		let countries: CountryRecord[] = [];
+		let practices: PracticeRecord[] = [];
+		try {
+			countries = await getCountries(accessToken);
+		} catch {
+			// No list available — the country field still accepts a typed ISO code.
+		}
+		try {
+			practices = await getPractices(accessToken);
+		} catch {
+			// No list available — the practice field still accepts a typed id.
+		}
+
 		return {
 			isAuthenticated: true,
 			activity,
+			countries,
+			practices,
 			operatorId: operatorId ?? null,
 			operatorName,
 			activityVerifications,
@@ -171,7 +184,7 @@ export const actions: Actions = {
 
 		try {
 			await obp_requests.post(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY_VERIFICATION}`,
+				entityPathV7(ENTITY_ACTIVITY_VERIFICATION),
 				body,
 				accessToken
 			);
@@ -211,7 +224,7 @@ export const actions: Actions = {
 
 		try {
 			await obp_requests.post(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION}`,
+				entityPathV7(ENTITY_ACTIVITY_MONITORING_PERIOD_VERIFICATION),
 				body,
 				accessToken
 			);
@@ -255,12 +268,11 @@ export const actions: Actions = {
 			website: (formData.get('website') as string) ?? '',
 			image: (formData.get('image') as string) ?? '',
 			media_links: (formData.get('media_links') as string) ?? '',
-			technologies_practices_processes:
-				(formData.get('technologies_practices_processes') as string) ?? '',
-			type: (formData.get('type') as string) ?? '',
+			technologies_practices_processes_id:
+				(formData.get('technologies_practices_processes_id') as string) ?? '',
+			activity_type: (formData.get('activity_type') as string) ?? '',
 			city: (formData.get('city') as string) ?? '',
-			country_code: (formData.get('country_code') as string) ?? '',
-			activity_plan_id: (formData.get('activity_plan_id') as string) ?? '',
+			country_id: (formData.get('country_id') as string) ?? '',
 			start_date: (formData.get('start_date') as string) ?? '',
 			end_date: (formData.get('end_date') as string) ?? '',
 			cobenefits: (formData.get('cobenefits') as string) ?? '',
@@ -279,11 +291,10 @@ export const actions: Actions = {
 			website: values.website,
 			image: values.image,
 			media_links: values.media_links,
-			technologies_practices_processes: values.technologies_practices_processes,
-			type: values.type,
+			technologies_practices_processes_id: values.technologies_practices_processes_id,
+			activity_type: values.activity_type,
 			city: values.city,
-			country_code: values.country_code,
-			activity_plan_id: values.activity_plan_id,
+			country_id: values.country_id,
 			start_date: values.start_date,
 			end_date: values.end_date,
 			cobenefits: values.cobenefits,
@@ -315,7 +326,7 @@ export const actions: Actions = {
 
 		try {
 			const response = await obp_requests.put(
-				`/obp/dynamic-entity/${ENTITY_ACTIVITY}/${activityId}`,
+				`${entityPathV7(ENTITY_ACTIVITY)}/${activityId}`,
 				body,
 				accessToken
 			);

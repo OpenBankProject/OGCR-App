@@ -86,7 +86,7 @@
 						<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-surface-600-400 mt-1">
 							<span class="flex items-center gap-1">
 								<MapPin class="size-3" />
-								{[activity.city, activity.country_code].filter(Boolean).join(', ') || 'Unknown'}
+								{[activity.city, activity.country_id].filter(Boolean).join(', ') || 'Unknown'}
 							</span>
 							<span class="flex items-center gap-1">
 								<Building2 class="size-3" />

@@ -43,6 +43,8 @@ EXPOSE 3000
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
+# No request body limit of the app's own (adapter-node's default is 512K): OBP-API limits file sizes
+ENV BODY_SIZE_LIMIT=Infinity
 
 # Start the application
 CMD ["node", "build"]

@@ -8,19 +8,37 @@ import {
 	type OBPResponseDetails
 } from '$lib/obp/errors';
 
-/** A successful empty body (e.g. 204 from DELETE) is `{}`, not a parse failure. */
-async function parseResponseBody(response: Response, url: string): Promise<any> {
+export type OBPHttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+/**
+ * Read the response body once and decode it leniently. OBP normally answers with JSON,
+ * but a 204, an empty body, or an HTML page from a proxy in front of OBP must not turn
+ * into a confusing "Failed to parse JSON" error that hides the real HTTP status.
+ */
+async function readBody(response: Response): Promise<{ data: unknown; parseError: string | null }> {
 	const text = await response.text();
-	if (!text) return {};
+	if (text.trim() === '') return { data: null, parseError: null };
 	try {
-		return JSON.parse(text);
+		return { data: JSON.parse(text), parseError: null };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		throw new OBPErrorBase(`Failed to parse JSON response from ${url}: ${message}`);
+		// Keep a short excerpt so a non-JSON error page is still diagnosable.
+		return { data: text.slice(0, 500), parseError: message };
 	}
 }
 
-class OBPRequests {
+/** OBP error bodies look like `{ "code": <http status>, "message": "OBP-xxxxx: ..." }`. */
+function isObpErrorBody(data: unknown): data is { code: number; message: string } {
+	return (
+		typeof data === 'object' &&
+		data !== null &&
+		'code' in data &&
+		'message' in data &&
+		typeof (data as { message: unknown }).message === 'string'
+	);
+}
+
+export class OBPRequests {
 	base_url: string;
 
 	constructor(base_url: string) {
@@ -34,8 +52,15 @@ class OBPRequests {
 		logger.info('Initialized.');
 	}
 
-	async get(endpoint: string, accessToken?: string): Promise<any> {
-		logger.debug('GET', endpoint);
+	async request(
+		method: OBPHttpMethod,
+		endpoint: string,
+		body?: unknown,
+		accessToken?: string
+	): Promise<any> {
+		const hasBody = body !== undefined;
+		logger.debug(method, endpoint, ...(hasBody ? [body] : []));
+
 		const url = `${this.base_url}${endpoint}`;
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json'
@@ -44,20 +69,23 @@ class OBPRequests {
 			headers['Authorization'] = `Bearer ${accessToken}`;
 		}
 
-		const requestDetails: OBPRequestDetails = {
-			method: 'GET',
-			url,
-			headers
-		};
+		const requestDetails: OBPRequestDetails = { method, url, headers };
+		if (hasBody) requestDetails.body = body;
 
 		const response = await fetch(url, {
-			headers
+			method,
+			headers,
+			...(hasBody ? { body: JSON.stringify(body) } : {})
 		});
 
-		const data = await parseResponseBody(response, url);
+		const { data, parseError } = await readBody(response);
 
 		if (!response.ok) {
-			logger.error('Failed to fetch OBP data:', { statusText: response.statusText, data });
+			logger.error(`${method} ${url} failed:`, {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			});
 
 			const responseDetails: OBPResponseDetails = {
 				status: response.status,
@@ -65,172 +93,41 @@ class OBPRequests {
 				data
 			};
 
-			if (data && data.code && data.message) {
+			if (isObpErrorBody(data)) {
 				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
-			} else {
-				throw new OBPRequestError(
-					response.status,
-					`Error fetching OBP data from ${url}: ${response.statusText}`,
-					requestDetails,
-					responseDetails
-				);
 			}
+			throw new OBPRequestError(
+				response.status,
+				`OBP request ${method} ${url} failed with HTTP ${response.status} ${response.statusText}`.trim(),
+				requestDetails,
+				responseDetails
+			);
+		}
+
+		if (parseError) {
+			throw new OBPErrorBase(
+				`Failed to parse JSON response from ${method} ${url} (HTTP ${response.status}): ${parseError}`
+			);
 		}
 
 		logger.debug('Response from OBP', response.status, response.statusText);
-		logger.debug('GET done');
 		return data;
 	}
 
-	async post(endpoint: string, body: any, accessToken?: string): Promise<any> {
-		logger.debug('POST', endpoint, body);
-		const url = `${this.base_url}${endpoint}`;
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json'
-		};
-		if (accessToken) {
-			headers['Authorization'] = `Bearer ${accessToken}`;
-		}
-
-		const requestDetails: OBPRequestDetails = {
-			method: 'POST',
-			url,
-			headers,
-			body
-		};
-
-		const response = await fetch(url, {
-			method: 'POST',
-			headers,
-			body: JSON.stringify(body)
-		});
-
-		const data = await parseResponseBody(response, url);
-
-		if (!response.ok) {
-			logger.error('Failed to post OBP data:', { statusText: response.statusText, data });
-
-			const responseDetails: OBPResponseDetails = {
-				status: response.status,
-				statusText: response.statusText,
-				data
-			};
-
-			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
-			} else {
-				throw new OBPRequestError(
-					response.status,
-					`Error posting OBP data to ${url}: ${response.statusText}`,
-					requestDetails,
-					responseDetails
-				);
-			}
-		}
-
-		logger.debug('Response from OBP', response.status, response.statusText);
-		logger.debug('POST done');
-		return data;
+	get(endpoint: string, accessToken?: string): Promise<any> {
+		return this.request('GET', endpoint, undefined, accessToken);
 	}
 
-	async delete(endpoint: string, accessToken?: string): Promise<any> {
-		logger.debug('DELETE', endpoint);
-		const url = `${this.base_url}${endpoint}`;
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json'
-		};
-		if (accessToken) {
-			headers['Authorization'] = `Bearer ${accessToken}`;
-		}
-
-		const requestDetails: OBPRequestDetails = {
-			method: 'DELETE',
-			url,
-			headers
-		};
-
-		const response = await fetch(url, {
-			method: 'DELETE',
-			headers
-		});
-
-		const data = await parseResponseBody(response, url);
-
-		if (!response.ok) {
-			logger.error('Failed to delete OBP data:', response.statusText, data);
-
-			const responseDetails: OBPResponseDetails = {
-				status: response.status,
-				statusText: response.statusText,
-				data
-			};
-
-			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
-			} else {
-				throw new OBPRequestError(
-					response.status,
-					`Error deleting OBP data from ${url}: ${response.statusText}`,
-					requestDetails,
-					responseDetails
-				);
-			}
-		}
-
-		logger.debug('Response from OBP', response.status, response.statusText);
-		logger.debug('DELETE done');
-		return data;
+	post(endpoint: string, body: unknown, accessToken?: string): Promise<any> {
+		return this.request('POST', endpoint, body, accessToken);
 	}
 
-	async put(endpoint: string, body: any, accessToken?: string): Promise<any> {
-		logger.debug('PUT', endpoint, body);
-		const url = `${this.base_url}${endpoint}`;
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json'
-		};
-		if (accessToken) {
-			headers['Authorization'] = `Bearer ${accessToken}`;
-		}
+	put(endpoint: string, body: unknown, accessToken?: string): Promise<any> {
+		return this.request('PUT', endpoint, body, accessToken);
+	}
 
-		const requestDetails: OBPRequestDetails = {
-			method: 'PUT',
-			url,
-			headers,
-			body
-		};
-
-		const response = await fetch(url, {
-			method: 'PUT',
-			headers,
-			body: JSON.stringify(body)
-		});
-
-		const data = await parseResponseBody(response, url);
-
-		if (!response.ok) {
-			logger.error('Failed to put OBP data:', { statusText: response.statusText, data });
-
-			const responseDetails: OBPResponseDetails = {
-				status: response.status,
-				statusText: response.statusText,
-				data
-			};
-
-			if (data && data.code && data.message) {
-				throw new OBPRequestError(data.code, data.message, requestDetails, responseDetails);
-			} else {
-				throw new OBPRequestError(
-					response.status,
-					`Error putting OBP data to ${url}: ${response.statusText}`,
-					requestDetails,
-					responseDetails
-				);
-			}
-		}
-
-		logger.debug('Response from OBP', response.status, response.statusText);
-		logger.debug('PUT done');
-		return data;
+	delete(endpoint: string, accessToken?: string): Promise<any> {
+		return this.request('DELETE', endpoint, undefined, accessToken);
 	}
 }
 
@@ -239,7 +136,7 @@ let obp_requests_instance: OBPRequests | null = null;
 export const obp_requests = {
 	get instance(): OBPRequests {
 		if (!obp_requests_instance) {
-			obp_requests_instance = new OBPRequests(env.PUBLIC_OBP_BASE_URL);
+			obp_requests_instance = new OBPRequests(env.PUBLIC_OBP_BASE_URL ?? '');
 		}
 		return obp_requests_instance;
 	},
@@ -248,11 +145,11 @@ export const obp_requests = {
 		return this.instance.get(endpoint, accessToken);
 	},
 
-	post: function (endpoint: string, data: any, accessToken?: string) {
+	post: function (endpoint: string, data: unknown, accessToken?: string) {
 		return this.instance.post(endpoint, data, accessToken);
 	},
 
-	put: function (endpoint: string, data: any, accessToken?: string) {
+	put: function (endpoint: string, data: unknown, accessToken?: string) {
 		return this.instance.put(endpoint, data, accessToken);
 	},
 

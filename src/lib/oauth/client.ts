@@ -187,12 +187,7 @@ export class OAuth2ClientWithConfig extends OAuth2Client {
 				const retryTokens = await retryResponse.json();
 				logger.debug('Token response received successfully after retry');
 
-				return {
-					accessToken: () => retryTokens.access_token,
-					refreshToken: () => retryTokens.refresh_token,
-					accessTokenExpiresAt: () =>
-						retryTokens.expires_in ? new Date(Date.now() + retryTokens.expires_in * 1000) : null
-				};
+				return this.wrapTokenResponse(retryTokens);
 			}
 
 			throw new Error(`Token request failed: ${response.status} ${response.statusText}`);
@@ -201,11 +196,98 @@ export class OAuth2ClientWithConfig extends OAuth2Client {
 		const tokens = await response.json();
 		logger.debug('Token response received successfully');
 
+		return this.wrapTokenResponse(tokens);
+	}
+
+	private wrapTokenResponse(tokens: any) {
 		return {
 			accessToken: () => tokens.access_token,
 			refreshToken: () => tokens.refresh_token,
+			idToken: () => {
+				if ('id_token' in tokens && typeof tokens.id_token === 'string') {
+					return tokens.id_token;
+				}
+				throw new Error("Missing or invalid field 'id_token'");
+			},
 			accessTokenExpiresAt: () =>
 				tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
 		};
+	}
+
+	async refreshAccessToken(tokenEndpoint: string, refreshToken: string, scopes: string[]): Promise<any> {
+		logger.debug('Refreshing access token...');
+
+		const body = new URLSearchParams();
+		body.set('grant_type', 'refresh_token');
+		body.set('refresh_token', refreshToken);
+
+		if (scopes && scopes.length > 0) {
+			body.set('scope', scopes.join(' '));
+		}
+
+		const headers: Record<string, string> = {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			Accept: 'application/json'
+		};
+
+		// Use HTTP Basic Authentication for client credentials (RFC 6749 Section 2.3.1)
+		if (this.storedClientSecret) {
+			const credentials = Buffer.from(`${this.storedClientId}:${this.storedClientSecret}`).toString(
+				'base64'
+			);
+			headers['Authorization'] = `Basic ${credentials}`;
+		} else {
+			// Public client - include client_id in body
+			body.set('client_id', this.storedClientId);
+		}
+
+		const response = await fetch(tokenEndpoint, {
+			method: 'POST',
+			headers,
+			body: body.toString()
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			logger.error(`Token refresh error - Status: ${response.status}, Data:`, errorData);
+
+			// If Basic Auth failed and we have a client secret, try with credentials in body as fallback
+			if (response.status === 401 && this.storedClientSecret && !body.has('client_id')) {
+				logger.warn('Basic Auth failed for refresh, retrying with credentials in request body');
+
+				body.set('client_id', this.storedClientId);
+				body.set('client_secret', this.storedClientSecret);
+				delete headers['Authorization'];
+
+				const retryResponse = await fetch(tokenEndpoint, {
+					method: 'POST',
+					headers,
+					body: body.toString()
+				});
+
+				if (!retryResponse.ok) {
+					const retryErrorData = await retryResponse.json().catch(() => ({}));
+					logger.error(
+						`Token refresh retry error - Status: ${retryResponse.status}, Data:`,
+						retryErrorData
+					);
+					throw new Error(
+						`Token refresh failed after retry: ${retryResponse.status} ${retryResponse.statusText}`
+					);
+				}
+
+				const retryTokens = await retryResponse.json();
+				logger.debug('Token refresh response received successfully after retry');
+
+				return this.wrapTokenResponse(retryTokens);
+			}
+
+			throw new Error(`Token refresh failed: ${response.status} ${response.statusText}`);
+		}
+
+		const tokens = await response.json();
+		logger.debug('Token refresh response received successfully');
+
+		return this.wrapTokenResponse(tokens);
 	}
 }

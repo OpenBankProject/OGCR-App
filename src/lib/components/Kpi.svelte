@@ -1,0 +1,209 @@
+<script lang="ts">
+	/**
+	 * OGCR Design System — KPI (spec §4.11).
+	 *
+	 * Ported from the shipped component, following the conventions in
+	 * ../../../design_system_integration.md: values taken from the source rather
+	 * than the spec's stale copy-paste CSS, expressed as scoped CSS over our
+	 * mirrored tokens, class names namespaced `ogcr-` so nothing Skeleton ships
+	 * can land on them, and a dark-mode block because the design system has no
+	 * dark palette.
+	 *
+	 * `tone` drives the 6px top accent bar, which the spec calls the primary
+	 * status signal. `accentBar={false}` gives the quiet icon-led tile used in a
+	 * dense row — which is what the registry summary uses, since a tone would
+	 * imply a judgement we have no data to make.
+	 *
+	 * `href` turns the label and value into links to the page behind the figure.
+	 * `browseLabel` (an app extension, not in the design system) adds a visible
+	 * "Browse …" link to the same page at the foot of the tile.
+	 */
+	import type { Snippet } from 'svelte';
+
+	type Tone = 'positive' | 'warning' | 'negative' | 'neutral' | 'progress';
+
+	let {
+		label,
+		value,
+		secondaryText,
+		icon,
+		tone = 'positive',
+		accentBar = true,
+		href,
+		browseLabel,
+		class: className = '',
+		...rest
+	}: {
+		label: string;
+		value: string | number;
+		secondaryText?: string;
+		icon?: Snippet;
+		tone?: Tone;
+		accentBar?: boolean;
+		href?: string;
+		browseLabel?: string;
+		class?: string;
+		[key: string]: unknown;
+	} = $props();
+</script>
+
+<article class="ogcr-kpi {className}" data-tone={tone} {...rest}>
+	{#if accentBar}
+		<div class="ogcr-kpi__accent" aria-hidden="true"></div>
+	{/if}
+	<header class="ogcr-kpi__header" class:ogcr-kpi__header--offset={accentBar}>
+		<span class="ogcr-kpi__labelwrap">
+			{#if icon}
+				<span class="ogcr-kpi__icon" aria-hidden="true">{@render icon()}</span>
+			{/if}
+			{#if href}
+				<!-- With a browse link, that is the one tab stop for the destination. -->
+				<a {href} class="ogcr-kpi__label ogcr-kpi__link" tabindex={browseLabel ? -1 : undefined}
+					>{label}</a
+				>
+			{:else}
+				<span class="ogcr-kpi__label">{label}</span>
+			{/if}
+		</span>
+	</header>
+	{#if href}
+		<a {href} class="ogcr-kpi__value ogcr-kpi__link" tabindex="-1">{value}</a>
+	{:else}
+		<div class="ogcr-kpi__value">{value}</div>
+	{/if}
+	{#if secondaryText}
+		<p class="ogcr-kpi__secondary">{secondaryText}</p>
+	{/if}
+	{#if href && browseLabel}
+		<a {href} class="ogcr-kpi__browse">{browseLabel}</a>
+	{/if}
+</article>
+
+<style>
+	.ogcr-kpi {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2xs);
+		padding: var(--space-m) var(--space-l);
+		background: var(--surface-light);
+		border: 1px solid var(--border-medium);
+		border-radius: var(--radius-l);
+		overflow: hidden;
+	}
+
+	.ogcr-kpi__accent {
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: 6px;
+		background: var(--icon-positive);
+	}
+	.ogcr-kpi[data-tone='warning'] .ogcr-kpi__accent {
+		background: var(--icon-warning);
+	}
+	.ogcr-kpi[data-tone='negative'] .ogcr-kpi__accent {
+		background: var(--icon-negative);
+	}
+	.ogcr-kpi[data-tone='neutral'] .ogcr-kpi__accent {
+		background: var(--text-neutral);
+	}
+	.ogcr-kpi[data-tone='progress'] .ogcr-kpi__accent {
+		background: var(--icon-progress);
+	}
+
+	.ogcr-kpi__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-s);
+	}
+	/* Clears the accent bar so the label does not sit against it. */
+	.ogcr-kpi__header--offset {
+		padding-top: var(--space-2xs);
+	}
+
+	.ogcr-kpi__labelwrap {
+		display: inline-flex;
+		min-width: 0;
+		align-items: center;
+		gap: var(--space-xs);
+	}
+
+	.ogcr-kpi__icon {
+		display: inline-flex;
+		width: 20px;
+		height: 20px;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		color: var(--icon-secondary);
+	}
+
+	.ogcr-kpi__label {
+		font-family: var(--font-family-default);
+		font-weight: 400;
+		font-size: var(--font-size-s);
+		line-height: 1.4;
+		color: var(--text-secondary);
+	}
+
+	.ogcr-kpi__value {
+		font-family: var(--font-family-default);
+		font-weight: 500;
+		font-size: var(--font-size-xl);
+		line-height: 1.2;
+		color: var(--text-primary);
+		/* Figures line up column-to-column when several tiles sit in a row. */
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* The value link duplicates the label link, so it is taken out of the tab
+	   order (tabindex="-1") to avoid two stops for one destination. */
+	.ogcr-kpi__link {
+		text-decoration: none;
+	}
+	.ogcr-kpi__link:hover,
+	.ogcr-kpi__link:focus-visible {
+		text-decoration: underline;
+	}
+
+	.ogcr-kpi__browse {
+		margin-top: var(--space-xs);
+		font-family: var(--font-family-default);
+		font-weight: 500;
+		font-size: var(--font-size-m);
+		color: var(--interaction-primary-default);
+		text-decoration: none;
+	}
+	.ogcr-kpi__browse:hover,
+	.ogcr-kpi__browse:focus-visible {
+		color: var(--interaction-primary-hover);
+		text-decoration: underline;
+	}
+
+	.ogcr-kpi__secondary {
+		margin: 0;
+		font-family: var(--font-family-default);
+		font-weight: 400;
+		font-size: var(--font-size-s);
+		line-height: 1.4;
+		color: var(--text-secondary);
+	}
+
+	/* See Card.svelte — the design system ships no dark palette, so these fall
+	   back to the Skeleton dark surfaces the rest of the app uses. */
+	:global([data-mode='dark']) .ogcr-kpi {
+		background: var(--color-surface-900);
+		border-color: var(--color-surface-700);
+	}
+	:global([data-mode='dark']) .ogcr-kpi__value {
+		color: var(--color-primary-200);
+	}
+	:global([data-mode='dark']) .ogcr-kpi__browse {
+		color: var(--color-primary-300);
+	}
+	:global([data-mode='dark']) .ogcr-kpi__label,
+	:global([data-mode='dark']) .ogcr-kpi__secondary {
+		color: var(--color-surface-400);
+	}
+</style>

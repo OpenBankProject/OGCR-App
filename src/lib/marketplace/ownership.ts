@@ -1,5 +1,5 @@
 import { obp_requests } from '$lib/obp/requests';
-import { ENTITY_OPERATOR, ENTITY_USER_OPERATOR_RELATIONSHIP } from '$lib/constants/entities';
+import { ENTITY_OPERATOR, ENTITY_USER_OPERATOR_RELATIONSHIP, entityPath } from '$lib/constants/entities';
 
 export interface OperatorRecord {
 	operator_id?: string;
@@ -23,7 +23,7 @@ export async function getOperatorsForUser(
 ): Promise<OperatorRecord[]> {
 	if (!userEmail) return [];
 
-	const response = await obp_requests.get(`/obp/dynamic-entity/${ENTITY_OPERATOR}`, accessToken);
+	const response = await obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken);
 	const operators = (response[`${ENTITY_OPERATOR}_list`] || []) as OperatorRecord[];
 
 	const target = userEmail.trim().toLowerCase();
@@ -62,7 +62,7 @@ export async function getOperatorsForUserId(
 	if (!userId) return [];
 
 	const relResponse = await obp_requests.get(
-		`/obp/dynamic-entity/${ENTITY_USER_OPERATOR_RELATIONSHIP}`,
+		entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP),
 		accessToken
 	);
 	const relationships = (relResponse[`${ENTITY_USER_OPERATOR_RELATIONSHIP}_list`] ||
@@ -72,7 +72,7 @@ export async function getOperatorsForUserId(
 	if (mine.length === 0) return [];
 
 	// Resolve each linked operator_id to its operator record.
-	const opResponse = await obp_requests.get(`/obp/dynamic-entity/${ENTITY_OPERATOR}`, accessToken);
+	const opResponse = await obp_requests.get(entityPath(ENTITY_OPERATOR), accessToken);
 	const operators = (opResponse[`${ENTITY_OPERATOR}_list`] || []) as OperatorRecord[];
 	const byId = new Map<string, OperatorRecord>(
 		operators.filter((op) => op.operator_id).map((op) => [op.operator_id as string, op])
@@ -94,7 +94,7 @@ export async function linkUserToOperator(
 	params: { userId: string; operatorId: string; relationship?: string }
 ): Promise<UserOperatorRelationship> {
 	const response = await obp_requests.post(
-		`/obp/dynamic-entity/${ENTITY_USER_OPERATOR_RELATIONSHIP}`,
+		entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP),
 		{
 			user_id: params.userId,
 			operator_id: params.operatorId,
@@ -112,7 +112,7 @@ export async function updateUserOperatorRelationship(
 	params: { userId: string; operatorId: string; relationship: string }
 ): Promise<UserOperatorRelationship> {
 	const response = await obp_requests.put(
-		`/obp/dynamic-entity/${ENTITY_USER_OPERATOR_RELATIONSHIP}/${relationshipId}`,
+		`${entityPath(ENTITY_USER_OPERATOR_RELATIONSHIP)}/${relationshipId}`,
 		{
 			user_id: params.userId,
 			operator_id: params.operatorId,

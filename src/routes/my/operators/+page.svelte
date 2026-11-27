@@ -80,10 +80,10 @@
 								<span class="truncate">{op.email}</span>
 							</div>
 						{/if}
-						{#if op.country_code}
+						{#if op.country_id}
 							<div class="flex items-center gap-2 min-w-0">
 								<MapPin class="size-4 text-surface-500 shrink-0" />
-								<span class="truncate">{op.country_code}</span>
+								<span class="truncate">{op.country_id}</span>
 							</div>
 						{/if}
 						{#if op.ogcr_wallet_address}

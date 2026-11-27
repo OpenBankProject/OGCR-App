@@ -3,7 +3,9 @@ import { obp_requests } from '$lib/obp/requests';
 import {
 	ENTITY_ACTIVITY,
 	ENTITY_OPERATOR,
-	ENTITY_ACTIVITY_VERIFICATION
+	ENTITY_ACTIVITY_VERIFICATION,
+	entityPathV7,
+	unwrapV7List
 } from '$lib/constants/entities';
 import { OBPRequestError } from '$lib/obp/errors';
 import { getAllListings, type ActivityListing } from '$lib/marketplace/listings';
@@ -81,7 +83,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// activity_verification.status_code to all be declared `indexed: true` — see
 	// [[ogcr-dynamic-entity-join-queries]] memory for why, and the OBP-API bug this
 	// tripped over.
-	let activityEndpoint = `/obp/dynamic-entity/${ENTITY_ACTIVITY}`;
+	let activityEndpoint = entityPathV7(ENTITY_ACTIVITY);
 	if (verificationFilter !== 'all') {
 		const quantifier = verificationFilter === 'verified' ? 'obp_exists' : 'obp_not_exists';
 		const joinParams = new URLSearchParams();
@@ -91,16 +93,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	try {
 		const response = await debugGet('Activities', activityEndpoint);
-		const activities = (response[`${ENTITY_ACTIVITY}_list`] || []) as Array<
-			Record<string, unknown> & { operator_id?: string }
-		>;
+		const activities = unwrapV7List<Record<string, unknown> & { operator_id?: string }>(
+			response,
+			ENTITY_ACTIVITY
+		);
 
 		// Resolve operator names via activity.operator_id -> operator.legal_name.
 		// Kept in its own try so an operator-fetch failure still renders the activities.
 		const operatorNames = new Map<string, string>();
 		try {
-			const opResponse = await debugGet('Operators', `/obp/dynamic-entity/${ENTITY_OPERATOR}`);
-			const operators = (opResponse[`${ENTITY_OPERATOR}_list`] || []) as OperatorRecord[];
+			const opResponse = await debugGet('Operators', entityPathV7(ENTITY_OPERATOR));
+			const operators = unwrapV7List<OperatorRecord>(opResponse, ENTITY_OPERATOR);
 			for (const op of operators) {
 				if (op.operator_id && op.legal_name) operatorNames.set(op.operator_id, op.legal_name);
 			}

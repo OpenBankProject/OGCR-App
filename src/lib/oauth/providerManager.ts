@@ -1,7 +1,6 @@
 import { createLogger } from '$lib/utils/logger';
 import { obp_requests } from '$lib/obp/requests';
 import { oauth2ProviderFactory, type WellKnownUri } from '$lib/oauth/providerFactory';
-import { PUBLIC_OBP_BASE_URL } from '$env/static/public';
 
 const logger = createLogger('OAuthProviderManager');
 
@@ -217,6 +216,14 @@ class OAuth2ProviderManager {
 	 */
 	getUnavailableProviders(): ProviderStatus[] {
 		return this.status.providers.filter((p) => p.status === 'unavailable');
+	}
+
+	/**
+	 * Returns the current status of a single provider, reflecting the latest
+	 * periodic refresh (lookup by name, not a snapshot taken at call-site setup)
+	 */
+	getProviderStatus(provider: string): ProviderStatus | undefined {
+		return this.status.providers.find((p) => p.provider === provider);
 	}
 
 	/**

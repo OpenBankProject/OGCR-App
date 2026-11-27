@@ -5,23 +5,20 @@ import { error, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { sveltekitSessionHandle } from 'svelte-kit-sessions';
 import RedisStore from 'svelte-kit-connect-redis';
-import { env } from '$env/dynamic/private';
 
+import { hasClientFor } from '$lib/oauth/clientConfig';
 import { oauth2ProviderManager } from '$lib/oauth/providerManager';
 import { SessionOAuthHelper } from '$lib/oauth/sessionHelper';
 import { redisService } from '$lib/redis/services/RedisService';
+import { healthCheckRegistry, OIDCHealthCheckService } from '$lib/health-check';
+import { RedisHealthCheckService } from '$lib/server/health-check/RedisHealthCheckService';
+import { env as publicEnv } from '$env/dynamic/public';
+import { env } from '$env/dynamic/private';
+import { building } from '$app/environment';
 
 // Constants
-const DEFAULT_PORT = 5175;
-
-// Session cookies are signed with this secret; a shared/guessable value lets
-// anyone forge a valid session cookie against this deployment.
-const SESSION_SECRET = env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-	throw new Error(
-		'SESSION_SECRET environment variable is not set. Set it to a long random string before starting the server.'
-	);
-}
+// Dev server port, must match `server.port` in vite.config.ts and the OAuth callback URL.
+const DEFAULT_PORT = 5200;
 
 // Routes that must be reachable without an authenticated session. Everything
 // else is denied-by-default so a new route can't accidentally skip auth by
@@ -35,8 +32,10 @@ function isPublicRoute(routeId: string): boolean {
 	);
 }
 
-// Check if server is running on non-default port
+// Check if the dev server is running on a port other than the one the OAuth callback
+// URL was registered for. Skipped in production, where PORT is set by the container.
 function checkServerPort() {
+	if (process.env.NODE_ENV === 'production') return;
 	const envPort = process.env.PORT || process.env.VITE_PORT || process.env.SERVER_PORT;
 
 	if (envPort && parseInt(envPort) !== DEFAULT_PORT) {
@@ -47,13 +46,102 @@ function checkServerPort() {
 	}
 }
 
+// Session cookie signing secret. Must be set in production; in development a fixed
+// insecure default keeps `npm run dev` working without extra setup.
+function resolveSessionSecret(): string {
+	const secret = env.SESSION_SECRET;
+	if (secret && secret.length >= 16) return secret;
+	if (process.env.NODE_ENV === 'production' && !building) {
+		throw new Error(
+			'SESSION_SECRET must be set (at least 16 characters) in production. ' +
+				'Generate one with: openssl rand -hex 32'
+		);
+	}
+	logger.warn('SESSION_SECRET is not set (or too short). Using an insecure development default.');
+	return 'ogcr-app-insecure-dev-session-secret';
+}
+
 // Startup scripts
 checkServerPort();
+const sessionSecret = resolveSessionSecret();
 
 // Init Redis
 const redisClient = redisService.getClient();
 
 await oauth2ProviderManager.start();
+
+function initHealthChecks() {
+	healthCheckRegistry.register({
+		serviceName: 'OBP API',
+		url: `${publicEnv.PUBLIC_OBP_BASE_URL}/obp/v5.1.0/root`,
+		details: {
+			PUBLIC_OBP_BASE_URL: publicEnv.PUBLIC_OBP_BASE_URL ?? '[MISSING]'
+		}
+	});
+
+	// Sessions are stored in Redis, so its health belongs on the status page too
+	healthCheckRegistry.register(new RedisHealthCheckService(redisService));
+
+	// The tokenizer, if it exposes its health endpoint. It writes to the chain
+	// and never to OBP, so nothing on the OBP side reveals whether it is
+	// running: the chain mirror runs the opposite way, and a tokenization
+	// backlog of zero on a dead tokenizer with no new work looks like success.
+	// Optional, because the tokenizer is not part of every deployment; without
+	// the URL it is simply not monitored rather than permanently unhealthy.
+	const tokenizerHealthUrl = env.TOKENIZER_HEALTH_URL;
+	if (tokenizerHealthUrl) {
+		healthCheckRegistry.register({
+			serviceName: 'OGCR Tokenizer',
+			url: tokenizerHealthUrl,
+			details: {
+				TOKENIZER_HEALTH_URL: tokenizerHealthUrl
+			}
+		});
+	}
+
+	const testTokenDisabled = env.OIDC_HEALTHCHECK_TEST_TOKEN === 'false';
+	const testTokenStrict = env.OIDC_HEALTHCHECK_TEST_TOKEN_STRICT === 'true';
+
+	const credentialsFor = (provider: string): { clientId?: string; clientSecret?: string } => {
+		if (testTokenDisabled) return {};
+		switch (provider) {
+			case 'obp-oidc':
+				return { clientId: env.OBP_OAUTH_CLIENT_ID, clientSecret: env.OBP_OAUTH_CLIENT_SECRET };
+			case 'keycloak':
+				return {
+					clientId: env.KEYCLOAK_OAUTH_CLIENT_ID,
+					clientSecret: env.KEYCLOAK_OAUTH_CLIENT_SECRET
+				};
+			default:
+				// Google does not support the client_credentials grant — skip the token test
+				return {};
+		}
+	};
+
+	// Register every provider this app has a client for — including ones that
+	// failed to initialize — so /status shows the full OIDC picture, not only the
+	// working providers. A provider with no client here (say OBP-API lists Google
+	// but GOOGLE_OAUTH_CLIENT_ID is unset) is not used, so it is not checked.
+	// The providerStatus callback reads live manager state, so a provider that
+	// comes up (or dies) after boot flips on the status page without a restart.
+	for (const p of oauth2ProviderManager.getAllProviders()) {
+		if (!hasClientFor(p.provider)) continue;
+		const { clientId, clientSecret } = credentialsFor(p.provider);
+		healthCheckRegistry.register(
+			new OIDCHealthCheckService({
+				serviceName: `OAuth2: ${p.provider}`,
+				providerStatus: () => oauth2ProviderManager.getProviderStatus(p.provider),
+				clientId,
+				clientSecret,
+				strictClientCredentials: testTokenStrict
+			})
+		);
+	}
+
+	healthCheckRegistry.startAll();
+}
+
+initHealthChecks();
 
 function needsAuthorization(routeId: string): boolean {
 	return !isPublicRoute(routeId);
@@ -128,7 +216,7 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 export const handle: Handle = sequence(
 	sveltekitSessionHandle({
 		name: 'ogcr-app-connect.sid',
-		secret: SESSION_SECRET,
+		secret: sessionSecret,
 		store: new RedisStore({
 			client: redisClient,
 			prefix: 'ogcr-app-session:'

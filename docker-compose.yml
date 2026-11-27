@@ -6,14 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - ORIGIN=http://localhost:3000
       - PUBLIC_OBP_BASE_URL=${PUBLIC_OBP_BASE_URL:-http://host.docker.internal:8080}
       - OBP_OAUTH_CLIENT_ID=${OBP_OAUTH_CLIENT_ID}
       - OBP_OAUTH_CLIENT_SECRET=${OBP_OAUTH_CLIENT_SECRET}
-      - APP_CALLBACK_URL=${APP_CALLBACK_URL:-http://localhost:3000/login/obp-oidc/callback}
+      - SESSION_SECRET=${SESSION_SECRET:?set SESSION_SECRET (e.g. openssl rand -hex 32)}
+      - APP_CALLBACK_URL=${APP_CALLBACK_URL:-http://localhost:3000/login/callback}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
@@ -24,7 +25,7 @@ services:
   redis:
     image: redis:6.2-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     networks:

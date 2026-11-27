@@ -1,15 +1,238 @@
-<div class="flex h-full w-full items-center justify-center p-8">
-	<div class="max-w-4xl text-center">
-		<img src="/ogcr_logo.svg" alt="OGCR" class="h-16 mx-auto mb-6" />
-		<h1 class="h1 mb-6">Welcome to OGCR App</h1>
-		<p class="text-xl text-surface-600-400 mb-4">
-			An example application to interact with the OGCR entities
-		</p>
-		<p class="text-surface-600-400">
-			See <a href="/activities" class="anchor">Activities</a>,
-			manage your <a href="/my/operators" class="anchor">Operators</a>,
-			open <a href="/trading" class="anchor">Trading</a>,
-			or browse the <a href="/design" class="anchor">Design System</a>.
-		</p>
+<script lang="ts">
+	import type { PageData } from './$types';
+	import Card from '$lib/components/Card.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import { ARCHITECTURE_URL, SOURCE_CODE_URL } from '$lib/constants/links';
+	import {
+		Leaf,
+		Building2,
+		Store,
+		Link2,
+		Palette,
+		Library,
+		Wrench,
+		Bot,
+		Database,
+		Compass,
+		KeyRound,
+		Globe,
+		MessageSquare,
+		Users,
+		FileCode,
+		FileUp,
+		Network,
+		CodeXml,
+		ClipboardCheck,
+		Sprout,
+		LockKeyhole
+	} from '@lucide/svelte';
+
+	let { data }: { data: PageData } = $props();
+
+	// Destinations are the app's existing routes — Operators lives under /my
+	// because the page is scoped to the operators linked to the signed-in user —
+	// then the OBP Portal, whose home page also hosts the Opey agent chat.
+	const destinations = $derived(
+		[
+			{
+				href: '/registry',
+				icon: Library,
+				title: 'Registry',
+				description: 'Browse the public carbon activity registry.'
+			},
+			{
+				href: '/activities',
+				icon: Leaf,
+				title: 'Activities',
+				description: 'Create and manage activities for testing against the DCR.'
+			},
+			{
+				href: '/my/operators',
+				icon: Building2,
+				title: 'Operators',
+				description: 'Manage operator records.'
+			},
+			{
+				href: '/trading',
+				icon: Store,
+				title: 'Trading',
+				description: 'Open the trading interface.'
+			},
+			{
+				href: '/chain',
+				icon: Link2,
+				title: 'Chain',
+				description: 'Inspect on-chain state and the sync status.'
+			},
+			{
+				href: '/domain-api',
+				icon: FileCode,
+				title: 'Domain API',
+				description: "The space's endpoints under its own base path, with their OpenAPI spec."
+			},
+			{
+				href: '/files-test',
+				icon: FileUp,
+				title: 'Files',
+				description: 'Upload a file and test storing, reading and attaching it.'
+			},
+			{
+				href: data.portalUrl,
+				icon: Globe,
+				title: 'Portal / Register',
+				description: 'Register, get API keys and read the guides.'
+			},
+			{
+				href: data.portalUrl,
+				icon: MessageSquare,
+				title: 'Agent',
+				description: 'Ask the agent about the DCR and its schema.'
+			}
+		].filter(
+			(destination): destination is typeof destination & { href: string } =>
+				destination.href !== null
+		)
+	);
+
+	// Below the fold: this deployment's OBP data model, then its other OBP apps, wherever
+	// OBP's app directory says they are. Only the public MCP server is linked, never
+	// public_obp_mcp_internal_url.
+	const tools = $derived(
+		[
+			{
+				href: '/schema',
+				icon: Database,
+				title: 'Schema',
+				description: 'View schema and endpoints.'
+			},
+			{
+				href: '/group-entitlements',
+				icon: Users,
+				title: 'Group entitlements',
+				description: 'What each group can do with each entity.'
+			},
+			{
+				href: data.apiExplorerUrl,
+				icon: Compass,
+				title: 'API Explorer',
+				description: 'Browse and try the API endpoints.'
+			},
+			{
+				href: data.apiManagerUrl,
+				icon: Wrench,
+				title: 'API Manager',
+				description: 'Manage schema and access.'
+			},
+			{
+				href: data.mcpUrl,
+				icon: Bot,
+				title: 'MCP Server',
+				description: 'Connect AI tools to the API.'
+			},
+			{
+				href: data.authenticationUrl,
+				icon: KeyRound,
+				title: 'Authentication',
+				description: 'How to authenticate against the API.'
+			}
+		].filter((tool): tool is typeof tool & { href: string } => tool.href !== null)
+	);
+</script>
+
+{#snippet evaluatorsIcon()}
+	<ClipboardCheck class="size-4" aria-hidden="true" />
+{/snippet}
+
+{#snippet publicGardenIcon()}
+	<Sprout class="size-4" aria-hidden="true" />
+{/snippet}
+
+{#snippet privateGardenIcon()}
+	<LockKeyhole class="size-4" aria-hidden="true" />
+{/snippet}
+
+<svelte:head>
+	<title>OGCR DCR</title>
+</svelte:head>
+
+<!-- The app's own sections first; then the technical environment of this deployment; the design system last. -->
+<section class="flex w-full justify-center p-8">
+	<div class="w-full max-w-5xl">
+		<div class="text-center">
+			<img src="/ogcr_logo.svg" alt="OGCR" class="mx-auto mb-6 h-16" />
+			<h1 class="mb-6 h1">OGCR DCR</h1>
+			<p class="mb-4 h3">Explore and Create</p>
+			<!-- The full Carbon Garden asks you to log in first. -->
+			<div class="flex flex-wrap justify-center gap-[var(--space-s)]">
+				<Button variant="outlined" href="/evaluators" iconLeft={evaluatorsIcon}>Evaluators</Button>
+				<Button variant="outlined" href="/registry/carbon-garden" iconLeft={publicGardenIcon}
+					>Carbon Garden</Button
+				>
+				<Button variant="outlined" href="/carbon-garden" iconLeft={privateGardenIcon}
+					>Carbon Garden (logged in)</Button
+				>
+			</div>
+		</div>
+
+		<!-- 1 column on mobile, 2 on tablet, 3 on desktop (design system §3). -->
+		<nav aria-label="Sections" class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{#each destinations as { href, icon: Icon, title, description } (title)}
+				<Card {href} {title} subtitle={description}>
+					{#snippet leading()}
+						<Icon class="size-6" aria-hidden="true" />
+					{/snippet}
+				</Card>
+			{/each}
+		</nav>
 	</div>
-</div>
+</section>
+
+{#if tools.length > 0}
+	<section aria-labelledby="obp-tools" class="mt-16 flex w-full justify-center px-8">
+		<div class="w-full max-w-5xl">
+			<h2 id="obp-tools" class="mb-6 text-center h3">
+				Schema, Documentation, Endpoints, Access, Observe, Program
+			</h2>
+			<nav aria-labelledby="obp-tools" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{#each tools as { href, icon: Icon, title, description } (title)}
+					<Card {href} {title} subtitle={description}>
+						{#snippet leading()}
+							<Icon class="size-6" aria-hidden="true" />
+						{/snippet}
+					</Card>
+				{/each}
+			</nav>
+		</div>
+	</section>
+{/if}
+
+<section aria-labelledby="design" class="mt-16 flex w-full justify-center px-8 pb-12">
+	<div class="w-full max-w-5xl">
+		<h2 id="design" class="mb-6 text-center h3">Design</h2>
+		<nav aria-labelledby="design" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<Card href="/design" title="Design System" subtitle="Browse OGCR components and tokens.">
+				{#snippet leading()}
+					<Palette class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+			<Card
+				href={ARCHITECTURE_URL}
+				title="Architecture"
+				subtitle="How the registry is built, and what each part does."
+			>
+				{#snippet leading()}
+					<Network class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+			<Card
+				href={SOURCE_CODE_URL}
+				title="Source Code"
+				subtitle="Every part of the registry, with a link to its repository."
+			>
+				{#snippet leading()}
+					<CodeXml class="size-6" aria-hidden="true" />
+				{/snippet}
+			</Card>
+		</nav>
+	</div>
+</section>

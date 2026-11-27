@@ -3,6 +3,8 @@
 	import { FolderKanban, Copy, Check, MapPin, ShieldCheck, Activity, ArrowLeft, Save, Plus, Building2 } from '@lucide/svelte';
 	import GeoJsonMap from '$lib/components/GeoJsonMap.svelte';
 	import { enhance } from '$app/forms';
+	import ReferenceSelect from '$lib/components/ReferenceSelect.svelte';
+	import { countryOptions, practiceOptions } from '$lib/reference/options';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -104,7 +106,7 @@
 			<!-- Operator -->
 			{#if data.operatorId}
 				<a
-					href="/my/operators/{data.operatorId}"
+					href="/operators/{data.operatorId}"
 					class="card p-4 preset-filled-surface-100-900 hover:preset-tonal transition-colors flex items-center gap-3 shrink-0"
 				>
 					<Building2 class="size-7 text-secondary-500 shrink-0" />
@@ -174,7 +176,7 @@
 					<!-- Type: spans 2 cols -->
 					<label class="label col-span-2">
 						<span class="label-text text-sm">Type</span>
-						<input type="text" name="type" value={v('type')} class="input" placeholder="e.g., CARBON_FARMING" />
+						<input type="text" name="activity_type" value={v('activity_type')} class="input" placeholder="e.g., CARBON_FARMING" />
 					</label>
 					<!-- City + Country: 1 col each -->
 					<label class="label">
@@ -183,7 +185,14 @@
 					</label>
 					<label class="label">
 						<span class="label-text text-sm">Country</span>
-						<input type="text" name="country_code" value={v('country_code')} class="input" placeholder="DE" />
+						<ReferenceSelect
+							name="country_id"
+							value={v('country_id')}
+							options={countryOptions(data.countries)}
+							emptyLabel="Select a country…"
+							placeholder="DE"
+							fallbackHint="The country list could not be loaded — enter the country code directly."
+						/>
 					</label>
 
 					<!-- Summary: full width -->
@@ -201,7 +210,14 @@
 					<!-- Technologies, Cobenefits, Methodologies: 2 cols each -->
 					<label class="label col-span-2">
 						<span class="label-text text-sm">Technologies / Practices</span>
-						<input type="text" name="technologies_practices_processes" value={v('technologies_practices_processes')} class="input" placeholder="e.g., agroforestry" />
+						<ReferenceSelect
+							name="technologies_practices_processes_id"
+							value={v('technologies_practices_processes_id')}
+							options={practiceOptions(data.practices)}
+							emptyLabel="Select a practice…"
+							placeholder="e.g., tpp_01JS0347FKH"
+							fallbackHint="The practice list could not be loaded — enter the practice id directly."
+						/>
 					</label>
 					<label class="label col-span-2">
 						<span class="label-text text-sm">Cobenefits</span>
@@ -212,7 +228,7 @@
 						<input type="text" name="methodologies" value={v('methodologies')} class="input" placeholder="e.g., Verra VM0042" />
 					</label>
 
-					<!-- Website, Image, Activity Plan ID: 2 cols each -->
+					<!-- Website, Image: 2 cols each -->
 					<label class="label col-span-2">
 						<span class="label-text text-sm">Website</span>
 						<input type="url" name="website" value={v('website')} class="input" placeholder="https://..." />
@@ -221,11 +237,6 @@
 						<span class="label-text text-sm">Image URL</span>
 						<input type="url" name="image" value={v('image')} class="input" placeholder="https://..." />
 					</label>
-					<label class="label col-span-2">
-						<span class="label-text text-sm">Activity Plan ID</span>
-						<input type="text" name="activity_plan_id" value={v('activity_plan_id')} class="input" />
-					</label>
-
 					<!-- Media Links: full width -->
 					<label class="label col-span-2 md:col-span-6">
 						<span class="label-text text-sm">Media Links</span>
@@ -430,14 +441,12 @@
 								{/if}
 							</div>
 
-							{#if parcel.activity_parcel_verifications && parcel.activity_parcel_verifications.length > 0}
+							{#if parcel.activity_verifications && parcel.activity_verifications.length > 0}
 								<div class="border-t border-surface-300-700 pt-2 mb-2">
-									<p class="text-xs font-semibold text-surface-600-400 mb-1">Activity Parcel Verifications</p>
+									<p class="text-xs font-semibold text-surface-600-400 mb-1">Activity Verifications</p>
 									<div class="flex flex-wrap gap-1">
-										{#each parcel.activity_parcel_verifications as ver}
-											<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">
-												{ver.status_code}{#if ver.amount !== undefined} ({ver.amount}){/if}
-											</span>
+										{#each parcel.activity_verifications as ver}
+											<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
 										{/each}
 									</div>
 								</div>
@@ -450,20 +459,6 @@
 										<div class="flex flex-wrap gap-1">
 											{#each parcel.owner_verifications as ver}
 												<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">{ver.status_code}</span>
-											{/each}
-										</div>
-									{:else}
-										<p class="text-xs text-surface-600-400">None.</p>
-									{/if}
-								</div>
-								<div>
-									<p class="text-xs font-semibold text-surface-600-400 mb-1">Monitoring Verifications</p>
-									{#if parcel.monitoring_verifications && parcel.monitoring_verifications.length > 0}
-										<div class="flex flex-wrap gap-1">
-											{#each parcel.monitoring_verifications as ver}
-												<span class="badge badge-sm {ver.status_code === 'verified' ? 'preset-filled-success-500' : ver.status_code === 'failed' ? 'preset-filled-error-500' : 'preset-filled-warning-500'}">
-													{ver.status_code}{#if ver.amount !== undefined} ({ver.amount}){/if}
-												</span>
 											{/each}
 										</div>
 									{:else}

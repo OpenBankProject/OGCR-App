@@ -7,9 +7,6 @@
 
 @import '@skeletonlabs/skeleton-svelte';
 
-/* Inter font (matches OGCR design system) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 /* for dark mode toggling */
 @custom-variant dark (&:where([data-mode=dark], [data-mode=dark] *));
 
