@@ -28,9 +28,10 @@ export const actions: Actions = {
 			settlement_account_id: (formData.get('settlement_account_id') as string) ?? ''
 		};
 
+		// The API expects amounts as decimal strings (e.g. "50.0"), not numbers.
 		const body: Record<string, unknown> = {
 			address: values.address,
-			amount: values.amount ? Number(values.amount) : undefined,
+			amount: values.amount || undefined,
 			settlement_account_id: values.settlement_account_id
 		};
 		for (const key of Object.keys(body)) {

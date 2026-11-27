@@ -20,6 +20,18 @@ import { building } from '$app/environment';
 // Dev server port, must match `server.port` in vite.config.ts and the OAuth callback URL.
 const DEFAULT_PORT = 5200;
 
+// Routes that must be reachable without an authenticated session. Everything
+// else is denied-by-default so a new route can't accidentally skip auth by
+// forgetting to add its own check.
+const PUBLIC_ROUTE_PREFIXES = ['/login', '/logout', '/design', '/api/'];
+
+function isPublicRoute(routeId: string): boolean {
+	if (routeId === '/') return true;
+	return PUBLIC_ROUTE_PREFIXES.some(
+		(prefix) => routeId === prefix.replace(/\/$/, '') || routeId.startsWith(prefix)
+	);
+}
+
 // Check if the dev server is running on a port other than the one the OAuth callback
 // URL was registered for. Skipped in production, where PORT is set by the container.
 function checkServerPort() {
@@ -132,8 +144,7 @@ function initHealthChecks() {
 initHealthChecks();
 
 function needsAuthorization(routeId: string): boolean {
-	// protected routes are put in the /(protected)/ route group
-	return routeId.startsWith('/(protected)/');
+	return !isPublicRoute(routeId);
 }
 
 const checkSessionValidity: Handle = async ({ event, resolve }) => {

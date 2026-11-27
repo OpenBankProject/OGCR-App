@@ -1,6 +1,6 @@
 import { createLogger } from '$lib/utils/logger';
 const logger = createLogger('OAuth2Client');
-import { OAuth2Client } from 'arctic';
+import { OAuth2Client, CodeChallengeMethod } from 'arctic';
 import type { OpenIdConnectConfiguration, OAuth2AccessTokenPayload } from '$lib/oauth/types';
 import { jwtDecode } from 'jwt-decode';
 
@@ -79,6 +79,26 @@ export class OAuth2ClientWithConfig extends OAuth2Client {
 		return super.createAuthorizationURL(authEndpoint, state, scopes);
 	}
 
+	/**
+	 * PKCE-protected variant (RFC 7636), fixed to S256: mitigates authorization-code
+	 * interception. Named distinctly (not an override) since the base class's
+	 * createAuthorizationURLWithPKCE takes the challenge method as its own parameter.
+	 */
+	createAuthorizationURLWithPKCES256(
+		authEndpoint: string,
+		state: string,
+		codeVerifier: string,
+		scopes: string[]
+	): URL {
+		return super.createAuthorizationURLWithPKCE(
+			authEndpoint,
+			state,
+			CodeChallengeMethod.S256,
+			codeVerifier,
+			scopes
+		);
+	}
+
 	async validateAuthorizationCode(
 		tokenEndpoint: string,
 		code: string,
@@ -123,7 +143,8 @@ export class OAuth2ClientWithConfig extends OAuth2Client {
 			body.set('code_verifier', codeVerifier);
 		}
 
-		logger.debug(`Token request body: ${body.toString()}`);
+		// Not logging the body: it carries the single-use authorization code
+		// (and, for public clients, the client_id), both secrets in transit.
 
 		const response = await fetch(tokenEndpoint, {
 			method: 'POST',

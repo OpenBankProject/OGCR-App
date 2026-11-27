@@ -26,11 +26,16 @@ interface MyAccount {
 /** Trading activity per account, keyed by `${bank_id}:${account_id}`. */
 export type TradingActivity = Record<string, { offers: number | null }>;
 
+function isUnauthorized(error: unknown): boolean {
+	return error instanceof OBPRequestError && error.code === '401';
+}
+
 /**
  * For each account, count its trading offers so the UI can flag which accounts
  * have actually been used for trading. Runs in parallel; a per-account failure
  * (e.g. no trading view, endpoint not enabled) is recorded as `null` (unknown)
- * rather than failing the whole page.
+ * rather than failing the whole page. A 401 is re-thrown so the caller can
+ * distinguish "expired session" from "trading not enabled for this account".
  */
 async function buildTradingActivity(
 	accounts: MyAccount[],
@@ -48,7 +53,10 @@ async function buildTradingActivity(
 			const offers = await obp_requests
 				.get(tradingPaths.offers(ctx), accessToken)
 				.then((r) => (r.offers ?? []).length as number)
-				.catch(() => null);
+				.catch((error) => {
+					if (isUnauthorized(error)) throw error;
+					return null;
+				});
 			return [key, { offers }] as const;
 		})
 	);
@@ -78,11 +86,32 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	// Fetch banks and the stored current bank in parallel. Either may fail
-	// independently without blocking the accounts list below.
+	// independently without blocking the accounts list below, but a 401 means
+	// the session's access token has expired and must be surfaced, not hidden
+	// behind an empty bank list.
+	let sessionExpired = false;
 	const [banks, current] = await Promise.all([
-		fetchBanks(accessToken).catch(() => [] as BankOption[]),
-		getCurrentBankField(accessToken).catch(() => ({ bankId: null, attributeId: null }))
+		fetchBanks(accessToken).catch((error) => {
+			if (isUnauthorized(error)) sessionExpired = true;
+			return [] as BankOption[];
+		}),
+		getCurrentBankField(accessToken).catch((error) => {
+			if (isUnauthorized(error)) sessionExpired = true;
+			return { bankId: null, attributeId: null };
+		})
 	]);
+
+	if (sessionExpired) {
+		return {
+			isAuthenticated: true,
+			defaults,
+			accounts: null,
+			activity: {} as TradingActivity,
+			banks: [] as BankOption[],
+			currentBankId: '',
+			error: 'Your session has expired. Please log in again.'
+		};
+	}
 
 	// Selection precedence: stored CURRENT_BANK_ID -> env default -> first bank.
 	const currentBankId =

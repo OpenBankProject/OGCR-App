@@ -6,6 +6,7 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let copied = $state(false);
+	let submitting = $state(false);
 
 	const ctxBase = $derived(
 		`/trading/banks/${encodeURIComponent(data.ctx.bankId)}/accounts/${encodeURIComponent(data.ctx.accountId)}/views/${encodeURIComponent(data.ctx.viewId)}`
@@ -95,7 +96,17 @@
 	{/if}
 
 	<div class="card p-8 preset-filled-surface-100-900">
-		<form method="POST" use:enhance class="space-y-6">
+		<form
+			method="POST"
+			use:enhance={() => {
+				submitting = true;
+				return async ({ update }) => {
+					await update();
+					submitting = false;
+				};
+			}}
+			class="space-y-6"
+		>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<label class="label">
 					<span class="label-text">Offer Type *</span>
@@ -207,7 +218,9 @@
 				</label>
 			</div>
 
-			<button type="submit" class="btn preset-filled-primary-500">Create Offer</button>
+			<button type="submit" class="btn preset-filled-primary-500" disabled={submitting}>
+				{submitting ? 'Creating…' : 'Create Offer'}
+			</button>
 		</form>
 	</div>
 {/if}

@@ -1,13 +1,17 @@
 import { createLogger } from '$lib/utils/logger';
 const logger = createLogger('ProviderLogin');
-import { generateState } from 'arctic';
+import { generateState, generateCodeVerifier } from 'arctic';
 import { oauth2ProviderFactory } from '$lib/oauth/providerFactory';
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
+import { isSafeRelativePath } from '$lib/utils/safeRedirect';
 
 export async function GET(event: RequestEvent) {
 	const { provider } = event.params;
-	const targetLocation = event.url.searchParams.get('target_location');
+	const requestedTarget = event.url.searchParams.get('target_location');
+	// Only ever follow a same-origin relative path; anything else is dropped
+	// rather than stored, so it can't be replayed as an open redirect later.
+	const targetLocation = isSafeRelativePath(requestedTarget) ? requestedTarget : null;
 
 	if (!provider) {
 		logger.error('No provider specified in URL');
@@ -48,9 +52,23 @@ export async function GET(event: RequestEvent) {
 	}
 
 	try {
-		const url = oauthClient.createAuthorizationURL(auth_endpoint, encodedState, scopes);
+		const codeVerifier = generateCodeVerifier();
+		const url = oauthClient.createAuthorizationURLWithPKCES256(
+			auth_endpoint,
+			encodedState,
+			codeVerifier,
+			scopes
+		);
 
 		event.cookies.set('ogcr_oauth_state', encodedState, {
+			httpOnly: true,
+			maxAge: 60 * 10,
+			secure: import.meta.env.PROD,
+			path: '/',
+			sameSite: 'lax'
+		});
+
+		event.cookies.set('ogcr_oauth_verifier', codeVerifier, {
 			httpOnly: true,
 			maxAge: 60 * 10,
 			secure: import.meta.env.PROD,
